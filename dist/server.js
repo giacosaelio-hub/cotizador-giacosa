@@ -24325,17 +24325,17 @@ function buildCaption(body) {
     ...productos.map((p) => `\u2022 ${p.descripcion} | ${p.medida} | x${p.cantidad} | ${fmt(p.subtotalARS)}`),
     ``
   ];
-  if (Math.abs(diferencia) > 0) {
-    lines.push(`SUBTOTAL: ${fmt(subtotal)}`);
-    if (diferencia > 0) {
-      lines.push(`DESCUENTO (${pagoTipo || "Descuento"}): -${fmt(diferencia)}`);
-    } else {
-      lines.push(`RECARGO (${pagoTipo || "Recargo"}): +${fmt(Math.abs(diferencia))}`);
-    }
-    lines.push(`TOTAL FINAL: ${fmt(totalARS)}`);
+  // SIEMPRE mostrar subtotal
+lines.push(`SUBTOTAL: ${fmt(subtotal)}`);
+if (Math.abs(diferencia) > 0) {
+  if (diferencia > 0) {
+    lines.push(`DESCUENTO (${pagoTipo || "Descuento"}): -${fmt(diferencia)}`);
   } else {
-    lines.push(`TOTAL: ${fmt(totalARS)}`);
+    lines.push(`RECARGO (${pagoTipo || "Recargo"}): +${fmt(Math.abs(diferencia))}`);
   }
+}
+// SIEMPRE mostrar total final
+lines.push(`TOTAL FINAL: ${fmt(totalARS)}`);
   if (pagoTipo) {
     lines.push(``, `FORMA DE PAGO: ${pagoTipo}`);
     if (!esEfectivo && !esTransferencia && numCuotas > 1 && importeCuota && importeCuota > 0) {
