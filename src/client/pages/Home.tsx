@@ -414,7 +414,7 @@ export default function Home({ precios, onSelect }: Props) {
             },
             {
               q: "¿Cuál es la diferencia entre galvanizada, cincalum y prepintada?",
-              a: "• Galvanizada: más económica, ideal para galpones o estructuras secundarias.\n• Cincalum: mayor durabilidad ante la intemperie, excelente para techos expuestos.\n• Prepintada: mejor terminación estética, ideal para viviendas donde la apariencia importa.",
+              a: "• Galvanizada: más económica, ideal para galpones o estructuras secundarias.\n• Cincalum: Debido a su baño en aluminio, tiene una mayor durabilidad y gran resistencia a la corrosion, siendo excelente para techos expuestos .\n• Prepintada: Con una pintura epoxi, llevandola a ser la mas durarera y con su terminación estética, es ideal para viviendas donde la apariencia importa.",
             },
           ].map(({ q, a }) => (
             <details key={q} className="bg-white rounded-2xl border border-gray-100 shadow-sm group">
