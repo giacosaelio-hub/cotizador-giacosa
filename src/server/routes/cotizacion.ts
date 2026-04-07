@@ -108,17 +108,20 @@ function buildCaption(body: CotizacionBody): string {
     ``,
   ];
 
-  if (Math.abs(diferencia) > 0) {
-    lines.push(`SUBTOTAL: ${fmt(subtotal)}`);
-    if (diferencia > 0) {
-      lines.push(`DESCUENTO (${pagoTipo || "Descuento"}): -${fmt(diferencia)}`);
-    } else {
-      lines.push(`RECARGO (${pagoTipo || "Recargo"}): +${fmt(Math.abs(diferencia))}`);
-    }
-    lines.push(`TOTAL FINAL: ${fmt(totalARS)}`);
+  // SIEMPRE mostrar subtotal
+lines.push(`SUBTOTAL: ${fmt(subtotal)}`);
+
+// Mostrar descuento o recargo SOLO si existe
+if (Math.abs(diferencia) > 0) {
+  if (diferencia > 0) {
+    lines.push(`DESCUENTO (${pagoTipo || "Descuento"}): -${fmt(diferencia)}`);
   } else {
-    lines.push(`TOTAL: ${fmt(totalARS)}`);
+    lines.push(`RECARGO (${pagoTipo || "Recargo"}): +${fmt(Math.abs(diferencia))}`);
   }
+}
+
+// SIEMPRE mostrar total final
+lines.push(`TOTAL FINAL: ${fmt(totalARS)}`);
 
   if (pagoTipo) {
     lines.push(``, `FORMA DE PAGO: ${pagoTipo}`);
