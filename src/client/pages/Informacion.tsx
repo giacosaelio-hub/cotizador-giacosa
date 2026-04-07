@@ -94,11 +94,11 @@ export default function Informacion({ onCotizar }: Props) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SubCard
             title="Sinusoidal"
-            text="Uso general en techos y cerramientos. El perfil ondulado es el más común en construcciones residenciales."
+            text="Mayor resistencia estructural. Ideal para superficies más grandes o exigidas como galpones industriales."
           />
           <SubCard
             title="Trapezoidal"
-            text="Mayor resistencia estructural. Ideal para superficies más grandes o exigidas como galpones industriales."
+            text="Uso general en techos y cerramientos. El perfil ondulado es el más común en construcciones residenciales."
           />
         </div>
       </Section>
