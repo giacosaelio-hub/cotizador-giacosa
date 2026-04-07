@@ -154,7 +154,16 @@ async function enviarATelegram(body: CotizacionBody): Promise<void> {
   } else {
     await sendTelegramMessage(chatId, caption);
   }
-
+// 🔥 ENVIAR A N8N (WEBHOOK)
+await fetch("https://cotizadorgiacosa-n8n.e6tqu7.easypanel.host/webhook/cotizacion", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    texto: caption
+  })
+});
   console.log("Enviado correctamente");
 }
 
