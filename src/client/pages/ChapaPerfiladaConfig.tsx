@@ -33,6 +33,21 @@ const MATERIAL_IMAGES: Record<string, string> = {
   prepintada: "/images/configurador/materiales/prepintada.png",
 };
 
+const SINUSOIDAL_MATERIAL_IMAGES: Record<string, string> = {
+  galv: "/images/configurador/materiales/sinusoidal-galvanizada.png",
+  cincalum: "/images/configurador/materiales/sinusoidal-cincalum.png",
+  prepintada: "/images/configurador/materiales/sinusoidal-prepintada.png",
+};
+
+function getMaterialImage(perfil: string, material: string): string {
+  if (perfil === "sinusoidal" && SINUSOIDAL_MATERIAL_IMAGES[material]) {
+    return SINUSOIDAL_MATERIAL_IMAGES[material];
+  }
+
+  return MATERIAL_IMAGES[material];
+}
+
+
 const PERFIL_DESCS: Record<string, string> = {
   sinusoidal: "Clásica para techos y cerramientos.",
   trapezoidal: "Mayor rigidez para cubiertas amplias.",
@@ -47,7 +62,6 @@ const MATERIAL_DESCS: Record<string, string> = {
 const COLOR_SWATCHES: Record<string, string> = {
   azul: "#1E40AF",
   gris: "#6B7280",
-  celeste: "#38BDF8",
   negra: "#111827",
   negro: "#111827",
   roja: "#DC2626",
@@ -270,7 +284,6 @@ export default function ChapaPerfiladaConfig({
       subtotalARS,
     });
 
-    alert("Producto agregado a tu cotización");
   }
 
   return (
@@ -384,7 +397,7 @@ export default function ChapaPerfiladaConfig({
                       >
                         <div className="relative h-32 overflow-hidden bg-gradient-to-b from-slate-50 to-white">
                           <img
-                            src={MATERIAL_IMAGES[m.v]}
+                            src={getMaterialImage(perfil, m.v)}
                             alt={m.label}
                             className="h-full w-full object-contain px-7 py-4 transition-transform duration-300 group-hover:scale-[1.015]"
                             style={{ objectPosition: "center center" }}

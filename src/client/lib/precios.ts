@@ -73,7 +73,7 @@ export const MATERIALES = [
 
 export const CALIBRES_CHAPA = ["24", "27"];
 
-export const COLORES_PREPINTADA = ["Azul", "Gris", "Celeste", "Negra", "Roja", "Verde"];
+export const COLORES_PREPINTADA = ["Azul", "Gris", "Negra", "Roja", "Verde"];
 
 export const CHAPAS_ESTANDAR_CATS = [
   { key: "estampada", label: "Chapa Negra Estampada" },

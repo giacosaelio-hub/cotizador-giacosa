@@ -34,7 +34,6 @@ const colorStyles: Record<string, string> = {
   azul: "#1d4ed8",
   verde: "#15803d",
   gris: "#6b7280",
-  celeste: "#38bdf8",
 };
 
 function parseDecimal(value: string): number {
@@ -327,7 +326,6 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
       precioUnitarioARS: precioBobinaCompletaARS,
       subtotalARS: precioBobinaCompletaARS * cantidad,
     });
-    window.alert("Producto agregado a tu cotización");
   }
 
   function handleWhatsApp() {

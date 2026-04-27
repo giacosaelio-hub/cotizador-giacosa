@@ -42,7 +42,6 @@ const CATEGORY_IMAGES: Record<string, string> = {
 const colorStyles: Record<string, string> = {
   azul: "#1d4ed8",
   gris: "#6b7280",
-  celeste: "#38bdf8",
   negra: "#111827",
   negro: "#111827",
   roja: "#dc2626",
@@ -317,7 +316,6 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
       precioUnitarioARS,
       subtotalARS,
     });
-    window.alert("Producto agregado a tu cotización");
   }
 
   const selectedImage = getCategoryImage(categoria, catLabel);
