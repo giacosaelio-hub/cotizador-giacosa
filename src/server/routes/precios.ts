@@ -1,15 +1,28 @@
 import { Router, type IRouter } from "express";
-import { readFileSync, writeFileSync } from "fs";
-import { join } from "path";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 import { requireAdminAuth } from "../lib/adminSession";
 
 const router: IRouter = Router();
 
-const PRECIOS_PATH = process.env.PRECIOS_PATH || join(process.cwd(), "precios.json");
+const PRECIOS_PATH =
+  process.env.PRECIOS_PATH || join(process.cwd(), "precios.json");
+
+function ensurePreciosFile() {
+  if (existsSync(PRECIOS_PATH)) return;
+
+  const fallbackPath = join(process.cwd(), "precios.json");
+  const initialData = readFileSync(fallbackPath, "utf-8");
+
+  mkdirSync(dirname(PRECIOS_PATH), { recursive: true });
+  writeFileSync(PRECIOS_PATH, initialData);
+}
 
 // GET /precios es pública (ya no usa requireAdminAuth)
 router.get("/precios", (_req, res) => {
   try {
+    ensurePreciosFile();
+
     const raw = readFileSync(PRECIOS_PATH, "utf-8");
     const precios = JSON.parse(raw);
     res.json(precios);
@@ -22,16 +35,20 @@ router.get("/precios", (_req, res) => {
 // POST /precios sólo admin (mantiene protección requireAdminAuth)
 router.post("/precios", requireAdminAuth, (req, res): void => {
   try {
+    ensurePreciosFile();
+
     const body = req.body;
     if (!body || typeof body !== "object") {
       res.status(400).json({ success: false, message: "Cuerpo inválido" });
       return;
     }
+
     const current = JSON.parse(readFileSync(PRECIOS_PATH, "utf-8"));
 
     // Asegurarse que el valor para dólar acepte 0 como válido y rechace NaN y strings vacíos
     let dolarActualizado: unknown = body.dolar;
     let dolar: number | undefined;
+
     if (typeof dolarActualizado === "number") {
       dolar = !isNaN(dolarActualizado) ? dolarActualizado : undefined;
     } else if (
@@ -52,6 +69,7 @@ router.post("/precios", requireAdminAuth, (req, res): void => {
       chapas_estandar: body.chapas_estandar ?? current.chapas_estandar,
       formas_pago: body.formas_pago ?? current.formas_pago,
     };
+
     writeFileSync(PRECIOS_PATH, JSON.stringify(updated, null, 2));
     res.json({ success: true, precios: updated });
   } catch (err) {
