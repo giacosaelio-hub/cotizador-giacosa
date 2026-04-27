@@ -1,0 +1,521 @@
+{
+  "dolar": 1440,
+  "chapas_perfiladas": {
+    "sinusoidal_galv_24": 132.54,
+    "sinusoidal_galv_27": 113.36,
+    "sinusoidal_cincalum_24": 133.42,
+    "sinusoidal_cincalum_27": 112.64,
+    "sinusoidal_prepintada_24": 200.22,
+    "trapezoidal_cincalum_24": 133.42,
+    "trapezoidal_cincalum_27": 113.36,
+    "trapezoidal_prepintada_24": 200.22
+  },
+  "bobinas": {
+    "22": 8,
+    "24": 180,
+    "25": 7,
+    "27": 6
+  },
+  "bobinas_variantes": [
+    {
+      "id": "bob-22-100",
+      "calibre": 22,
+      "ancho": 1,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 17.54
+    },
+    {
+      "id": "bob-22-122",
+      "calibre": 22,
+      "ancho": 1.22,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 21.41
+    },
+    {
+      "id": "bob-25-041",
+      "calibre": 25,
+      "ancho": 0.41,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 3.55
+    },
+    {
+      "id": "bob-25-061",
+      "calibre": 25,
+      "ancho": 0.61,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 5.23
+    },
+    {
+      "id": "bob-25-081",
+      "calibre": 25,
+      "ancho": 0.81,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 7.09
+    },
+    {
+      "id": "bob-25-122-galv",
+      "calibre": 25,
+      "ancho": 1.22,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 10.04
+    },
+    {
+      "id": "bob-25-122-blanco",
+      "calibre": 25,
+      "ancho": 1.22,
+      "tipo": "Prepintada",
+      "color": "Blanco",
+      "precio": 16.94
+    },
+    {
+      "id": "bob-25-122-negro",
+      "calibre": 25,
+      "ancho": 1.22,
+      "tipo": "Prepintada",
+      "color": "Negro",
+      "precio": 16.94
+    },
+    {
+      "id": "bob-27-041",
+      "calibre": 27,
+      "ancho": 0.41,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 3.25
+    },
+    {
+      "id": "bob-27-061",
+      "calibre": 27,
+      "ancho": 0.61,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 4.81
+    },
+    {
+      "id": "bob-27-081",
+      "calibre": 27,
+      "ancho": 0.81,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 6.45
+    },
+    {
+      "id": "bob-27-122",
+      "calibre": 27,
+      "ancho": 1.22,
+      "tipo": "Galvanizada",
+      "color": null,
+      "precio": 8.58
+    }
+  ],
+  "chapas_estandar": {
+    "estampada": {
+      "N18_1x2": 45.88,
+      "N18_1.22x2.44": 63.93,
+      "N20_1x2": 31.44,
+      "N20_1.22x2.44": 43.86
+    },
+    "lisa_negra": {
+      "N14_1x2": 58.12,
+      "N14_1.22x2.44": 84.19,
+      "N16_1x2": 46.09,
+      "N16_1.22x2.44": 66.73,
+      "N18_1x2": 36.69,
+      "N18_1.22x2.44": 53.14,
+      "N20_1x2": 25.55,
+      "N20_1.22x2.44": 37.01,
+      "N22_1x2": 21.1,
+      "N22_1.22x2.44": 30.57,
+      "N27_1x2": 12.49,
+      "N24_1x2": 17.01,
+      "N24_1.22x2.44": 24.67
+    },
+    "lisa_galv": {
+      "N14_1x2": 75.75,
+      "N14_1.22x2.44": 87.65,
+      "N16_1x2": 51.13,
+      "N16_1.22x2.44": 73.98,
+      "N18_1x2": 35.54,
+      "N18_1.22x2.44": 51.44,
+      "N20_1x2": 29.47,
+      "N20_1.22x2.44": 42.68,
+      "N22_1x2": 25.94,
+      "N22_1.22x2.44": 37.56,
+      "N24_1.22x2.44": 26.06,
+      "N27_1.22x2.44": 22.91,
+      "N30_1x2": 14.27
+    },
+    "lisa_prepintada": {
+      "N25_1.22x2.44": 41.79,
+      "N27_1.22x2.44": 41.79
+    }
+  },
+  "formas_pago": [
+    {
+      "id": "debito",
+      "label": "Débito",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 pago",
+          "porcentaje": -15,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "visa_master",
+      "label": "Visa / Mastercard",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "9",
+          "label": "9 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "12",
+          "label": "12 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "naranja",
+      "label": "Naranja",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "5",
+          "label": "5 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "9",
+          "label": "9 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "10",
+          "label": "10 cuotas",
+          "porcentaje": 10,
+          "activo": true
+        },
+        {
+          "key": "12",
+          "label": "12 cuotas",
+          "porcentaje": 10,
+          "activo": true
+        },
+        {
+          "key": "zeta",
+          "label": "Plan Zeta",
+          "porcentaje": -10,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "naranja_visa",
+      "label": "Naranja Visa",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "9",
+          "label": "9 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "12",
+          "label": "12 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "sol",
+      "label": "Sol",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "9",
+          "label": "9 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "12",
+          "label": "12 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "18",
+          "label": "18 cuotas",
+          "porcentaje": 10,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "cencosud",
+      "label": "Cencosud",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "9",
+          "label": "9 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "12",
+          "label": "12 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "amex_bancarizada",
+      "label": "American Express (bancarizada)",
+      "cuotas": [
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "cabal",
+      "label": "Cabal",
+      "cuotas": [
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "sucredito",
+      "label": "Sucredito",
+      "cuotas": [
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "5",
+          "label": "5 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "titanio",
+      "label": "Titanio",
+      "cuotas": [
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "credicash",
+      "label": "Credicash",
+      "cuotas": [
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": -10,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "9",
+          "label": "9 cuotas",
+          "porcentaje": 5,
+          "activo": true
+        },
+        {
+          "key": "12",
+          "label": "12 cuotas",
+          "porcentaje": 10,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "amex_propia",
+      "label": "American Express (propia)",
+      "cuotas": [
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 10,
+          "activo": true
+        }
+      ]
+    },
+    {
+      "id": "titanio_argencard",
+      "label": "Titanio Argencard",
+      "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
+          "key": "3",
+          "label": "3 cuotas",
+          "porcentaje": 0,
+          "activo": true
+        },
+        {
+          "key": "6",
+          "label": "6 cuotas",
+          "porcentaje": 5,
+          "activo": true
+        }
+      ]
+    }
+  ]
+}

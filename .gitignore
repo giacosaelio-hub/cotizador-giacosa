@@ -1,0 +1,16 @@
+node_modules
+dist
+
+.env
+.env.*
+!.env.example
+
+data/counter.json
+
+.DS_Store
+.vscode
+.idea
+
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
