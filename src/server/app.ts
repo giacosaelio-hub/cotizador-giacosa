@@ -53,8 +53,18 @@ app.use("/api", router);
 
 if (isProd) {
   const publicDir = path.resolve(process.cwd(), "dist/public");
-  app.use(express.static(publicDir));
-  app.get("*", (_req, res) => {
+  app.use(
+    express.static(publicDir, {
+      extensions: ["html"],
+      index: false,
+    })
+  );
+  app.get("*", (req, res) => {
+    const ext = path.extname(req.path);
+    if (ext && ext !== ".html") {
+      res.status(404).send("Not found");
+      return;
+    }
     res.sendFile(path.join(publicDir, "index.html"));
   });
 }
