@@ -1,7 +1,8 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import {
   Precios,
   CartItem,
+  Preselection,
   COLORES_PREPINTADA,
   PIES_OPTIONS,
   calcChapaPrecio,
@@ -9,6 +10,8 @@ import {
 } from "@/lib/precios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Plus } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { stepVariant } from "@/lib/motion";
 
 // Etiquetas visuales para mostrar en la UI (no hardcodean disponibilidad)
 const PERFIL_LABELS: Record<string, { label: string; anchoUtil: number }> = {
@@ -49,14 +52,14 @@ function getMaterialImage(perfil: string, material: string): string {
 
 
 const PERFIL_DESCS: Record<string, string> = {
-  sinusoidal: "Clásica para techos y cerramientos.",
-  trapezoidal: "Mayor rigidez para cubiertas amplias.",
+  sinusoidal: "La más usada en Tucumán. Ideal para techos y cerramientos.",
+  trapezoidal: "Mayor superficie cubierta por chapa. Para cubiertas amplias.",
 };
 
 const MATERIAL_DESCS: Record<string, string> = {
-  galv: "Recubrimiento de zinc, resistente y práctico.",
-  cincalum: "Aluminio + zinc, ideal para exterior.",
-  prepintada: "Terminación color lista para instalar.",
+  galv: "Zinc estándar. Resistente y de buen precio.",
+  cincalum: "Zinc + aluminio. Mayor durabilidad en exterior.",
+  prepintada: "Con terminación de color. Lista para instalar.",
 };
 
 const COLOR_SWATCHES: Record<string, string> = {
@@ -67,6 +70,15 @@ const COLOR_SWATCHES: Record<string, string> = {
   roja: "#DC2626",
   rojo: "#DC2626",
   verde: "#15803D",
+};
+
+// Mapa directo nombre → clave de swatch (evita regex de diacríticos)
+const COLOR_KEY_MAP: Record<string, string> = {
+  Azul: "azul",
+  Gris: "gris",
+  Negra: "negra",
+  Roja: "roja",
+  Verde: "verde",
 };
 
 function formatMetros(pies: number, anchoUtil: number): string {
@@ -135,25 +147,47 @@ function Chips({
 
 export default function ChapaPerfiladaConfig({
   precios,
+  preselection,
   onBack,
   onAdd,
 }: {
   precios: Precios;
+  preselection?: Preselection | null;
   onBack: () => void;
   onAdd: (item: Omit<CartItem, "id">) => void;
 }) {
-  const [perfil, setPerfil] = useState("");
-  const [material, setMaterial] = useState("");
+  const keys = useMemo(() => Object.keys(precios.chapas_perfiladas), [precios]);
+
+  // Validar preselección contra datos reales antes de inicializar
+  const initialPerfil = useMemo(() => {
+    const slug = preselection?.perfil ?? "";
+    const disponibles = new Set(keys.map((k) => k.split("_")[0]));
+    return disponibles.has(slug) ? slug : "";
+  }, [preselection, keys]);
+
+  const [perfil, setPerfil] = useState(initialPerfil);
+  const [material, setMaterial] = useState(preselection?.material ?? "");
   const [calibre, setCalibre] = useState("");
   const [color, setColor] = useState("");
   const [pies, setPies] = useState("");
   const [cantidad, setCantidad] = useState(1);
   const [error, setError] = useState("");
+
+  const materialRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
 
-  const keys = useMemo(() => Object.keys(precios.chapas_perfiladas), [precios]);
+  // Scroll al paso 02 si ya viene con perfil preseleccionado
+  useEffect(() => {
+    if (initialPerfil && materialRef.current) {
+      const timer = setTimeout(() => {
+        materialRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, []); // solo en mount
 
   const perfilesDisponibles = useMemo(() => {
     const found = new Set<string>();
@@ -303,9 +337,12 @@ export default function ChapaPerfiladaConfig({
           <div className="grid items-stretch lg:grid-cols-[1.2fr_0.8fr]">
             <div className="relative p-6 sm:p-8">
               <p className="mb-2 text-xs font-black uppercase tracking-[0.20em] text-emerald-700">Inicio / Chapas para Techo</p>
-              <h2 className="max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">Configurá tu chapa</h2>
+              <h1 className="max-w-2xl text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
+                Chapas perfiladas a medida
+              </h1>
               <p className="mt-3 max-w-xl text-base font-medium leading-7 text-slate-600">
-                Elegí perfil, material, largo y cantidad. El resumen se actualiza al instante antes de agregar al carrito.
+                Cortamos al largo que necesitás. Sinusoidal o trapezoidal, galvanizada, cincalum o prepintada.
+                Elegí perfil, material, calibre y cantidad.
               </p>
             </div>
             <div className="relative hidden min-h-[190px] overflow-hidden bg-slate-950 lg:block">
@@ -381,7 +418,7 @@ export default function ChapaPerfiladaConfig({
             </section>
 
             {perfil ? (
-              <section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5">
+              <motion.section ref={materialRef} className="scroll-mt-28 rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="02" title="Elegí el material" description="La terminación define durabilidad, color y uso recomendado." />
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
                   {materialesDisponibles.map((m) => {
@@ -431,11 +468,11 @@ export default function ChapaPerfiladaConfig({
                   })}
                 </div>
                 {materialesDisponibles.length === 0 ? <p className="mt-3 text-sm text-slate-500">No hay materiales disponibles para este perfil.</p> : null}
-              </section>
+              </motion.section>
             ) : null}
 
             {perfil && material && calibresDisponibles.length > 0 ? (
-              <section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5">
+              <motion.section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="03" title="Seleccioná calibre" description="El calibre varía según perfil y material elegido." />
                 <Chips
                   options={calibresDisponibles.map((c) => ({ v: c, label: `Cal. ${c}` }))}
@@ -444,7 +481,7 @@ export default function ChapaPerfiladaConfig({
                   disabled={!material}
                 />
                 <p className="mt-3 text-sm text-slate-500">Cal. 24 = más grueso · Cal. 27 = más liviano</p>
-              </section>
+              </motion.section>
             ) : null}
 
             {perfil && material && calibresDisponibles.length === 0 ? (
@@ -460,35 +497,42 @@ export default function ChapaPerfiladaConfig({
             ) : null}
 
             {isPrepintada && calibre && combinacionValida ? (
-              <section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5">
+              <motion.section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="04" title="Elegí color" description="La imagen es referencial; el color se define acá." />
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-4">
                   {COLORES_PREPINTADA.map((c) => {
-                    const colorKey = c.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                    const bgColor = COLOR_SWATCHES[colorKey] || "#9CA3AF";
+                    const bgColor = COLOR_SWATCHES[COLOR_KEY_MAP[c] ?? c.toLowerCase()] || "#9CA3AF";
                     const selected = color === c;
                     return (
                       <button
                         key={c}
                         type="button"
                         onClick={() => handleChangeColor(c)}
-                        title={c}
                         aria-label={c}
-                        className={`relative h-11 w-11 rounded-full border-2 transition-all hover:scale-105 ${
-                          selected ? "border-emerald-700 ring-4 ring-emerald-100" : "border-white shadow-[0_0_0_1px_rgba(15,23,42,0.12)]"
-                        }`}
-                        style={{ backgroundColor: bgColor }}
+                        className="flex flex-col items-center gap-1.5 focus:outline-none"
                       >
-                        {selected ? <span className="absolute inset-0 flex items-center justify-center text-sm font-black text-white">✓</span> : null}
+                        <span
+                          className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105 ${
+                            selected
+                              ? "ring-2 ring-emerald-600 ring-offset-2"
+                              : "ring-1 ring-slate-200 ring-offset-1"
+                          }`}
+                          style={{ backgroundColor: bgColor }}
+                        >
+                          {selected && (
+                            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white shadow-sm">✓</span>
+                          )}
+                        </span>
+                        <span className={`text-[11px] font-semibold leading-none ${selected ? "text-emerald-700" : "text-slate-500"}`}>{c}</span>
                       </button>
                     );
                   })}
                 </div>
-              </section>
+              </motion.section>
             ) : null}
 
             {combinacionValida && (!isPrepintada || color) ? (
-              <section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5">
+              <motion.section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="05" title="Definí largo y cantidad" description="Seleccioná la medida disponible y cuántas unidades necesitás." />
                 <div className="grid gap-4 md:grid-cols-[1fr_220px]">
                   <div>
@@ -543,7 +587,7 @@ export default function ChapaPerfiladaConfig({
                     Para pedidos grandes te recomendamos consultar directamente con ventas.
                   </p>
                 ) : null}
-              </section>
+              </motion.section>
             ) : null}
           </main>
 
@@ -620,16 +664,18 @@ export default function ChapaPerfiladaConfig({
 
                 {error ? <p className="mt-4 text-sm font-bold text-red-600">⚠ {error}</p> : null}
 
-                <button
+                <motion.button
                   type="button"
                   onClick={handleAdd}
                   disabled={!preview}
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-black text-white shadow-[0_12px_24px_rgba(0,140,69,0.22)] transition-all hover:-translate-y-0.5 hover:brightness-95 disabled:cursor-not-allowed disabled:translate-y-0 disabled:opacity-40"
+                  whileHover={preview ? { scale: 1.02, y: -2 } : {}}
+                  whileTap={preview ? { scale: 0.97 } : {}}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-base font-black text-white shadow-[0_12px_24px_rgba(0,140,69,0.22)] disabled:cursor-not-allowed disabled:opacity-40"
                   style={{ background: preview ? "#008C45" : "#9ca3af" }}
                 >
                   <Plus className="h-5 w-5" />
                   Agregar al carrito
-                </button>
+                </motion.button>
 
                 <p className="mt-3 text-center text-xs font-semibold text-slate-400">
                   Podés modificar tu carrito antes de confirmar.

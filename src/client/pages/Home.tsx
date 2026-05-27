@@ -8,6 +8,8 @@ import {
 } from "lucide-react";
 import { Precios } from "@/lib/precios";
 import React from "react";
+import { motion } from "framer-motion";
+import { staggerContainer, cardVariant } from "@/lib/motion";
 
 // ——— RUTAS DE IMÁGENES (editá solo estos paths) ———
 const heroImage = "/images/hero/hero-chapas.png";
@@ -182,7 +184,7 @@ const cards = [
       </span>
     ),
     desc:
-      "Cortadas a medida desde bobina. Galvanizadas, Cincalum y prepintadas en calibres 24 y 27. Pedí el largo que necesitás.",
+      "Para techos, cubiertas y cerramientos. Chapas de hasta 13 metros cortadas al largo que necesitás. Sinusoidal o trapezoidal, galvanizada, cincalum o prepintada.",
   },
   {
     key: "bobina" as const,
@@ -214,11 +216,11 @@ const cards = [
     title: "Chapas Estándar",
     subtitle: (
       <span className="text-[15px] font-semibold text-red-600">
-        Estampadas · Lisas · LAF · LAC
+        Portones · Herrería · Fabricación
       </span>
     ),
     desc:
-      "Medidas fijas: negras estampadas, lisas negras LAF/LAC, galvanizadas y prepintadas. Consultá por stock disponible.",
+      "Chapas en medidas fijas para portones, revestimientos y piezas metálicas. Negras, galvanizadas y prepintadas. Consultá disponibilidad por calibre.",
   },
 ];
 
@@ -451,7 +453,13 @@ export default function Home({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+          <motion.div
+            className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
             {cards.map((card, i) => {
               const price =
               card.key === "chapa_perfilada"
@@ -460,8 +468,9 @@ export default function Home({
                   ? minBobina
                   : minChapaEstandar;
               return (
-                <button
+                <motion.button
                   key={card.key}
+                  variants={cardVariant}
                   type="button"
                   onClick={() => onSelect(card.key)}
                   className="group relative flex h-full min-h-[420px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400"
@@ -487,10 +496,10 @@ export default function Home({
                       />
                     </div>
                   </div>
-                </button>
+                </motion.button>
               );
             })}
-          </div>
+          </motion.div>
         </div>
       </section>
 
