@@ -1,7 +1,8 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Precios,
   CartItem,
+  Preselection,
   CHAPAS_ESTANDAR_CATS,
   ESTANDAR_VARIANTES,
   MEDIDA_LABELS,
@@ -10,6 +11,8 @@ import {
   calcEstandarPrecio,
   formatARS,
 } from "@/lib/precios";
+import { motion } from "framer-motion";
+import { stepVariant } from "@/lib/motion";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -20,6 +23,7 @@ import {
 
 interface Props {
   precios: Precios;
+  preselection?: Preselection | null;
   onBack: () => void;
   onAdd: (item: Omit<CartItem, "id">) => void;
 }
@@ -49,6 +53,23 @@ const colorStyles: Record<string, string> = {
   verde: "#15803d",
   blanca: "#f8fafc",
   blanco: "#f8fafc",
+};
+
+const CATEGORY_DESCRIPTIONS: Record<string, string> = {
+  estampada: "Para portones y cerramientos. Chapa negra con relieve decorativo.",
+  lisa_negra: "LAF/LAC sin tratamiento. Para herrería, fabricación y estructuras.",
+  lisa_galv: "Con protección de zinc. Resistente a la humedad en exteriores.",
+  lisa_prepintada: "Terminación de color aplicada en fábrica. Lista para instalar.",
+};
+
+const CALIBRE_DESC: Record<string, string> = {
+  "14": "Muy gruesa — uso estructural",
+  "16": "Gruesa — portones y estructuras",
+  "18": "Media-gruesa — herrería general",
+  "20": "Media — buena relación resistencia/peso",
+  "22": "Liviana — revestimiento y cobertura",
+  "24": "Más grueso — mayor resistencia",
+  "27": "Más liviano — uso estándar",
 };
 
 function normalizeCategoryText(value: string): string {
@@ -189,17 +210,34 @@ function OptionButton({
   );
 }
 
-export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
-  const [categoria, setCategoria] = useState("");
+export default function ChapaEstandarConfig({ precios, preselection, onBack, onAdd }: Props) {
+  const initialCategoria = useMemo(() => {
+    const slug = preselection?.categoria ?? "";
+    const disponibles = Object.keys(precios.chapas_estandar || {});
+    return disponibles.includes(slug) ? slug : "";
+  }, [preselection, precios]);
+
+  const [categoria, setCategoria] = useState(initialCategoria);
   const [calibre, setCalibre] = useState("");
   const [medida, setMedida] = useState("");
   const [color, setColor] = useState("");
   const [cantidad, setCantidad] = useState(1);
   const [error, setError] = useState("");
 
+  const calibreRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
+
+  useEffect(() => {
+    if (initialCategoria && calibreRef.current) {
+      const timer = setTimeout(() => {
+        calibreRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 350);
+      return () => clearTimeout(timer);
+    }
+  }, []); // solo en mount
 
   const categoriasDisponibles = Object.keys(precios.chapas_estandar || {});
   const categoriaValida = !!(categoria && categoriasDisponibles.includes(categoria));
@@ -338,10 +376,10 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
             Inicio / Chapas estándar
           </p>
           <h1 className="mt-3 text-3xl font-black tracking-tight text-slate-950 sm:text-4xl">
-            Elegí tu chapa estándar
+            Chapas estándar — Cotizá por unidad
           </h1>
           <p className="mx-auto mt-3 max-w-2xl text-base font-semibold leading-7 text-slate-600">
-            Seleccioná categoría, calibre, medida y cantidad. El precio se actualiza antes de sumar el producto a tu cotización.
+            Chapas en medidas fijas para portones, herrería y fabricación metálica. Elegí categoría, calibre y medida. El precio se actualiza en tiempo real.
           </p>
           <div className="mt-5 flex flex-wrap justify-center gap-2">
             <span className="rounded-full border border-emerald-100 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-emerald-700 shadow-sm">
@@ -394,7 +432,7 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                       <div className="p-4">
                         <h4 className="text-base font-black leading-tight text-slate-950">{c.label}</h4>
                         <p className="mt-1 text-xs font-semibold leading-5 text-slate-500">
-                          Medida fija, lista para cotizar.
+                          {CATEGORY_DESCRIPTIONS[c.key] || "Medida fija, lista para cotizar."}
                         </p>
                       </div>
                       <span
@@ -413,6 +451,7 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
             </SectionCard>
 
             {categoria && (
+              <motion.div ref={calibreRef} className="scroll-mt-28" variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step="02"
                 title="Seleccioná calibre"
@@ -432,7 +471,7 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                         }}
                       >
                         <span className="block text-lg">{c}</span>
-                        <span className="mt-1 block text-xs font-bold opacity-70">Calibre disponible</span>
+                        <span className="mt-1 block text-xs font-bold opacity-70">{CALIBRE_DESC[c] || "Calibre disponible"}</span>
                       </OptionButton>
                     ))}
                   </div>
@@ -442,9 +481,11 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                   </p>
                 )}
               </SectionCard>
+              </motion.div>
             )}
 
             {calibre && medidasDisponibles.length > 0 && (
+              <motion.div variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step="03"
                 title="Elegí la medida"
@@ -467,15 +508,17 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                   ))}
                 </div>
               </SectionCard>
+              </motion.div>
             )}
 
             {isPrepintada && medida && (
+              <motion.div variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step="04"
                 title="Elegí el color"
                 description="El color no cambia la lógica del cálculo; solo identifica la terminación."
               >
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-4">
                   {COLORES_PREPINTADA.map((c) => {
                     const active = color === c;
                     const hex = getColorHex(c);
@@ -487,26 +530,32 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                           setColor(c);
                           setError("");
                         }}
-                        title={c}
                         aria-label={`Color ${c}`}
-                        className={`relative h-12 w-12 rounded-full border-2 transition-all hover:scale-105 ${
-                          active ? "border-emerald-500 shadow-lg shadow-emerald-500/20" : "border-slate-200"
-                        }`}
-                        style={{ backgroundColor: hex }}
+                        className="flex flex-col items-center gap-1.5 focus:outline-none"
                       >
-                        {active && (
-                          <span className="absolute inset-0 m-auto inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-600 text-white">
-                            <CheckCircle2 className="h-4 w-4" />
-                          </span>
-                        )}
+                        <span
+                          className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105 ${
+                            active
+                              ? "ring-2 ring-emerald-600 ring-offset-2"
+                              : "ring-1 ring-slate-200 ring-offset-1"
+                          }`}
+                          style={{ backgroundColor: hex }}
+                        >
+                          {active && (
+                            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white shadow-sm">✓</span>
+                          )}
+                        </span>
+                        <span className={`text-[11px] font-semibold leading-none ${active ? "text-emerald-700" : "text-slate-500"}`}>{c}</span>
                       </button>
                     );
                   })}
                 </div>
               </SectionCard>
+              </motion.div>
             )}
 
             {medida && (!isPrepintada || color) && (
+              <motion.div variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step={isPrepintada ? "05" : "04"}
                 title="Definí la cantidad"
@@ -559,6 +608,7 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                   </div>
                 </div>
               </SectionCard>
+              </motion.div>
             )}
 
             {mostrarMensajeNoExiste && (
@@ -620,15 +670,17 @@ export default function ChapaEstandarConfig({ precios, onBack, onAdd }: Props) {
                   </div>
                 </div>
 
-                <button
+                <motion.button
                   onClick={handleAdd}
                   disabled={!preview}
                   type="button"
-                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-4 text-base font-black text-white shadow-lg shadow-emerald-800/20 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                  whileHover={preview ? { scale: 1.02, y: -2 } : {}}
+                  whileTap={preview ? { scale: 0.97 } : {}}
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-4 text-base font-black text-white shadow-lg shadow-emerald-800/20 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
                 >
                   <ShoppingCart className="h-5 w-5" />
                   {cantidad > 1 ? `Agregar ${cantidad} unidades` : "Agregar al carrito"}
-                </button>
+                </motion.button>
 
                 <div className="mt-4 grid grid-cols-2 gap-3">
                   <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">

@@ -51,6 +51,42 @@ app.use(express.urlencoded({ extended: true, limit: "20mb" }));
 
 app.use("/api", router);
 
+// Redirects SEO 301 → rutas canónicas del cotizador
+const SEO_REDIRECTS: Record<string, string> = {
+  "/chapa-sinusoidal-tucuman":    "/chapas-para-techo/sinusoidal",
+  "/chapa-trapezoidal-tucuman":   "/chapas-para-techo/trapezoidal",
+  "/chapa-acanalada-tucuman":     "/chapas-para-techo/sinusoidal",
+  "/chapas-galvanizadas-tucuman": "/chapas-tucuman",
+  "/chapas-lisas-tucuman":        "/chapas-estandar/negra",
+  "/chapas-negras-tucuman":       "/chapas-estandar/negra",
+  "/chapas-prepintadas-tucuman":  "/chapas-estandar/prepintada",
+  "/chapa-cincalum-tucuman":      "/chapas-para-techo",
+  "/bobinas-tucuman":             "/bobinas",
+};
+Object.entries(SEO_REDIRECTS).forEach(([from, to]) => {
+  app.get(from, (_req, res) => res.redirect(301, to));
+});
+
+// Rutas SPA válidas — todo lo que no esté acá devuelve 404 real.
+// Mantener sincronizado con VIEW_PATHS en App.tsx.
+const SPA_ROUTES = new Set([
+  "/",
+  "/chapas-para-techo",
+  "/chapas-para-techo/sinusoidal",
+  "/chapas-para-techo/trapezoidal",
+  "/chapas-estandar",
+  "/chapas-estandar/galvanizada",
+  "/chapas-estandar/prepintada",
+  "/chapas-estandar/negra",
+  "/chapas-estandar/estampada",
+  "/bobinas",
+  "/carrito",
+  "/nuestra-historia",
+  "/informacion",
+  "/contacto",
+  "/admin",
+]);
+
 if (isProd) {
   const publicDir = path.resolve(process.cwd(), "dist/public");
   app.use(
@@ -61,11 +97,22 @@ if (isProd) {
   );
   app.get("*", (req, res) => {
     const ext = path.extname(req.path);
+
+    // Archivos con extensión no-HTML → 404 directo
     if (ext && ext !== ".html") {
       res.status(404).send("Not found");
       return;
     }
-    res.sendFile(path.join(publicDir, "index.html"));
+
+    // Ruta SPA conocida → SPA con 200
+    if (SPA_ROUTES.has(req.path)) {
+      res.sendFile(path.join(publicDir, "index.html"));
+      return;
+    }
+
+    // Ruta desconocida → 404 real (Google NO indexa, Search Console registra 404)
+    // La SPA igual se carga y muestra la página 404 al usuario.
+    res.status(404).sendFile(path.join(publicDir, "index.html"));
   });
 }
 

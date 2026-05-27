@@ -178,7 +178,7 @@ export default function Carrito({
   const [errorMsg, setErrorMsg] = useState("");
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
-  const [medioPago, setMedioPago] = useState<"" | "efectivo" | "tarjeta">("");
+  const [medioPago, setMedioPago] = useState<"" | "efectivo" | "transferencia" | "qr" | "tarjeta">("");
   const [tarjetaId, setTarjetaId] = useState("");
   const [cuotaKey, setCuotaKey] = useState("");
   const [docNumero, setDocNumero] = useState("");
@@ -195,27 +195,33 @@ export default function Carrito({
   const cuotasDisponibles: CuotaOpcion[] = (tarjetaSeleccionada?.cuotas ?? []).filter((c) => c.activo);
   const cuotaSeleccionada: CuotaOpcion | null = cuotasDisponibles.find((c) => c.key === cuotaKey) ?? null;
 
-  const porcentaje =
-    medioPago === "efectivo"
-      ? -20
-      : medioPago === "tarjeta" && cuotaSeleccionada
-        ? cuotaSeleccionada.porcentaje
-        : 0;
+  const SIMPLE_DISCOUNT = -20;
+  const esPagoSimple = medioPago === "efectivo" || medioPago === "transferencia" || medioPago === "qr";
+  const porcentaje = esPagoSimple
+    ? SIMPLE_DISCOUNT
+    : medioPago === "tarjeta" && cuotaSeleccionada
+      ? cuotaSeleccionada.porcentaje
+      : 0;
   const totalFinal = totalBase * (1 + porcentaje / 100);
   const ajuste = totalFinal - totalBase;
   const numCuotas = cuotaNumero(cuotaSeleccionada);
   const importeCuota = numCuotas > 1 ? totalFinal / numCuotas : null;
 
-  const formaPagoLabel =
-    medioPago === "efectivo"
-      ? "Efectivo / Transferencia"
-      : tarjetaSeleccionada && cuotaSeleccionada
-        ? `${tarjetaSeleccionada.label} - ${cuotaSeleccionada.label}`
-        : "";
+  const MEDIO_LABELS: Record<string, string> = {
+    efectivo: "Efectivo",
+    transferencia: "Transferencia",
+    qr: "QR / Mercado Pago",
+  };
+  const formaPagoLabel = esPagoSimple
+    ? MEDIO_LABELS[medioPago] ?? medioPago
+    : tarjetaSeleccionada && cuotaSeleccionada
+      ? `${tarjetaSeleccionada.label} - ${cuotaSeleccionada.label}`
+      : "";
 
   const nombreValido = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(nombre.trim()) && nombre.trim().length >= 2;
   const telefonoValido = onlyDigits(telefono).length >= 7;
-  const hasPayment = medioPago === "efectivo" || (medioPago === "tarjeta" && tarjetaId !== "" && cuotaKey !== "");
+  const hasPayment =
+    esPagoSimple || (medioPago === "tarjeta" && tarjetaId !== "" && cuotaKey !== "");
   const canGenerar = cart.length > 0 && nombreValido && telefonoValido && hasPayment;
 
   function scrollToCotizadorCategorias() {
@@ -381,7 +387,11 @@ export default function Carrito({
     );
   }
 
-  const pagoResumen = medioPago === "efectivo" ? "20% OFF aplicado" : medioPago === "tarjeta" && cuotaSeleccionada ? cuotaSeleccionada.label : "Pendiente";
+  const pagoResumen = esPagoSimple
+    ? `${MEDIO_LABELS[medioPago] ?? medioPago} — 20% OFF`
+    : medioPago === "tarjeta" && cuotaSeleccionada
+      ? cuotaSeleccionada.label
+      : "Pendiente";
   if (preview) {
     return (
       <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.14),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-8 sm:px-6 lg:px-8">
@@ -614,42 +624,75 @@ export default function Carrito({
                 </div>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setMedioPago("efectivo");
-                    setTarjetaId("");
-                    setCuotaKey("");
-                  }}
-                  className={`relative rounded-3xl border p-5 text-left transition ${
-                    medioPago === "efectivo"
-                      ? "border-emerald-400 bg-emerald-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-emerald-200"
-                  }`}
-                >
-                  {medioPago === "efectivo" && <CheckCircle className="absolute right-4 top-4 h-5 w-5 text-emerald-700" />}
-                  <Wallet className="mb-3 h-8 w-8 text-emerald-700" />
-                  <div className="text-base font-black text-slate-950">Efectivo / Transferencia</div>
-                  <div className="mt-1 text-2xl font-black text-emerald-700">20% OFF</div>
-                  <div className="mt-1 text-sm font-semibold text-slate-500">Se aplica al total final.</div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setMedioPago("tarjeta")}
-                  className={`relative rounded-3xl border p-5 text-left transition ${
-                    medioPago === "tarjeta"
-                      ? "border-slate-900 bg-slate-50 shadow-sm"
-                      : "border-slate-200 bg-white hover:border-slate-300"
-                  }`}
-                >
-                  {medioPago === "tarjeta" && <CheckCircle className="absolute right-4 top-4 h-5 w-5 text-slate-900" />}
-                  <CreditCard className="mb-3 h-8 w-8 text-blue-700" />
-                  <div className="text-base font-black text-slate-950">Tarjeta</div>
-                  <div className="mt-1 text-2xl font-black text-slate-950">Cuotas</div>
-                  <div className="mt-1 text-sm font-semibold text-slate-500">Elegí tarjeta y financiación.</div>
-                </button>
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                {(
+                  [
+                    {
+                      id: "efectivo" as const,
+                      icon: <Wallet className="mb-2 h-7 w-7 text-emerald-700" />,
+                      label: "Efectivo",
+                      sub: "20% de descuento",
+                      color: "emerald",
+                    },
+                    {
+                      id: "transferencia" as const,
+                      icon: <Send className="mb-2 h-7 w-7 text-emerald-700" />,
+                      label: "Transferencia",
+                      sub: "20% de descuento",
+                      color: "emerald",
+                    },
+                    {
+                      id: "qr" as const,
+                      icon: (
+                        <svg className="mb-2 h-7 w-7 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+                          <rect x="3" y="14" width="7" height="7" rx="1" /><path d="M14 14h2v2h-2zM18 14h3v3M21 18v3M14 18h3M14 21h3" />
+                        </svg>
+                      ),
+                      label: "QR / Mercado Pago",
+                      sub: "20% de descuento",
+                      color: "emerald",
+                    },
+                    {
+                      id: "tarjeta" as const,
+                      icon: <CreditCard className="mb-2 h-7 w-7 text-blue-700" />,
+                      label: "Tarjeta",
+                      sub: "Elegí cuotas",
+                      color: "blue",
+                    },
+                  ] as const
+                ).map((opt) => {
+                  const selected = medioPago === opt.id;
+                  const isEmerald = opt.color === "emerald";
+                  return (
+                    <button
+                      key={opt.id}
+                      type="button"
+                      onClick={() => {
+                        setMedioPago(opt.id);
+                        if (opt.id !== "tarjeta") { setTarjetaId(""); setCuotaKey(""); }
+                      }}
+                      className={`relative rounded-3xl border p-4 text-left transition ${
+                        selected
+                          ? isEmerald
+                            ? "border-emerald-400 bg-emerald-50 shadow-sm ring-2 ring-emerald-100"
+                            : "border-blue-400 bg-blue-50 shadow-sm ring-2 ring-blue-100"
+                          : "border-slate-200 bg-white hover:border-slate-300"
+                      }`}
+                    >
+                      {selected && (
+                        <CheckCircle
+                          className={`absolute right-3 top-3 h-4 w-4 ${isEmerald ? "text-emerald-700" : "text-blue-700"}`}
+                        />
+                      )}
+                      {opt.icon}
+                      <div className="text-sm font-black text-slate-950">{opt.label}</div>
+                      <div className={`mt-0.5 text-xs font-bold ${selected && isEmerald ? "text-emerald-700" : "text-slate-500"}`}>
+                        {opt.sub}
+                      </div>
+                    </button>
+                  );
+                })}
               </div>
 
               {medioPago === "tarjeta" && (
@@ -759,7 +802,13 @@ export default function Carrito({
               <div className="space-y-4 p-5">
                 <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                   <ResumenLinea label="Subtotal" value={safeFormatARS(totalBase)} />
-                  {medioPago === "efectivo" && <ResumenLinea label="Descuento efectivo" value={`- ${safeFormatARS(Math.abs(ajuste))}`} danger />}
+                  {esPagoSimple && ajuste !== 0 && (
+                    <ResumenLinea
+                      label={`Descuento ${MEDIO_LABELS[medioPago] ?? medioPago}`}
+                      value={`- ${safeFormatARS(Math.abs(ajuste))}`}
+                      danger
+                    />
+                  )}
                   {medioPago === "tarjeta" && cuotaSeleccionada && porcentaje !== 0 && (
                     <ResumenLinea
                       label={porcentaje > 0 ? "Recargo financiación" : "Descuento tarjeta"}

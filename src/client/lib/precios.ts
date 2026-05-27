@@ -1,3 +1,9 @@
+export type Preselection = {
+  perfil?: string;
+  material?: string;
+  categoria?: string;
+};
+
 export type CuotaOpcion = {
   key: string;
   label: string;
@@ -118,6 +124,30 @@ export const ESTANDAR_VARIANTES: Record<string, EstandarVariante[]> = {
     { calibre: "N27", medidas: ["1.22x2.44"] },
   ],
 };
+
+/** Métodos simples garantizados. Fallback si formas_pago no está cargado o está vacío. */
+export const PAYMENT_METHODS_FALLBACK: TarjetaOpcion[] = [
+  {
+    id: "efectivo",
+    label: "Efectivo",
+    cuotas: [{ key: "1", label: "Pago único", porcentaje: -20, activo: true }],
+  },
+  {
+    id: "transferencia",
+    label: "Transferencia",
+    cuotas: [{ key: "1", label: "Pago único", porcentaje: -20, activo: true }],
+  },
+  {
+    id: "qr",
+    label: "QR / Mercado Pago",
+    cuotas: [{ key: "1", label: "Pago único", porcentaje: -20, activo: true }],
+  },
+];
+
+export function getFormasPago(precios: Precios): TarjetaOpcion[] {
+  const lista = precios.formas_pago ?? [];
+  return lista.length > 0 ? lista : PAYMENT_METHODS_FALLBACK;
+}
 
 export const CHAPA_LABELS: Record<string, string> = {
   sinusoidal_galv_24: "Chapa Sinusoidal Galvanizada Cal. 24",

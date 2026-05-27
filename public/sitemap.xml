@@ -1,13 +1,80 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+
+  <!-- Cotizador principal -->
   <url>
     <loc>https://giacosaelio.com.ar/</loc>
-    <lastmod>2026-05-26</lastmod>
+    <lastmod>2026-05-27</lastmod>
     <priority>1.0</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Chapas para techo -->
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-para-techo</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
   </url>
   <url>
-    <loc>https://giacosaelio.com.ar/cotizador/</loc>
-    <lastmod>2026-05-26</lastmod>
-    <priority>0.9</priority>
+    <loc>https://giacosaelio.com.ar/chapas-para-techo/sinusoidal</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.85</priority>
+    <changefreq>weekly</changefreq>
   </url>
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-para-techo/trapezoidal</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.85</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Chapas estándar -->
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-estandar</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-estandar/galvanizada</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-estandar/prepintada</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-estandar/negra</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.75</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-estandar/estampada</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.75</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Bobinas -->
+  <url>
+    <loc>https://giacosaelio.com.ar/bobinas</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.8</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
+  <!-- Página SEO informativa -->
+  <url>
+    <loc>https://giacosaelio.com.ar/chapas-tucuman</loc>
+    <lastmod>2026-05-27</lastmod>
+    <priority>0.7</priority>
+    <changefreq>monthly</changefreq>
+  </url>
+
 </urlset>
