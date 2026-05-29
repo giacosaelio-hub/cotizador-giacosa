@@ -44,9 +44,9 @@ function JsonLd() {
     url: typeof window !== "undefined" ? window.location.origin : undefined,
     sameAs: [COMPANY.maps],
     makesOffer: [
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chapas para techo" } },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Bobinas de acero" } },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chapas estándar" } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chapas para techo", offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "ARS", seller: { "@type": "Organization", name: "Giacosa Elio" } } } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Bobinas de acero", offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "ARS", seller: { "@type": "Organization", name: "Giacosa Elio" } } } },
+      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chapas estándar", offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "ARS", seller: { "@type": "Organization", name: "Giacosa Elio" } } } },
     ],
   };
 
