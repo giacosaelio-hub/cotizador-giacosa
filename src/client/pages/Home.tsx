@@ -228,48 +228,17 @@ const cards = [
 ];
 
 // ——— PROVEEDORES ———
-// Logos: guardá los archivos en /public/images/proveedores/ con estos nombres exactos.
-// Si el archivo no existe, se muestra el nombre en texto (fallback automático).
-const PROVEEDORES = [
-  {
-    name: "Ternium",
-    logo: "/images/proveedores/ternium.png",
-    principal: true,
-    desc: "Fabricante líder de acero en Argentina.",
-  },
-  {
-    name: "Sidersa",
-    logo: "/images/proveedores/sidersa.png",
-    principal: false,
-    desc: "Fabricante nacional de acero plano.",
-  },
-  {
-    name: "GalVylam",
-    logo: "/images/proveedores/galvylam.png",
-    principal: false,
-    desc: null,
-  },
-  {
-    name: "Acerbrag",
-    logo: "/images/proveedores/acerbrag.png",
-    principal: false,
-    desc: null,
-  },
-  {
-    name: "ArcelorMittal",
-    logo: "/images/proveedores/arcelormittal.png",
-    principal: false,
-    desc: null,
-  },
-  {
-    name: "Dunlock",
-    logo: "/images/proveedores/dunlock.png",
-    principal: false,
-    desc: null,
-  },
-] as const;
-
-const OTROS_PROVEEDORES = ["Tubos Argentinos", "Amafren"];
+// Logos: copiá los archivos en public/images/proveedores/ con estos nombres exactos.
+// Vite los sirve como /images/proveedores/<nombre>.png
+// Si el archivo no existe, se muestra el nombre en texto como fallback.
+const PROVEEDORES: { name: string; logo: string }[] = [
+  { name: "Ternium",           logo: "/images/proveedores/ternium.png" },
+  { name: "Galvylam",          logo: "/images/proveedores/galvylam.png" },
+  { name: "Acerbrag",          logo: "/images/proveedores/acerbrag.png" },
+  { name: "Acindar",           logo: "/images/proveedores/acindar.png" },
+  { name: "Durlock",           logo: "/images/proveedores/durlock.png" },
+  { name: "Tubos Argentinos",  logo: "/images/proveedores/tubos-argentinos.png" },
+];
 
 function CardImage({
   src,
@@ -317,38 +286,22 @@ function CardImage({
   );
 }
 
-function ProveedorLogo({
-  name,
-  logo,
-  principal,
-  desc,
-}: {
-  name: string;
-  logo: string;
-  principal?: boolean;
-  desc?: string | null;
-}) {
+function ProveedorLogo({ name, logo }: { name: string; logo: string }) {
   const [imgFailed, setImgFailed] = React.useState(false);
   return (
-    <div className="relative flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-6 text-center shadow-sm">
-      {principal && (
-        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
-          Proveedor principal
-        </span>
-      )}
+    <div className="flex min-h-[116px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-6 py-5 shadow-sm">
       {!imgFailed ? (
         <img
           src={logo}
           alt={name}
-          className="max-h-[48px] max-w-[140px] w-auto h-auto object-contain"
+          className="max-h-[56px] max-w-[148px] w-auto h-auto object-contain"
           loading="lazy"
           draggable={false}
           onError={() => setImgFailed(true)}
         />
       ) : (
-        <p className="text-lg font-black tracking-tight text-slate-700">{name}</p>
+        <p className="text-base font-black tracking-tight text-slate-700">{name}</p>
       )}
-      {desc && <p className="text-[13px] leading-snug text-slate-500">{desc}</p>}
     </div>
   );
 }
@@ -625,27 +578,21 @@ export default function Home({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3">
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
             {PROVEEDORES.map((p) => (
-              <ProveedorLogo
-                key={p.name}
-                name={p.name}
-                logo={p.logo}
-                principal={p.principal}
-                desc={p.desc}
-              />
+              <ProveedorLogo key={p.name} name={p.name} logo={p.logo} />
             ))}
           </div>
-          {OTROS_PROVEEDORES.length > 0 && (
-            <p className="mt-5 text-center text-sm text-slate-400">
-              También trabajamos con{" "}
-              {OTROS_PROVEEDORES.join(", ")} y otros según disponibilidad.
-            </p>
-          )}
         </div>
       </section>
 
       <footer className="w-full border-t border-slate-200 bg-white">
+        <div className="border-b border-slate-100 bg-slate-50 px-4 py-3 text-center text-xs text-slate-500">
+          <span className="font-bold text-slate-700">Horario de atención:</span>
+          {" "}Lun–Vie 8:00–13:00 / 14:00–17:00
+          <span className="mx-2 text-slate-300">·</span>
+          Sáb 8:30–12:30
+        </div>
         <div className="mx-auto flex max-w-[1450px] flex-col flex-wrap items-center justify-center gap-3 px-4 py-4 sm:flex-row sm:px-8 lg:justify-between">
           <FooterAction onClick={onOpenHistoria}>
             <Building2 className="h-4 w-4 text-slate-700" strokeWidth={2} />
