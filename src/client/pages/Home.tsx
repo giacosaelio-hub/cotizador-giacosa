@@ -12,26 +12,26 @@ import { motion } from "framer-motion";
 import { staggerContainer, cardVariant } from "@/lib/motion";
 
 // ——— RUTAS DE IMÁGENES (editá solo estos paths) ———
-const heroImage = "/images/hero/hero-chapas.png";
+const heroImage = "/images/hero/hero-chapas.webp";
 
 const productImages = {
-  chapasTecho: "/images/productos/chapas-techo.png",
-  bobinas: "/images/productos/bobinas.png",
-  chapasEstandar: "/images/productos/chapas-estandar.png",
+  chapasTecho: "/images/productos/chapas-techo.webp",
+  bobinas: "/images/productos/bobinas.webp",
+  chapasEstandar: "/images/productos/chapas-estandar.webp",
 };
 
 const paymentLogos = {
-  efectivo: "/images/pagos/efectivo.png",
-  visa: "/images/pagos/visa.png",
-  mastercard: "/images/pagos/mastercard.png",
-  amex: "/images/pagos/amex.png",
-  cabal: "/images/pagos/cabal.png",
-  naranja: "/images/pagos/naranja.png",
-  titanio: "/images/pagos/titanio.png",
-  cencosud: "/images/pagos/cencosud.png",
-  sol: "/images/pagos/sol.png",
-  credicash: "/images/pagos/credicash.png",
-  sucredito: "/images/pagos/sucredito.png",
+  efectivo: "/images/pagos/efectivo.webp",
+  visa: "/images/pagos/visa.webp",
+  mastercard: "/images/pagos/mastercard.webp",
+  amex: "/images/pagos/amex.webp",
+  cabal: "/images/pagos/cabal.webp",
+  naranja: "/images/pagos/naranja.webp",
+  titanio: "/images/pagos/titanio.webp",
+  cencosud: "/images/pagos/cencosud.webp",
+  sol: "/images/pagos/sol.webp",
+  credicash: "/images/pagos/credicash.webp",
+  sucredito: "/images/pagos/sucredito.webp",
 } as const;
 
 type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar";
@@ -215,8 +215,8 @@ const cards = [
     } satisfies CardFallback,
     title: "Chapas Estándar",
     subtitle: (
-      <span className="text-[15px] font-semibold text-red-600">
-        Portones · Herrería · Fabricación
+      <span className="text-[15px] font-semibold text-emerald-700">
+        Negras · Galvanizadas · Prepintadas
       </span>
     ),
     desc:
@@ -259,6 +259,8 @@ function CardImage({
       src={src}
       alt={alt}
       className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105"
+      width={800}
+      height={450}
       loading="lazy"
       onError={() => setFailed(true)}
       draggable={false}
@@ -289,7 +291,10 @@ function HeroImageLayer() {
       alt="Chapas, bobinas y materiales para construcción en Tucumán"
       className="absolute inset-0 h-full w-full object-cover"
       style={{ objectPosition: "72% center" }}
+      width={1440}
+      height={810}
       loading="eager"
+      fetchPriority="high"
       onError={() => setFailed(true)}
       draggable={false}
     />
@@ -319,6 +324,8 @@ function PaymentLogoBox({
           alt=""
           role="presentation"
           className={`h-auto max-h-[40px] w-auto max-w-[112px] object-contain ${logoClassName ?? ""}`}
+          width={200}
+          height={113}
           loading="lazy"
           draggable={false}
           onError={() => setImgFailed(true)}
@@ -429,7 +436,7 @@ export default function Home({
               <button
                 type="button"
                 onClick={goToCategorias}
-                className="mt-10 inline-flex items-center gap-3 rounded-full bg-emerald-600 px-8 py-4 text-sm font-black uppercase tracking-[0.02em] text-white shadow-[0_18px_50px_rgba(0,140,69,0.28)] transition hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-emerald-400 sm:px-10 sm:py-5 sm:text-base"
+                className="mt-10 inline-flex items-center gap-3 rounded-full bg-emerald-700 px-8 py-4 text-sm font-black uppercase tracking-[0.02em] text-white shadow-[0_18px_50px_rgba(0,140,69,0.28)] transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 sm:px-10 sm:py-5 sm:text-base"
               >
                 Ver precios y agregar al carrito
                 <ArrowRight className="h-5 w-5" />
@@ -515,6 +522,58 @@ export default function Home({
           </div>
           <div className="text-center text-sm font-medium text-slate-600">
             Hasta 12 cuotas sin interés en algunas tarjetas. Consultá condiciones al momento de cotizar.
+          </div>
+        </div>
+      </section>
+
+      <section className="w-full border-b border-slate-200 bg-white" aria-labelledby="proveedores-title">
+        <div className="mx-auto max-w-[1450px] px-4 py-16 sm:px-8">
+          <div className="mb-10 text-center">
+            <span className="mb-3 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">
+              Respaldo de marca
+            </span>
+            <h2 id="proveedores-title" className="mb-2 text-2xl font-extrabold text-slate-900 lg:text-3xl">
+              Nuestros proveedores
+            </h2>
+            <p className="text-slate-600">
+              Trabajamos con líderes del acero argentino para garantizar calidad y disponibilidad.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {/* Ternium */}
+            <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-8 text-center shadow-sm">
+              <span className="mb-5 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
+                Proveedor principal
+              </span>
+              <p className="mb-3 text-3xl font-black tracking-tight text-slate-800">Ternium</p>
+              <p className="text-[15px] leading-snug text-slate-600">
+                Fabricante líder de acero en Argentina. Garantía de calidad en cada chapa y bobina.
+              </p>
+            </div>
+
+            {/* Sidersa */}
+            <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-8 text-center shadow-sm">
+              <div className="mb-5 h-[26px]" aria-hidden />
+              <p className="mb-3 text-3xl font-black tracking-tight text-slate-800">Sidersa</p>
+              <p className="text-[15px] leading-snug text-slate-600">
+                Fabricante nacional de acero plano. Amplia variedad de productos para construcción e industria.
+              </p>
+            </div>
+
+            {/* Otros proveedores */}
+            <div className="flex flex-col rounded-2xl border border-slate-200 bg-[#f6f7fb] px-6 py-8 shadow-sm sm:col-span-2 lg:col-span-1">
+              <h3 className="mb-5 text-center text-lg font-extrabold text-slate-800">También trabajamos con</h3>
+              <ul className="space-y-2.5">
+                {(["Durlock", "Tubos Argentinos", "Acindar", "Amafren"] as const).map((name) => (
+                  <li key={name} className="flex items-center gap-2.5 text-[15px] font-semibold text-slate-700">
+                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" aria-hidden />
+                    {name}
+                  </li>
+                ))}
+                <li className="pl-4 pt-1 text-sm text-slate-400">entre otros</li>
+              </ul>
+            </div>
           </div>
         </div>
       </section>
