@@ -492,7 +492,7 @@ export default function Home({
                 </h1>
 
               <p className="mt-6 max-w-[620px] text-base font-medium leading-7 text-white/78 sm:text-lg">
-                Chapas para techo, chapas estándar, bobinas, Perfil C y complementarios.
+                Chapas para techo, chapas estándar, bobinas, Perfil C y mucho más.
                 Configurá medidas y obtené tu cotización en pocos pasos.
               </p>
 
