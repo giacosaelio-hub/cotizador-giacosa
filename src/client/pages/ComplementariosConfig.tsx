@@ -11,6 +11,7 @@ interface Props {
   precios: Precios;
   onBack: () => void;
   onAdd: (item: Omit<CartItem, "id">) => void;
+  initialSubcategoria?: Subcategoria;
 }
 
 type Subcategoria = "cumbreras" | "autoperforantes" | "tornillos" | "estaño";
@@ -72,11 +73,12 @@ const TORNILLO_MODELOS: Record<TornilloPunta, string[]> = {
   mecha: ["T1", "T2", "T3"],
 };
 
-// Normaliza bolsas a múltiplos de 0.5 con mínimo 0.5
+// Clampea bolsas a [0.5, 8] con 1 decimal — permite paso 0.1
 function normalizeBolsas(val: string): string {
   const n = parseFloat(val.replace(",", "."));
   if (!isFinite(n) || n < 0.5) return "0.5";
-  return String(Math.round(n * 2) / 2);
+  if (n > 8) return "8";
+  return String(Math.round(n * 10) / 10);
 }
 
 function OptionButton({
@@ -139,12 +141,12 @@ function SummaryRow({ label, value }: { label: string; value: React.ReactNode })
   );
 }
 
-export default function ComplementariosConfig({ precios, onBack, onAdd }: Props) {
+export default function ComplementariosConfig({ precios, onBack, onAdd, initialSubcategoria }: Props) {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
 
-  const [subcategoria, setSubcategoria] = useState<Subcategoria | "">("");
+  const [subcategoria, setSubcategoria] = useState<Subcategoria | "">(initialSubcategoria ?? "");
 
   // Cumbreras
   const [cumbrerasTipo, setCumbrerasTipo] = useState<CumbrerasTipo | "">("");
@@ -204,9 +206,10 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
     return `${tornilloModelo}_punta_${tornilloPunta}`;
   }, [tornilloPunta, tornilloModelo]);
 
+  // Metros siempre enteros ≥ 1
   const metros = useMemo(() => {
-    const n = parseFloat(metrosStr.trim().replace(/,/g, "."));
-    return isFinite(n) && n > 0 ? n : null;
+    const n = parseInt(metrosStr.trim(), 10);
+    return isFinite(n) && n >= 1 ? n : null;
   }, [metrosStr]);
 
   const preview = useMemo(() => {
@@ -407,14 +410,14 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                     onClick={() => { setCumbrerasTipo("sinusoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
                   >
                     <span className="block font-black">Sinusoidal</span>
-                    <span className="mt-1 block text-xs font-bold opacity-70">Negra · des. 0.6</span>
+                    <span className="mt-1 block text-xs font-semibold text-slate-500">Negra — 60 cm totales · 30 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={cumbrerasTipo === "trapezoidal"}
                     onClick={() => { setCumbrerasTipo("trapezoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
                   >
                     <span className="block font-black">Trapezoidal</span>
-                    <span className="mt-1 block text-xs font-bold opacity-70">Negra T101 · des. 0.6</span>
+                    <span className="mt-1 block text-xs font-semibold text-slate-500">Negra T101 — 60 cm totales · 30 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={cumbrerasTipo === "lisa"}
@@ -505,15 +508,23 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                 >
                   <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                     <input
-                      type="text"
-                      inputMode="decimal"
+                      type="number"
+                      inputMode="numeric"
                       value={metrosStr}
-                      onChange={(e) => { setMetrosStr(e.target.value); setError(""); }}
-                      placeholder="Ej: 6.5"
+                      min="1"
+                      step="1"
+                      onChange={(e) => {
+                        // Solo enteros ≥ 1
+                        const v = e.target.value.replace(/[^0-9]/g, "");
+                        setMetrosStr(v);
+                        setError("");
+                      }}
+                      placeholder="Ej: 6"
                       className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
                     />
                     <span className="border-l border-slate-200 px-4 text-sm font-black text-slate-500">metros</span>
                   </div>
+                  <p className="mt-2 text-xs font-semibold text-slate-400">Solo metros enteros (1, 2, 3…).</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {[2, 4, 6, 8, 10, 12].map((m) => (
                       <button
@@ -578,7 +589,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
               <SectionCard
                 step="04"
                 title="Cantidad (bolsas)"
-                description="Cada bolsa contiene 100 unidades. Mínimo: media bolsa (0.5) = 50 autoperforantes."
+                description="Cada bolsa contiene 100 unidades. Mínimo: 0.5 bolsa = 50 autoperforantes."
               >
                 <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                   <input
@@ -586,7 +597,8 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                     inputMode="decimal"
                     value={bolsas}
                     min="0.5"
-                    step="0.5"
+                    max="8"
+                    step="0.1"
                     onChange={(e) => { setBolsas(e.target.value); setError(""); }}
                     onBlur={(e) => setBolsas(normalizeBolsas(e.target.value))}
                     className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
@@ -657,7 +669,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
               <SectionCard
                 step="04"
                 title="Cantidad (bolsas)"
-                description="Cada bolsa contiene 100 unidades. Mínimo: media bolsa (0.5) = 50 tornillos."
+                description="Cada bolsa contiene 100 unidades. Mínimo: 0.5 bolsa = 50 tornillos."
               >
                 <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                   <input
@@ -665,7 +677,8 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                     inputMode="decimal"
                     value={bolsas}
                     min="0.5"
-                    step="0.5"
+                    max="8"
+                    step="0.1"
                     onChange={(e) => { setBolsas(e.target.value); setError(""); }}
                     onBlur={(e) => setBolsas(normalizeBolsas(e.target.value))}
                     className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"

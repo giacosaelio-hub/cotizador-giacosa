@@ -30,6 +30,7 @@ interface Props {
   onRemove: (id: string) => void;
   onAgregarMas: () => void;
   onClearCart: () => void;
+  onNavigateDirect?: (view: "complementario" | "perfil_c", subcategoria?: string) => void;
 }
 
 function isValidNumber(n: unknown): n is number {
@@ -173,6 +174,7 @@ export default function Carrito({
   onRemove,
   onAgregarMas,
   onClearCart,
+  onNavigateDirect,
 }: Props) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
@@ -592,18 +594,17 @@ export default function Carrito({
 
               {(() => {
                 const tipos = cart.map((i) => i.tipo);
-                const crossSell: { label: string }[] = [];
-                if (tipos.includes("chapa_perfilada")) {
-                  if (!tipos.includes("complementario")) {
-                    crossSell.push({ label: "Cumbreras" });
-                    crossSell.push({ label: "Autoperforantes" });
-                  }
+                type CrossItem = { label: string; view: "complementario" | "perfil_c"; subcategoria?: string };
+                const crossSell: CrossItem[] = [];
+                if (tipos.includes("chapa_perfilada") && !tipos.includes("complementario")) {
+                  crossSell.push({ label: "Cumbreras", view: "complementario", subcategoria: "cumbreras" });
+                  crossSell.push({ label: "Autoperforantes", view: "complementario", subcategoria: "autoperforantes" });
                 }
                 if (tipos.includes("bobina") && !tipos.includes("complementario")) {
-                  crossSell.push({ label: "Estaño" });
+                  crossSell.push({ label: "Estaño", view: "complementario", subcategoria: "estaño" });
                 }
                 if (tipos.includes("perfil_c") && !tipos.includes("complementario")) {
-                  crossSell.push({ label: "Tornillos" });
+                  crossSell.push({ label: "Tornillos", view: "complementario", subcategoria: "tornillos" });
                 }
                 if (crossSell.length === 0) return null;
                 return (
@@ -614,7 +615,11 @@ export default function Carrito({
                         <button
                           key={item.label}
                           type="button"
-                          onClick={scrollToCotizadorCategorias}
+                          onClick={() =>
+                            onNavigateDirect
+                              ? onNavigateDirect(item.view, item.subcategoria)
+                              : scrollToCotizadorCategorias()
+                          }
                           className="rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-100 transition"
                         >
                           {item.label} →

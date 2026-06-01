@@ -138,7 +138,7 @@ function minFromChapasEstandar(
 
 const benefits = [
   { label: "20% OFF", desc: "en efectivo" },
-  { label: "12 cuotas", desc: "opciones disponibles" },
+  { label: "12 cuotas", desc: "sin interés" },
   { label: "Precios", desc: "actualizados hoy" },
   { label: "Cortes", desc: "a medida" },
 ];
@@ -169,31 +169,14 @@ type CardFallback = {
   line2: string;
 };
 
-const cards = [
-  {
-    key: "chapa_perfilada" as const,
-    img: productImages.chapasTecho,
-    alt: "Chapas para techo sinusoidales y trapezoidales",
-    imgPosition: "object-center",
-    fallback: {
-      bg: "bg-gradient-to-br from-slate-800 via-slate-900 to-emerald-950",
-      line1: "Chapas para techo",
-      line2: "Imagen no disponible",
-    } satisfies CardFallback,
-    title: "Chapas para Techo",
-    subtitle: (
-      <span className="text-[15px] font-semibold text-emerald-700">
-        Sinusoidal · Trapezoidal
-      </span>
-    ),
-    desc:
-      "Para techos, cubiertas y cerramientos. Chapas de hasta 13 metros cortadas al largo que necesitás. Sinusoidal o trapezoidal, galvanizada, cincalum o prepintada.",
-  },
+// Fila 1 (3 cards)
+const cardsRow1 = [
   {
     key: "bobina" as const,
     img: productImages.bobinas,
     alt: "Bobinas de acero galvanizado",
     imgPosition: "object-top",
+    badge: "Usos profesionales",
     fallback: {
       bg: "bg-gradient-to-br from-zinc-900 via-slate-900 to-emerald-950",
       line1: "Bobinas de acero",
@@ -205,14 +188,33 @@ const cards = [
         Calibres 22 · 25 · 27
       </span>
     ),
-    desc:
-      "Para fabricación de perfiles, zinguería y piezas especiales. Venta por metro, consultá según tu necesidad.",
+    desc: "Para fabricación de perfiles, zinguería y piezas especiales. Venta por metro, consultá según tu necesidad.",
+  },
+  {
+    key: "chapa_perfilada" as const,
+    img: productImages.chapasTecho,
+    alt: "Chapas para techo sinusoidales y trapezoidales",
+    imgPosition: "object-center",
+    badge: "Lo más vendido",
+    fallback: {
+      bg: "bg-gradient-to-br from-slate-800 via-slate-900 to-emerald-950",
+      line1: "Chapas para techo",
+      line2: "Imagen no disponible",
+    } satisfies CardFallback,
+    title: "Chapas para Techo",
+    subtitle: (
+      <span className="text-[15px] font-semibold text-emerald-700">
+        Sinusoidal · Trapezoidal
+      </span>
+    ),
+    desc: "Para techos, cubiertas y cerramientos. Chapas de hasta 13 metros cortadas al largo que necesitás. Sinusoidal o trapezoidal, galvanizada, cincalum o prepintada.",
   },
   {
     key: "chapa_estandar" as const,
     img: productImages.chapasEstandar,
     alt: "Chapas estándar en medidas fijas",
     imgPosition: "object-center",
+    badge: "Medidas listas",
     fallback: {
       bg: "bg-gradient-to-br from-slate-800 via-zinc-900 to-slate-950",
       line1: "Chapas estándar",
@@ -224,14 +226,18 @@ const cards = [
         Negras · Galvanizadas · Prepintadas
       </span>
     ),
-    desc:
-      "Chapas en medidas fijas para portones, revestimientos y piezas metálicas. Negras, galvanizadas y prepintadas. Consultá disponibilidad por calibre.",
+    desc: "Chapas en medidas fijas para portones, revestimientos y piezas metálicas. Negras, galvanizadas y prepintadas. Consultá disponibilidad por calibre.",
   },
+];
+
+// Fila 2 (2 cards, centradas en desktop)
+const cardsRow2 = [
   {
     key: "perfil_c" as const,
     img: productImages.perfilC,
     alt: "Perfiles C de acero estructural",
     imgPosition: "object-center",
+    badge: "Estructural",
     fallback: {
       bg: "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950",
       line1: "Perfil C",
@@ -248,6 +254,7 @@ const cards = [
     img: productImages.complementarios,
     alt: "Complementarios para construcción",
     imgPosition: "object-center",
+    badge: "Obra completa",
     fallback: {
       bg: "bg-gradient-to-br from-amber-900 via-slate-900 to-slate-950",
       line1: "Complementarios",
@@ -489,22 +496,18 @@ export default function Home({
                 Trabajamos chapas para techo, bobinas, chapas estándar y materiales para obra.
               </p>
 
-              <ul className="mt-8 grid max-w-[640px] gap-3 text-sm font-semibold text-white/88 sm:grid-cols-2 sm:text-[15px]">
+              <ul className="mt-8 flex max-w-[640px] flex-col gap-3 text-sm font-semibold text-white/88 sm:text-[15px]">
                 <li className="flex items-center gap-3">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  Resultado inmediato
+                  <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
+                  12 cuotas sin interés
                 </li>
                 <li className="flex items-center gap-3">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  Atención local
+                  <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
+                  Atención en Batalla de Suipacha 482
                 </li>
                 <li className="flex items-center gap-3">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  Pagos y cuotas
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  Cortes a medida
+                  <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
+                  En 2 minutos tenés precio
                 </li>
               </ul>
 
@@ -535,6 +538,7 @@ export default function Home({
             </p>
           </div>
 
+          {/* Fila 1: Bobinas · Chapas para techo · Chapas estándar */}
           <motion.div
             className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
             variants={staggerContainer}
@@ -542,7 +546,7 @@ export default function Home({
             whileInView="visible"
             viewport={{ once: true, amount: 0.15 }}
           >
-            {cards.map((card, i) => {
+            {cardsRow1.map((card) => {
               const price =
                 card.key === "chapa_perfilada"
                   ? minTecho
@@ -562,29 +566,55 @@ export default function Home({
                   <div className="relative h-48 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
                     <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
                     <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-600/10 bg-white/90 px-[10px] py-[2.5px] text-xs font-bold text-emerald-700/90 opacity-80 shadow-sm select-none group-hover:opacity-100">
-                      {i === 0 ? "Lo más vendido" : i === 1 ? "Usos profesionales" : i === 2 ? "Medidas listas" : i === 3 ? "Estructural" : "Obra completa"}
+                      {card.badge}
                     </span>
                   </div>
-
                   <div className="flex min-h-0 flex-1 flex-col items-center px-7 pb-6 pt-7 text-center">
-                    <h3 className="mb-1 text-2xl font-extrabold leading-snug tracking-tight text-slate-900 lg:text-[26px]">
-                      {card.title}
-                    </h3>
+                    <h3 className="mb-1 text-2xl font-extrabold leading-snug tracking-tight text-slate-900 lg:text-[26px]">{card.title}</h3>
                     <div className="mb-2 w-full">{card.subtitle}</div>
                     <p className="mb-6 flex-1 break-words text-[15px] leading-snug text-slate-600">{card.desc}</p>
                     <div className="mt-auto flex w-full flex-col items-center gap-3 pt-1">
-                      {(card.key === "perfil_c" || card.key === "complementario")
-                        ? null
-                        : priceBadge(price, card.key === "chapa_estandar" ? "" : "/ metro")}
-                      <ArrowRight
-                        className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600"
-                        aria-hidden
-                      />
+                      {priceBadge(price, card.key === "chapa_estandar" ? "" : "/ metro")}
+                      <ArrowRight className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden />
                     </div>
                   </div>
                 </motion.button>
               );
             })}
+          </motion.div>
+
+          {/* Fila 2: Perfil C · Complementarios — centradas en desktop */}
+          <motion.div
+            className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-auto lg:w-2/3"
+            variants={staggerContainer}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.15 }}
+          >
+            {cardsRow2.map((card) => (
+              <motion.button
+                key={card.key}
+                variants={cardVariant}
+                type="button"
+                onClick={() => onSelect(card.key)}
+                className="group relative flex h-full min-h-[420px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400"
+              >
+                <div className="relative h-48 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
+                  <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
+                  <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-600/10 bg-white/90 px-[10px] py-[2.5px] text-xs font-bold text-emerald-700/90 opacity-80 shadow-sm select-none group-hover:opacity-100">
+                    {card.badge}
+                  </span>
+                </div>
+                <div className="flex min-h-0 flex-1 flex-col items-center px-7 pb-6 pt-7 text-center">
+                  <h3 className="mb-1 text-2xl font-extrabold leading-snug tracking-tight text-slate-900 lg:text-[26px]">{card.title}</h3>
+                  <div className="mb-2 w-full">{card.subtitle}</div>
+                  <p className="mb-6 flex-1 break-words text-[15px] leading-snug text-slate-600">{card.desc}</p>
+                  <div className="mt-auto flex w-full flex-col items-center gap-3 pt-1">
+                    <ArrowRight className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden />
+                  </div>
+                </div>
+              </motion.button>
+            ))}
           </motion.div>
         </div>
       </section>

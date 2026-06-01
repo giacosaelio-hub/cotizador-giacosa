@@ -205,6 +205,15 @@ export default function App() {
     window.setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
   }
 
+  // Navega directo a una vista con subcategoría preseleccionada (desde cross-sell)
+  function navigateDirect(nextView: "complementario" | "perfil_c", subcategoria?: string) {
+    setMobileMenuOpen(false);
+    setView(nextView);
+    setPreselection(subcategoria ? { categoria: subcategoria } : null);
+    window.history.pushState({ view: nextView }, "", VIEW_PATHS[nextView]);
+    window.setTimeout(() => window.scrollTo({ top: 0, behavior: "auto" }), 0);
+  }
+
   function goToCotizador() {
     navigateToHomeSection("cotizador-categorias");
   }
@@ -382,7 +391,12 @@ export default function App() {
             <PerfilCConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
           )}
           {view === "complementario" && (
-            <ComplementariosConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
+            <ComplementariosConfig
+              precios={precios}
+              onBack={() => goToView("home")}
+              onAdd={addToCart}
+              initialSubcategoria={preselection?.categoria as "cumbreras" | "autoperforantes" | "tornillos" | "estaño" | undefined}
+            />
           )}
           {view === "carrito" && (
             <Carrito
@@ -392,6 +406,7 @@ export default function App() {
               onRemove={removeFromCart}
               onAgregarMas={() => navigateToHomeSection("cotizador-categorias")}
               onClearCart={clearCart}
+              onNavigateDirect={navigateDirect}
             />
           )}
           {view === "historia" && <Historia />}

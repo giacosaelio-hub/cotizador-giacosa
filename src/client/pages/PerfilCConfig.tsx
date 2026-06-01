@@ -230,12 +230,12 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
               </div>
             </SectionCard>
 
-            {/* PASO 02 — Espesor (solo comun) */}
+            {/* PASO 02 — Alma menor (solo comun) */}
             {subtipo === "comun" && (
               <SectionCard
                 step={stepEspesor}
-                title="Espesor"
-                description="Elegí el espesor del perfil en mm."
+                title="Alma menor"
+                description="Elegí el espesor real del acero (alma menor del perfil)."
               >
                 <div className="grid gap-3 sm:grid-cols-3">
                   {espesorasDisponibles.map((e) => (
@@ -333,6 +333,12 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                 <p className="mt-3 text-sm font-semibold text-slate-500">
                   Total: {cantidad} barra{cantidad !== 1 ? "s" : ""} × 12 m = {cantidad * 12} metros lineales
                 </p>
+                {/* Aviso 8 barras (paquete cerrado) */}
+                {cantidad === 8 && (
+                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
+                    <span className="font-black">Tip:</span> 8 barras equivale a un paquete cerrado. Es más económico y viene completo — consultá al momento de la cotización.
+                  </div>
+                )}
                 {/* Nota varas 6 m */}
                 <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
                   <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 m. En ese caso, pedí cantidad en múltiplos de 2 (2, 4, 6…).
