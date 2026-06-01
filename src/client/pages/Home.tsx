@@ -289,13 +289,15 @@ function CardImage({
 function ProveedorLogo({ name, logo }: { name: string; logo: string }) {
   const [imgFailed, setImgFailed] = React.useState(false);
   return (
-    <div className="flex min-h-[100px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
+    <div className="flex min-h-[108px] items-center justify-center rounded-2xl border border-slate-200 bg-white px-5 py-5 shadow-sm">
       {!imgFailed ? (
         <img
           src={logo}
           alt={name}
-          // max-h limita altura; max-w generoso para logos muy anchos (ej. Durlock 4.6:1)
-          className="h-auto w-auto max-h-[52px] max-w-full object-contain"
+          // max-h-[64px]: buena presencia para todos los logos
+          // max-w-full: logos muy anchos (Durlock 4.6:1) no quedan cortados
+          // mix-blend-multiply: funde fondo blanco/near-white con la card
+          className="h-auto w-auto max-h-[64px] max-w-full object-contain mix-blend-multiply"
           loading="lazy"
           draggable={false}
           onError={() => setImgFailed(true)}
