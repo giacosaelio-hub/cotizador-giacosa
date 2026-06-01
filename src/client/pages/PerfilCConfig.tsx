@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Precios,
   CartItem,
@@ -82,6 +82,23 @@ function SectionCard({
       </div>
       {children}
     </section>
+  );
+}
+
+function PerfilImg() {
+  const [failed, setFailed] = React.useState(false);
+  if (failed) return null;
+  return (
+    <div className="h-44 w-full overflow-hidden bg-slate-50">
+      <img
+        src="/images/productos/perfil-c-derecha.webp"
+        alt="Perfil C estructural"
+        className="h-full w-full object-cover object-center"
+        loading="lazy"
+        onError={() => setFailed(true)}
+        draggable={false}
+      />
+    </div>
   );
 }
 
@@ -333,12 +350,6 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                 <p className="mt-3 text-sm font-semibold text-slate-500">
                   Total: {cantidad} barra{cantidad !== 1 ? "s" : ""} × 12 m = {cantidad * 12} metros lineales
                 </p>
-                {/* Aviso 8 barras (paquete cerrado) */}
-                {cantidad === 8 && (
-                  <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
-                    <span className="font-black">Tip:</span> 8 barras equivale a un paquete cerrado. Es más económico y viene completo — consultá al momento de la cotización.
-                  </div>
-                )}
                 {/* Nota varas 6 m */}
                 <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
                   <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 m. En ese caso, pedí cantidad en múltiplos de 2 (2, 4, 6…).
@@ -356,6 +367,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
           {/* RESUMEN */}
           <aside className="lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
+              <PerfilImg />
               <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-800">Resumen de cotización</p>
                 <p className="mt-1 text-sm font-extrabold text-slate-600">Tu selección en tiempo real</p>

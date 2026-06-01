@@ -18,7 +18,7 @@ const productImages = {
   chapasTecho: "/images/productos/chapas-techo.webp",
   bobinas: "/images/productos/bobinas.webp",
   chapasEstandar: "/images/productos/chapas-estandar.webp",
-  perfilC: "/images/productos/perfil-c.webp",
+  perfilC: "/images/productos/perfil-c-hero.webp",
   complementarios: "/images/productos/complementarios.webp",
 };
 
@@ -175,7 +175,7 @@ const cardsRow1 = [
     key: "bobina" as const,
     img: productImages.bobinas,
     alt: "Bobinas de acero galvanizado",
-    imgPosition: "object-top",
+    imgPosition: "object-center",
     badge: "Usos profesionales",
     fallback: {
       bg: "bg-gradient-to-br from-zinc-900 via-slate-900 to-emerald-950",

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Precios,
   CartItem,
@@ -6,6 +6,24 @@ import {
   formatARS,
 } from "@/lib/precios";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
+
+// Imagen de producto dentro del configurador (con fallback silencioso)
+function ProductoImg({ src, alt }: { src: string; alt: string }) {
+  const [failed, setFailed] = React.useState(false);
+  if (failed) return null;
+  return (
+    <div className="mb-4 h-40 w-full overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+      <img
+        src={src}
+        alt={alt}
+        className="h-full w-full object-cover object-center"
+        loading="lazy"
+        draggable={false}
+        onError={() => setFailed(true)}
+      />
+    </div>
+  );
+}
 
 interface Props {
   precios: Precios;
@@ -258,7 +276,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
         cumbrerasTipo === "sinusoidal"
           ? "Sinusoidal Negra 0.6"
           : cumbrerasTipo === "trapezoidal"
-          ? "Trapezoidal Negra T101 0.6"
+          ? "Trapezoidal Negra 0.6"
           : `Lisa ${COLOR_DISPLAY[lisaColor] ?? lisaColor} des. ${lisaDesarrollo}`;
 
       onAdd({
@@ -330,7 +348,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
   const previewLabel = useMemo(() => {
     if (subcategoria === "cumbreras" && cumbrerasTipo) {
       if (cumbrerasTipo === "sinusoidal") return "Sinusoidal Negra 0.6";
-      if (cumbrerasTipo === "trapezoidal") return "Trapezoidal Negra T101 0.6";
+      if (cumbrerasTipo === "trapezoidal") return "Trapezoidal Negra 0.6";
       if (lisaColor && lisaDesarrollo)
         return `Lisa ${COLOR_DISPLAY[lisaColor]} des. ${lisaDesarrollo}`;
     }
@@ -417,7 +435,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     onClick={() => { setCumbrerasTipo("trapezoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
                   >
                     <span className="block font-black">Trapezoidal</span>
-                    <span className="mt-1 block text-xs font-semibold text-slate-500">Negra T101 — 60 cm totales · 30 cm por lado</span>
+                    <span className="mt-1 block text-xs font-semibold text-slate-500">Negra — 60 cm totales · 30 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={cumbrerasTipo === "lisa"}
@@ -428,6 +446,20 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                   </OptionButton>
                 </div>
               </SectionCard>
+            )}
+
+            {/* Preview imagen cumbreras según tipo seleccionado */}
+            {subcategoria === "cumbreras" && cumbrerasTipo && (
+              <ProductoImg
+                src={
+                  cumbrerasTipo === "sinusoidal"
+                    ? "/images/productos/cumbrera-sinusoidal.webp"
+                    : cumbrerasTipo === "trapezoidal"
+                    ? "/images/productos/cumbrera-trapezoidal.webp"
+                    : "/images/productos/cumbrera-lisa.webp"
+                }
+                alt={`Cumbrera ${cumbrerasTipo}`}
+              />
             )}
 
             {/* Desarrollo (Lisa) */}
@@ -563,6 +595,11 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </SectionCard>
             )}
 
+            {/* Imagen autoperforantes */}
+            {subcategoria === "autoperforantes" && autoRosca && (
+              <ProductoImg src="/images/productos/autoperforantes.webp" alt="Autoperforantes" />
+            )}
+
             {/* Medida autoperforante */}
             {subcategoria === "autoperforantes" && autoRosca && (
               <SectionCard
@@ -643,6 +680,18 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </SectionCard>
             )}
 
+            {/* Imagen tornillos según punta seleccionada */}
+            {subcategoria === "tornillos" && tornilloPunta && (
+              <ProductoImg
+                src={
+                  tornilloPunta === "aguja"
+                    ? "/images/productos/tornillos-aguja.webp"
+                    : "/images/productos/tornillos-mecha.webp"
+                }
+                alt={`Tornillos punta ${tornilloPunta}`}
+              />
+            )}
+
             {/* Modelo tornillo */}
             {subcategoria === "tornillos" && tornilloPunta && (
               <SectionCard
@@ -702,6 +751,9 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
 
             {/* ══════════ ESTAÑO ══════════ */}
             {subcategoria === "estaño" && (
+              <ProductoImg src="/images/productos/estano.webp" alt="Estaño" />
+            )}
+            {subcategoria === "estaño" && (
               <SectionCard
                 step="02"
                 title="Presentación"
@@ -732,6 +784,12 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                 title="Cantidad"
                 description={estanoKey === "kg" ? "¿Cuántos paquetes (KG) necesitás?" : "¿Cuántas barras necesitás?"}
               >
+                {/* Aviso: 8 barras = paquete cerrado */}
+                {estanoKey === "barra" && estanoCantidad === 8 && (
+                  <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs font-semibold text-amber-800">
+                    <span className="font-black">Tip:</span> 8 barras equivale a 1 kg (paquete cerrado). Te recomendamos comprar el paquete: es más económico.
+                  </div>
+                )}
                 <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm max-w-xs">
                   <button
                     type="button"
