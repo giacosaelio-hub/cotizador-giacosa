@@ -1,4 +1,4 @@
-import logoGiacosa from "/logo-giacosa.png";
+const logoGiacosa = "/logo-giacosa.webp";
 import { useEffect } from "react";
 import { Award, Building2, CheckCircle2, Hammer, MapPin, ShieldCheck, ShoppingCart, Users } from "lucide-react";
 
@@ -44,9 +44,9 @@ function JsonLd() {
     url: typeof window !== "undefined" ? window.location.origin : undefined,
     sameAs: [COMPANY.maps],
     makesOffer: [
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chapas para techo", offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "ARS", seller: { "@type": "Organization", name: "Giacosa Elio" } } } },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Bobinas de acero", offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "ARS", seller: { "@type": "Organization", name: "Giacosa Elio" } } } },
-      { "@type": "Offer", itemOffered: { "@type": "Product", name: "Chapas estándar", offers: { "@type": "Offer", availability: "https://schema.org/InStock", priceCurrency: "ARS", seller: { "@type": "Organization", name: "Giacosa Elio" } } } },
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Chapas para techo", image: "https://giacosaelio.com.ar/images/productos/chapas-techo.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Bobinas de acero", image: "https://giacosaelio.com.ar/images/productos/bobinas.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
+      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Chapas estándar", image: "https://giacosaelio.com.ar/images/productos/chapas-estandar.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
     ],
   };
 
@@ -93,7 +93,7 @@ export default function Historia({ navigateToHomeSection }: Props) {
                 <button
                   type="button"
                   onClick={() => goToCotizador(navigateToHomeSection)}
-                  className="mt-8 inline-flex items-center gap-3 rounded-full bg-emerald-600 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.28)] transition hover:bg-emerald-700"
+                  className="mt-8 inline-flex items-center gap-3 rounded-full bg-emerald-700 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.28)] transition hover:bg-emerald-800"
                 >
                   <ShoppingCart className="h-5 w-5" />
                   Cotizar chapas y bobinas
