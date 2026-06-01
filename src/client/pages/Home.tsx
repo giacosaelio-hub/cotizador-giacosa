@@ -486,14 +486,14 @@ export default function Home({
               </div>
 
               <h1 className="max-w-[860px] text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white sm:text-6xl lg:text-[78px]">
-                  Cotizá chapas y bobinas
-                  <span className="block text-emerald-400">al instante en</span>
-                  <span className="block text-emerald-400">Tucumán</span>
+                  Cotizá materiales
+                  <span className="block text-emerald-400">para tu obra</span>
+                  <span className="block text-emerald-400">en Tucumán</span>
                 </h1>
 
               <p className="mt-6 max-w-[620px] text-base font-medium leading-7 text-white/78 sm:text-lg">
-                Elegí el producto, configurá medidas y obtené tu cotización en pocos pasos.
-                Trabajamos chapas para techo, bobinas, chapas estándar y materiales para obra.
+                Chapas para techo, chapas estándar, bobinas, Perfil C y complementarios.
+                Configurá medidas y obtené tu cotización en pocos pasos.
               </p>
 
               <ul className="mt-8 flex max-w-[640px] flex-col gap-3 text-sm font-semibold text-white/88 sm:text-[15px]">

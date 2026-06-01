@@ -365,7 +365,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
           </div>
 
           {/* RESUMEN */}
-          <aside className="lg:sticky lg:top-24">
+          <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
               <PerfilImg />
               <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">

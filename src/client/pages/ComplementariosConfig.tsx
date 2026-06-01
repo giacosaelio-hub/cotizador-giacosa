@@ -7,15 +7,17 @@ import {
 } from "@/lib/precios";
 import { ArrowLeft, ShoppingCart } from "lucide-react";
 
-// Imagen de producto dentro del configurador (con fallback silencioso)
-function ProductoImg({ src, alt }: { src: string; alt: string }) {
+// Imagen en el sidebar derecho (misma lógica que PerfilCConfig)
+function SidebarImg({ src }: { src: string | null }) {
   const [failed, setFailed] = React.useState(false);
-  if (failed) return null;
+  // Resetear si cambia la imagen
+  React.useEffect(() => { setFailed(false); }, [src]);
+  if (!src || failed) return null;
   return (
-    <div className="mb-4 h-40 w-full overflow-hidden rounded-2xl border border-slate-100 bg-slate-50">
+    <div className="h-44 w-full overflow-hidden bg-slate-50">
       <img
         src={src}
-        alt={alt}
+        alt="Imagen del producto"
         className="h-full w-full object-cover object-center"
         loading="lazy"
         draggable={false}
@@ -203,6 +205,23 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
     setEstanoCantidad(1);
     setError("");
   }
+
+  // Imagen dinámica del sidebar según selección
+  const sidebarImage = useMemo((): string | null => {
+    if (subcategoria === "cumbreras") {
+      if (cumbrerasTipo === "sinusoidal") return "/images/productos/cumbrera-sinusoidal.webp";
+      if (cumbrerasTipo === "trapezoidal") return "/images/productos/cumbrera-trapezoidal.webp";
+      if (cumbrerasTipo === "lisa") return "/images/productos/cumbrera-lisa.webp";
+      return "/images/productos/cumbrera-sinusoidal.webp";
+    }
+    if (subcategoria === "autoperforantes") return "/images/productos/autoperforantes.webp";
+    if (subcategoria === "tornillos") {
+      if (tornilloPunta === "mecha") return "/images/productos/tornillos-mecha.webp";
+      return "/images/productos/tornillos-aguja.webp";
+    }
+    if (subcategoria === "estaño") return "/images/productos/estano.webp";
+    return null;
+  }, [subcategoria, cumbrerasTipo, tornilloPunta]);
 
   // Keys derivados
   const cumbrerasKey = useMemo(() => {
@@ -448,20 +467,6 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </SectionCard>
             )}
 
-            {/* Preview imagen cumbreras según tipo seleccionado */}
-            {subcategoria === "cumbreras" && cumbrerasTipo && (
-              <ProductoImg
-                src={
-                  cumbrerasTipo === "sinusoidal"
-                    ? "/images/productos/cumbrera-sinusoidal.webp"
-                    : cumbrerasTipo === "trapezoidal"
-                    ? "/images/productos/cumbrera-trapezoidal.webp"
-                    : "/images/productos/cumbrera-lisa.webp"
-                }
-                alt={`Cumbrera ${cumbrerasTipo}`}
-              />
-            )}
-
             {/* Desarrollo (Lisa) */}
             {subcategoria === "cumbreras" && cumbrerasTipo === "lisa" && (
               <SectionCard
@@ -595,11 +600,6 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </SectionCard>
             )}
 
-            {/* Imagen autoperforantes */}
-            {subcategoria === "autoperforantes" && autoRosca && (
-              <ProductoImg src="/images/productos/autoperforantes.webp" alt="Autoperforantes" />
-            )}
-
             {/* Medida autoperforante */}
             {subcategoria === "autoperforantes" && autoRosca && (
               <SectionCard
@@ -680,18 +680,6 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </SectionCard>
             )}
 
-            {/* Imagen tornillos según punta seleccionada */}
-            {subcategoria === "tornillos" && tornilloPunta && (
-              <ProductoImg
-                src={
-                  tornilloPunta === "aguja"
-                    ? "/images/productos/tornillos-aguja.webp"
-                    : "/images/productos/tornillos-mecha.webp"
-                }
-                alt={`Tornillos punta ${tornilloPunta}`}
-              />
-            )}
-
             {/* Modelo tornillo */}
             {subcategoria === "tornillos" && tornilloPunta && (
               <SectionCard
@@ -750,9 +738,6 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
             )}
 
             {/* ══════════ ESTAÑO ══════════ */}
-            {subcategoria === "estaño" && (
-              <ProductoImg src="/images/productos/estano.webp" alt="Estaño" />
-            )}
             {subcategoria === "estaño" && (
               <SectionCard
                 step="02"
@@ -825,8 +810,10 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
           </div>
 
           {/* RESUMEN */}
-          <aside className="lg:sticky lg:top-24">
+          <aside className="lg:sticky lg:top-24 lg:self-start">
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
+              {/* Imagen dinámica según subcategoría/tipo seleccionado */}
+              <SidebarImg src={sidebarImage} />
               <div className="border-b border-amber-100 bg-amber-50/70 px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-amber-800">Resumen de cotización</p>
                 <p className="mt-1 text-sm font-extrabold text-slate-600">Tu selección en tiempo real</p>
