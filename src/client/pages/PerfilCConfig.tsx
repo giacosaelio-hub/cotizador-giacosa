@@ -312,7 +312,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                 </div>
                 {medida && (
                   <p className="mt-3 text-xs font-semibold text-slate-400">
-                    Medida seleccionada: alto {getAltoFromKey(medida)} mm · espesor {espesorComun} mm · ala 15 mm
+                    Medida seleccionada: alto {getAltoFromKey(medida)} mm · alma menor {espesorComun} mm
                   </p>
                 )}
               </SectionCard>

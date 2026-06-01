@@ -553,7 +553,8 @@ function LoginGate(props: {
       if (res.ok) {
         await props.onAuth?.();
       } else {
-        setError("Contraseña incorrecta o acceso denegado.");
+        const data = await res.json().catch(() => ({}));
+        setError(data.message || "Contraseña incorrecta o acceso denegado.");
       }
     } catch (e) {
       setError("Error de conexión.");

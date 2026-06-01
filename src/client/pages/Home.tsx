@@ -445,6 +445,16 @@ export default function Home({
   const minBobina = toARS(precios, minFromBobinasVariantes(precios?.bobinas_variantes));
   const minChapaEstandar = toARS(precios, minFromChapasEstandar(precios?.chapas_estandar));
 
+  // Precio mínimo de Perfil C (comun + galvanizado combinados)
+  const minPerfilCUSD = (() => {
+    const vals = [
+      minFromRecord(precios?.perfil_c?.comun),
+      minFromRecord(precios?.perfil_c?.galvanizado),
+    ].filter((n): n is number => n !== null);
+    return vals.length ? Math.min(...vals) : null;
+  })();
+  const minPerfilC = toARS(precios, minPerfilCUSD);
+
   const goToCategorias = () => {
     if (navigateToHomeSection) {
       navigateToHomeSection("cotizador-categorias");
@@ -585,7 +595,7 @@ export default function Home({
 
           {/* Fila 2: Perfil C · Complementarios — centradas en desktop */}
           <motion.div
-            className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-auto lg:w-2/3"
+            className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-auto lg:w-2/3 xl:w-[60%]"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -610,6 +620,7 @@ export default function Home({
                   <div className="mb-2 w-full">{card.subtitle}</div>
                   <p className="mb-6 flex-1 break-words text-[15px] leading-snug text-slate-600">{card.desc}</p>
                   <div className="mt-auto flex w-full flex-col items-center gap-3 pt-1">
+                    {card.key === "perfil_c" ? priceBadge(minPerfilC, "/ barra") : null}
                     <ArrowRight className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden />
                   </div>
                 </div>
