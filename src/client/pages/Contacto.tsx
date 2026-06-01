@@ -57,7 +57,7 @@ export default function Contacto() {
           <p className="text-xs font-black uppercase tracking-[0.32em] text-emerald-700">Contacto Giacosa Elio</p>
           <h1 className="mt-3 text-4xl font-black tracking-tight sm:text-5xl">Hablemos de tu cotización</h1>
           <p className="mx-auto mt-4 max-w-2xl text-base leading-8 text-slate-600">
-            Contactá a Giacosa Elio – Corralón y Materiales para la Construcción en San Miguel de Tucumán. Te ayudamos con chapas para techo, bobinas, chapas estándar y consultas de obra.
+            Contactá a Giacosa Elio – Corralón y Materiales en San Miguel de Tucumán. Te ayudamos con chapas para techo, bobinas, chapas estándar, Perfil C, complementarios y otros materiales para construcción.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
             <button onClick={() => openWA("Hola Giacosa Elio, quiero consultar por una cotización de chapas y materiales.")} className="inline-flex items-center gap-3 rounded-full bg-emerald-700 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.24)] transition hover:bg-emerald-800">

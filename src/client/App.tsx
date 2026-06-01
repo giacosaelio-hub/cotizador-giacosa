@@ -102,6 +102,24 @@ export default function App() {
 
   const pendingSectionScroll = useRef<string | null>(null);
 
+  // Título dinámico por ruta — actualiza document.title al navegar
+  useEffect(() => {
+    const titles: Partial<Record<View, string>> = {
+      home:          "Giacosa Elio | Cotizador online de materiales en Tucumán",
+      chapa_perfilada: "Chapas para techo en Tucumán | Giacosa Elio",
+      chapa_estandar:  "Chapas estándar en Tucumán | Giacosa Elio",
+      bobina:          "Bobinas de acero en Tucumán | Giacosa Elio",
+      perfil_c:        "Perfil C en Tucumán | Cotizador online | Giacosa Elio",
+      complementario:  "Complementarios para obra en Tucumán | Giacosa Elio",
+      informacion:     "Información sobre materiales para obra | Giacosa Elio",
+      historia:        "Nuestra historia | Giacosa Elio Corralón en Tucumán",
+      contacto:        "Contacto | Giacosa Elio Corralón en Tucumán",
+      carrito:         "Cotización | Giacosa Elio",
+      admin:           "Admin | Giacosa Elio",
+    };
+    document.title = titles[view] ?? "Giacosa Elio | Materiales para la Construcción en Tucumán";
+  }, [view]);
+
   useEffect(() => {
     fetch("/api/precios")
       .then(async (r) => {
