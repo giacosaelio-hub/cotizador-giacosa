@@ -85,16 +85,16 @@ function paymentLogoPath(label: string): string | null {
 
   if (key === "visa-mastercard") return null;
   if (key === "debito") return null;
-  if (key === "naranjax") return "/images/pagos/naranja.png";
-  if (key === "cabal") return "/images/pagos/cabal.png";
-  if (key === "titanio") return "/images/pagos/titanio.png";
-  if (key === "cencosud") return "/images/pagos/cencosud.png";
-  if (key === "sol") return "/images/pagos/sol.png";
-  if (key === "credicash") return "/images/pagos/credicash.png";
-  if (key === "sucredito") return "/images/pagos/sucredito.png";
-  if (key === "amex") return "/images/pagos/amex.png";
-  if (key === "mastercard") return "/images/pagos/mastercard.png";
-  if (key === "visa") return "/images/pagos/visa.png";
+  if (key === "naranjax") return "/images/pagos/naranja.webp";
+  if (key === "cabal") return "/images/pagos/cabal.webp";
+  if (key === "titanio") return "/images/pagos/titanio.webp";
+  if (key === "cencosud") return "/images/pagos/cencosud.webp";
+  if (key === "sol") return "/images/pagos/sol.webp";
+  if (key === "credicash") return "/images/pagos/credicash.webp";
+  if (key === "sucredito") return "/images/pagos/sucredito.webp";
+  if (key === "amex") return "/images/pagos/amex.webp";
+  if (key === "mastercard") return "/images/pagos/mastercard.webp";
+  if (key === "visa") return "/images/pagos/visa.webp";
   return null;
 }
 function PaymentBrandContent({ label }: { label: string }) {
@@ -105,12 +105,12 @@ function PaymentBrandContent({ label }: { label: string }) {
     return (
       <div className="flex items-center justify-center gap-4">
         <img
-          src="/images/pagos/visa.png"
+          src="/images/pagos/visa.webp"
           alt="Visa"
           className="h-9 max-w-[92px] object-contain"
         />
         <img
-          src="/images/pagos/mastercard.png"
+          src="/images/pagos/mastercard.webp"
           alt="Mastercard"
           className="h-9 max-w-[92px] object-contain"
         />
@@ -590,6 +590,40 @@ export default function Carrito({
                 ))}
               </div>
 
+              {(() => {
+                const tipos = cart.map((i) => i.tipo);
+                const crossSell: { label: string }[] = [];
+                if (tipos.includes("chapa_perfilada")) {
+                  if (!tipos.includes("complementario")) {
+                    crossSell.push({ label: "Cumbreras" });
+                    crossSell.push({ label: "Autoperforantes" });
+                  }
+                }
+                if (tipos.includes("bobina") && !tipos.includes("complementario")) {
+                  crossSell.push({ label: "Estaño" });
+                }
+                if (tipos.includes("perfil_c") && !tipos.includes("complementario")) {
+                  crossSell.push({ label: "Tornillos" });
+                }
+                if (crossSell.length === 0) return null;
+                return (
+                  <div className="mt-0 border-t border-amber-100 bg-amber-50/70 px-5 py-4">
+                    <p className="text-sm font-black text-amber-800 mb-3">¿Agregás también?</p>
+                    <div className="flex flex-wrap gap-2">
+                      {crossSell.map((item) => (
+                        <button
+                          key={item.label}
+                          type="button"
+                          onClick={scrollToCotizadorCategorias}
+                          className="rounded-xl border border-amber-300 bg-white px-3 py-1.5 text-xs font-bold text-amber-700 hover:bg-amber-100 transition"
+                        >
+                          {item.label} →
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               <div className="border-t border-emerald-100 bg-emerald-50/55 px-5 py-4">
                 <div className="flex flex-col gap-3 rounded-2xl border border-emerald-100 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-start gap-3">

@@ -20,6 +20,16 @@ type Precios = {
   bobinas_variantes?: BobinaVariante[];
   chapas_estandar: Record<string, Record<string, number>>;
   formas_pago?: TarjetaOpcion[];
+  perfil_c?: {
+    comun: Record<string, number>;
+    galvanizado: Record<string, number>;
+  };
+  complementarios?: {
+    cumbreras: Record<string, number>;
+    autoperforantes: Record<string, number>;
+    tornillos: Record<string, number>;
+    estaño: Record<string, number>;
+  };
 };
 
 const CHAPA_LABELS: Record<string, string> = {
@@ -621,6 +631,16 @@ type EditValues = {
   chapas_estandar: Record<string, Record<string, string>>;
   bobinas_variantes: Record<string, string>;
   formas_pago: Record<string, Record<string, string>>;
+  perfil_c: {
+    comun: Record<string, string>;
+    galvanizado: Record<string, string>;
+  };
+  complementarios: {
+    cumbreras: Record<string, string>;
+    autoperforantes: Record<string, string>;
+    tornillos: Record<string, string>;
+    estaño: Record<string, string>;
+  };
 };
 
 function buildEditValuesFromPrecios(precios: Precios): EditValues {
@@ -630,6 +650,8 @@ function buildEditValuesFromPrecios(precios: Precios): EditValues {
     chapas_estandar: {},
     bobinas_variantes: {},
     formas_pago: {},
+    perfil_c: { comun: {}, galvanizado: {} },
+    complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {} },
   };
 
   Object.entries(precios.chapas_perfiladas ?? {}).forEach(([k, v]) => {
@@ -658,6 +680,30 @@ function buildEditValuesFromPrecios(precios: Precios): EditValues {
     }
   }
 
+  if (precios.perfil_c) {
+    Object.entries(precios.perfil_c.comun ?? {}).forEach(([k, v]) => {
+      next.perfil_c.comun[k] = v?.toString() ?? "";
+    });
+    Object.entries(precios.perfil_c.galvanizado ?? {}).forEach(([k, v]) => {
+      next.perfil_c.galvanizado[k] = v?.toString() ?? "";
+    });
+  }
+
+  if (precios.complementarios) {
+    Object.entries(precios.complementarios.cumbreras ?? {}).forEach(([k, v]) => {
+      next.complementarios.cumbreras[k] = v?.toString() ?? "";
+    });
+    Object.entries(precios.complementarios.autoperforantes ?? {}).forEach(([k, v]) => {
+      next.complementarios.autoperforantes[k] = v?.toString() ?? "";
+    });
+    Object.entries(precios.complementarios.tornillos ?? {}).forEach(([k, v]) => {
+      next.complementarios.tornillos[k] = v?.toString() ?? "";
+    });
+    Object.entries(precios.complementarios.estaño ?? {}).forEach(([k, v]) => {
+      next.complementarios.estaño[k] = v?.toString() ?? "";
+    });
+  }
+
   return next;
 }
 
@@ -683,6 +729,8 @@ export default function AdminPrecios() {
     chapas_estandar: {},
     bobinas_variantes: {},
     formas_pago: {},
+    perfil_c: { comun: {}, galvanizado: {} },
+    complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {} },
   });
 
   const [massAdjustmentPreview, setMassAdjustmentPreview] = useState<EditValues | null>(null);
@@ -909,6 +957,32 @@ export default function AdminPrecios() {
                     : cuota.porcentaje,
               })),
             }))
+          : undefined,
+        perfil_c: precios.perfil_c
+          ? {
+              comun: Object.fromEntries(
+                Object.entries(editValues.perfil_c.comun).map(([k, v]) => [k, Number(v || 0)])
+              ),
+              galvanizado: Object.fromEntries(
+                Object.entries(editValues.perfil_c.galvanizado).map(([k, v]) => [k, Number(v || 0)])
+              ),
+            }
+          : undefined,
+        complementarios: precios.complementarios
+          ? {
+              cumbreras: Object.fromEntries(
+                Object.entries(editValues.complementarios.cumbreras).map(([k, v]) => [k, Number(v || 0)])
+              ),
+              autoperforantes: Object.fromEntries(
+                Object.entries(editValues.complementarios.autoperforantes).map(([k, v]) => [k, Number(v || 0)])
+              ),
+              tornillos: Object.fromEntries(
+                Object.entries(editValues.complementarios.tornillos).map(([k, v]) => [k, Number(v || 0)])
+              ),
+              estaño: Object.fromEntries(
+                Object.entries(editValues.complementarios.estaño).map(([k, v]) => [k, Number(v || 0)])
+              ),
+            }
           : undefined,
       };
 
@@ -1242,6 +1316,196 @@ export default function AdminPrecios() {
                 </div>
               );
             })}
+          </div>
+        </div>
+      )}
+
+      {precios.perfil_c && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+          <h2 className="font-bold text-gray-800 mb-1 text-sm uppercase tracking-wider">
+            Perfil C
+          </h2>
+          <div className="flex flex-col gap-6">
+            {(["comun", "galvanizado"] as const).map((subtipo) => {
+              const subtipoLabel = subtipo === "comun" ? "Común" : "Galvanizado";
+              const items = precios.perfil_c?.[subtipo] ?? {};
+              return (
+                <div key={subtipo}>
+                  <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
+                    Perfil C {subtipoLabel}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {Object.entries(items).map(([k]) => (
+                      <div key={k} className="flex items-center gap-3">
+                        <label className="text-sm text-gray-600 flex-1">{k.replace("x", " × ")} mm</label>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-400">USD</span>
+                          <NumericControlledInput
+                            value={editValues.perfil_c[subtipo]?.[k] ?? ""}
+                            onChange={(val) =>
+                              setEditValues((e) => ({
+                                ...e,
+                                perfil_c: {
+                                  ...e.perfil_c,
+                                  [subtipo]: { ...e.perfil_c[subtipo], [k]: val },
+                                },
+                              }))
+                            }
+                            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-24 text-right focus:outline-none focus:border-[#008C45]"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {precios.complementarios && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+          <h2 className="font-bold text-gray-800 mb-1 text-sm uppercase tracking-wider">
+            Complementarios
+          </h2>
+          <div className="flex flex-col gap-6">
+            {/* Cumbreras */}
+            <div>
+              <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
+                Cumbreras (USD/metro)
+              </p>
+              <div className="flex flex-col gap-2">
+                {Object.entries(precios.complementarios.cumbreras ?? {}).map(([k]) => (
+                  <div key={k} className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600 flex-1">{k.replace(/_/g, " ")}</label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-400">USD</span>
+                      <NumericControlledInput
+                        value={editValues.complementarios.cumbreras?.[k] ?? ""}
+                        onChange={(val) =>
+                          setEditValues((e) => ({
+                            ...e,
+                            complementarios: {
+                              ...e.complementarios,
+                              cumbreras: { ...e.complementarios.cumbreras, [k]: val },
+                            },
+                          }))
+                        }
+                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-24 text-right focus:outline-none focus:border-[#008C45]"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Autoperforantes */}
+            <div>
+              <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
+                Autoperforantes (ARS/100 uds)
+              </p>
+              <div className="flex flex-col gap-2">
+                {Object.entries(precios.complementarios.autoperforantes ?? {}).map(([k]) => (
+                  <div key={k} className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600 flex-1">{k.replace(/_/g, " ")}</label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-400">ARS</span>
+                      <NumericControlledInput
+                        value={editValues.complementarios.autoperforantes?.[k] ?? ""}
+                        onChange={(val) =>
+                          setEditValues((e) => ({
+                            ...e,
+                            complementarios: {
+                              ...e.complementarios,
+                              autoperforantes: { ...e.complementarios.autoperforantes, [k]: val },
+                            },
+                          }))
+                        }
+                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-28 text-right focus:outline-none focus:border-[#008C45]"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Tornillos */}
+            <div>
+              <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
+                Tornillos (ARS/100 uds)
+              </p>
+              <div className="flex flex-col gap-2">
+                {Object.entries(precios.complementarios.tornillos ?? {}).map(([k]) => (
+                  <div key={k} className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600 flex-1">{k.replace(/_/g, " ")}</label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-400">ARS</span>
+                      <NumericControlledInput
+                        value={editValues.complementarios.tornillos?.[k] ?? ""}
+                        onChange={(val) =>
+                          setEditValues((e) => ({
+                            ...e,
+                            complementarios: {
+                              ...e.complementarios,
+                              tornillos: { ...e.complementarios.tornillos, [k]: val },
+                            },
+                          }))
+                        }
+                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-28 text-right focus:outline-none focus:border-[#008C45]"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Estaño */}
+            <div>
+              <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
+                Estaño (ARS)
+              </p>
+              <div className="flex flex-col gap-2">
+                {Object.entries(precios.complementarios.estaño ?? {}).map(([k]) => (
+                  <div key={k} className="flex items-center gap-3">
+                    <label className="text-sm text-gray-600 flex-1">
+                      {k === "kg" ? "KG (paquete × 8 barras)" : "Barra individual"}
+                    </label>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-gray-400">ARS</span>
+                      <NumericControlledInput
+                        value={editValues.complementarios.estaño?.[k] ?? ""}
+                        onChange={(val) =>
+                          setEditValues((e) => ({
+                            ...e,
+                            complementarios: {
+                              ...e.complementarios,
+                              estaño: { ...e.complementarios.estaño, [k]: val },
+                            },
+                          }))
+                        }
+                        className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-28 text-right focus:outline-none focus:border-[#008C45]"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00"
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}

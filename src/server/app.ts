@@ -1,9 +1,12 @@
 import path from "path";
 import express, { type Express } from "express";
 import cors from "cors";
+import compression from "compression";
 import router from "./routes/index";
 
 const app: Express = express();
+
+app.use(compression());
 
 // Determina entorno
 const isProd = process.env.NODE_ENV === "production";
@@ -80,6 +83,8 @@ const SPA_ROUTES = new Set([
   "/chapas-estandar/negra",
   "/chapas-estandar/estampada",
   "/bobinas",
+  "/perfil-c",
+  "/complementarios",
   "/carrito",
   "/nuestra-historia",
   "/informacion",

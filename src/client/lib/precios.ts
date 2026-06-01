@@ -33,11 +33,21 @@ export type Precios = {
   bobinas_variantes?: BobinaVariante[];
   chapas_estandar: Record<string, Record<string, number>>;
   formas_pago?: TarjetaOpcion[];
+  perfil_c?: {
+    comun: Record<string, number>;
+    galvanizado: Record<string, number>;
+  };
+  complementarios?: {
+    cumbreras: Record<string, number>;
+    autoperforantes: Record<string, number>;
+    tornillos: Record<string, number>;
+    estaño: Record<string, number>;
+  };
 };
 
 export type CartItem = {
   id: string;
-  tipo: "chapa_perfilada" | "bobina" | "chapa_estandar";
+  tipo: "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario";
   descripcion: string;
   medida: string;
   cantidad: number;
@@ -314,6 +324,32 @@ export function getTiposBobinaDisponibles(
     }
   });
   return Array.from(tiposSet);
+}
+
+export function calcPerfilCPrecio(
+  precios: Precios,
+  subtipo: "comun" | "galvanizado",
+  key: string,
+  cantidad: number
+) {
+  const precioUSD = precios.perfil_c?.[subtipo]?.[key] ?? 0;
+  const precioUnitarioARS = precioUSD * precios.dolar * IVA;
+  const subtotalARS = precioUnitarioARS * cantidad;
+  return { precioUnitarioUSD: precioUSD, precioUnitarioARS, subtotalARS };
+}
+
+export function calcComplementarioPrecio(
+  precios: Precios,
+  subcategoria: "cumbreras" | "autoperforantes" | "tornillos" | "estaño",
+  key: string,
+  cantidad: number
+) {
+  const raw = precios.complementarios?.[subcategoria]?.[key] ?? 0;
+  const esUSD = subcategoria === "cumbreras";
+  const precioUnitarioARS = esUSD ? raw * precios.dolar * IVA : raw;
+  const precioUnitarioUSD = esUSD ? raw : 0;
+  const subtotalARS = precioUnitarioARS * cantidad;
+  return { precioUnitarioUSD, precioUnitarioARS, subtotalARS };
 }
 
 // 7. Colores prepintados válidos para calibre y ancho en bobinas

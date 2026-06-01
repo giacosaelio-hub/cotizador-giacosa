@@ -156,6 +156,67 @@
       "N27_1.22x2.44": 41.79
     }
   },
+  "perfil_c": {
+    "comun": {
+      "80x1.6": 63.67,
+      "100x1.6": 67.64,
+      "120x1.6": 79.88,
+      "80x2.0": 75.28,
+      "100x2.0": 71.28,
+      "120x2.0": 84.85,
+      "140x2.0": 103.19,
+      "160x2.0": 111.44,
+      "180x2.0": 124.27,
+      "200x2.0": 139.48,
+      "220x2.0": 141.76,
+      "240x2.5": 182.55
+    },
+    "galvanizado": {
+      "100x1.6": 79.65,
+      "100x2.0": 98.55,
+      "120x2.0": 107.77
+    }
+  },
+  "complementarios": {
+    "cumbreras": {
+      "sinusoidal_negra": 23.89,
+      "trapezoidal_negra": 23.89,
+      "lisa_azul_40": 17.15,
+      "lisa_azul_60": 25.63,
+      "lisa_gris_40": 17.15,
+      "lisa_gris_60": 25.63,
+      "lisa_negra_40": 17.15,
+      "lisa_negra_60": 25.63,
+      "lisa_roja_40": 17.15,
+      "lisa_roja_60": 25.63,
+      "lisa_verde_40": 17.15,
+      "lisa_verde_60": 25.63,
+      "lisa_sin_pintar_40": 17.15,
+      "lisa_sin_pintar_60": 25.63
+    },
+    "autoperforantes": {
+      "1_rosca_chapa": 1515.31,
+      "1.5_rosca_chapa": 1954.65,
+      "2_rosca_chapa": 2394.00,
+      "2_rosca_madera": 2805.65,
+      "2.5_rosca_chapa": 1093.51,
+      "2.5_rosca_madera": 3244.99,
+      "3_rosca_madera": 3697.19
+    },
+    "tornillos": {
+      "T1_punta_aguja": 392.93,
+      "T1_punta_mecha": 443.59,
+      "T2_punta_aguja": 282.95,
+      "T2_punta_mecha": 487.66,
+      "T3_punta_aguja": 504.10,
+      "T3_punta_mecha": 558.01,
+      "T4_punta_aguja": 587.73
+    },
+    "estaño": {
+      "kg": 109077.27,
+      "barra": 14548.26
+    }
+  },
   "formas_pago": [
     {
       "id": "debito",

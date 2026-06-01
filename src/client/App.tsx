@@ -1,19 +1,30 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense, lazy } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { ShoppingCart, Menu, X, ArrowRight } from "lucide-react";
-import logoGiacosa from "/logo-giacosa.png";
+const logoGiacosa = "/logo-giacosa.webp";
 import Home from "@/pages/Home";
-import ChapaPerfiladaConfig from "@/pages/ChapaPerfiladaConfig";
-import BobinaConfig from "@/pages/BobinaConfig";
-import ChapaEstandarConfig from "@/pages/ChapaEstandarConfig";
-import Carrito from "@/pages/Carrito";
-import Historia from "@/pages/Historia";
-import Informacion from "@/pages/Informacion";
-import Contacto from "@/pages/Contacto";
-import AdminPrecios from "@/pages/AdminPrecios";
 import { CartItem, Precios, Preselection } from "@/lib/precios";
 
-type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar";
+const ChapaPerfiladaConfig   = lazy(() => import("@/pages/ChapaPerfiladaConfig"));
+const BobinaConfig           = lazy(() => import("@/pages/BobinaConfig"));
+const ChapaEstandarConfig    = lazy(() => import("@/pages/ChapaEstandarConfig"));
+const PerfilCConfig          = lazy(() => import("@/pages/PerfilCConfig"));
+const ComplementariosConfig  = lazy(() => import("@/pages/ComplementariosConfig"));
+const Carrito                = lazy(() => import("@/pages/Carrito"));
+const Historia               = lazy(() => import("@/pages/Historia"));
+const Informacion            = lazy(() => import("@/pages/Informacion"));
+const Contacto               = lazy(() => import("@/pages/Contacto"));
+const AdminPrecios           = lazy(() => import("@/pages/AdminPrecios"));
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center">
+      <div className="h-8 w-8 animate-spin rounded-full border-4 border-emerald-600 border-t-transparent" />
+    </div>
+  );
+}
+
+type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario";
 type View = "home" | ProductType | "carrito" | "historia" | "informacion" | "contacto" | "admin" | "not_found";
 
 export type NavigateToHomeSection = (sectionId: string) => void;
@@ -23,6 +34,8 @@ const VIEW_PATHS: Record<View, string> = {
   chapa_perfilada: "/chapas-para-techo",
   bobina: "/bobinas",
   chapa_estandar: "/chapas-estandar",
+  perfil_c: "/perfil-c",
+  complementario: "/complementarios",
   carrito: "/carrito",
   historia: "/nuestra-historia",
   informacion: "/informacion",
@@ -56,6 +69,8 @@ function resolveViewFromPath(): { view: View; preselection?: Preselection } {
     return { view: "chapa_estandar", preselection: categoria ? { categoria } : undefined };
   }
   if (segments[0] === "bobinas") return { view: "bobina" };
+  if (segments[0] === "perfil-c") return { view: "perfil_c" };
+  if (segments[0] === "complementarios") return { view: "complementario" };
   if (segments[0] === "carrito") return { view: "carrito" };
   if (segments[0] === "nuestra-historia") return { view: "historia" };
   if (segments[0] === "informacion") return { view: "informacion" };
@@ -268,7 +283,7 @@ export default function App() {
                   onClick={item.action}
                   className={`rounded-full px-4 py-2 text-sm font-extrabold transition ${
                     active
-                      ? "bg-emerald-600 text-white shadow-sm"
+                      ? "bg-emerald-700 text-white shadow-sm"
                       : "text-white/72 hover:bg-white/[0.08] hover:text-emerald-300"
                   }`}
                 >
@@ -282,6 +297,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => goToView("carrito")}
+              aria-label="Ver cotización"
               className={`relative inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-black shadow-sm transition ${
                 view === "carrito"
                   ? "bg-emerald-700 text-white"
@@ -318,7 +334,7 @@ export default function App() {
                   onClick={item.action}
                   className={`flex w-full items-center justify-between rounded-2xl px-4 py-3 text-left text-sm font-black transition ${
                     view === item.key
-                      ? "bg-emerald-600 text-white"
+                      ? "bg-emerald-700 text-white"
                       : "bg-white/[0.06] text-white/80 hover:bg-emerald-500/15 hover:text-emerald-300"
                   }`}
                 >
@@ -342,58 +358,66 @@ export default function App() {
             navigateToHomeSection={navigateToHomeSection}
           />
         )}
-        {view === "chapa_perfilada" && (
-          <ChapaPerfiladaConfig
-            precios={precios}
-            preselection={preselection}
-            onBack={() => goToView("home")}
-            onAdd={addToCart}
-          />
-        )}
-        {view === "bobina" && (
-          <BobinaConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
-        )}
-        {view === "chapa_estandar" && (
-          <ChapaEstandarConfig
-            precios={precios}
-            preselection={preselection}
-            onBack={() => goToView("home")}
-            onAdd={addToCart}
-          />
-        )}
-        {view === "carrito" && (
-          <Carrito
-            cart={cart}
-            precios={precios}
-            onUpdateCantidad={updateCantidad}
-            onRemove={removeFromCart}
-            onAgregarMas={() => navigateToHomeSection("cotizador-categorias")}
-            onClearCart={clearCart}
-          />
-        )}
-        {view === "historia" && <Historia />}
-        {view === "informacion" && (
-          <Informacion
-            onCotizar={() => goToView("home")}
-            navigateToHomeSection={navigateToHomeSection}
-          />
-        )}
-        {view === "contacto" && <Contacto />}
-        {view === "admin" && <AdminPrecios />}
-        {view === "not_found" && (
-          <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
-            <p className="text-7xl font-black text-emerald-700">404</p>
-            <h1 className="mt-4 text-2xl font-black tracking-tight text-slate-900">Página no encontrada</h1>
-            <p className="mt-2 text-slate-500">La dirección que ingresaste no existe en este sitio.</p>
-            <button
-              type="button"
-              onClick={() => goToView("home")}
-              className="mt-6 rounded-2xl bg-emerald-700 px-6 py-3 text-sm font-black text-white shadow hover:bg-emerald-800"
-            >
-              Ir al cotizador
-            </button>
-          </div>
-        )}
+        <Suspense fallback={<PageLoader />}>
+          {view === "chapa_perfilada" && (
+            <ChapaPerfiladaConfig
+              precios={precios}
+              preselection={preselection}
+              onBack={() => goToView("home")}
+              onAdd={addToCart}
+            />
+          )}
+          {view === "bobina" && (
+            <BobinaConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
+          )}
+          {view === "chapa_estandar" && (
+            <ChapaEstandarConfig
+              precios={precios}
+              preselection={preselection}
+              onBack={() => goToView("home")}
+              onAdd={addToCart}
+            />
+          )}
+          {view === "perfil_c" && (
+            <PerfilCConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
+          )}
+          {view === "complementario" && (
+            <ComplementariosConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
+          )}
+          {view === "carrito" && (
+            <Carrito
+              cart={cart}
+              precios={precios}
+              onUpdateCantidad={updateCantidad}
+              onRemove={removeFromCart}
+              onAgregarMas={() => navigateToHomeSection("cotizador-categorias")}
+              onClearCart={clearCart}
+            />
+          )}
+          {view === "historia" && <Historia />}
+          {view === "informacion" && (
+            <Informacion
+              onCotizar={() => goToView("home")}
+              navigateToHomeSection={navigateToHomeSection}
+            />
+          )}
+          {view === "contacto" && <Contacto />}
+          {view === "admin" && <AdminPrecios />}
+          {view === "not_found" && (
+            <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 text-center">
+              <p className="text-7xl font-black text-emerald-700">404</p>
+              <h1 className="mt-4 text-2xl font-black tracking-tight text-slate-900">Página no encontrada</h1>
+              <p className="mt-2 text-slate-500">La dirección que ingresaste no existe en este sitio.</p>
+              <button
+                type="button"
+                onClick={() => goToView("home")}
+                className="mt-6 rounded-2xl bg-emerald-700 px-6 py-3 text-sm font-black text-white shadow hover:bg-emerald-800"
+              >
+                Ir al cotizador
+              </button>
+            </div>
+          )}
+        </Suspense>
       </main>
 
       <footer className="bg-gray-900 text-gray-400 text-sm mt-auto">

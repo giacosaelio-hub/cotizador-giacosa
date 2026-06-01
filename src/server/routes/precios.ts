@@ -68,6 +68,8 @@ router.post("/precios", requireAdminAuth, (req, res): void => {
       bobinas_variantes: body.bobinas_variantes ?? current.bobinas_variantes,
       chapas_estandar: body.chapas_estandar ?? current.chapas_estandar,
       formas_pago: body.formas_pago ?? current.formas_pago,
+      perfil_c: body.perfil_c ?? current.perfil_c,
+      complementarios: body.complementarios ?? current.complementarios,
     };
 
     writeFileSync(PRECIOS_PATH, JSON.stringify(updated, null, 2));

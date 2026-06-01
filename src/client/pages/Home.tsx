@@ -18,6 +18,8 @@ const productImages = {
   chapasTecho: "/images/productos/chapas-techo.webp",
   bobinas: "/images/productos/bobinas.webp",
   chapasEstandar: "/images/productos/chapas-estandar.webp",
+  perfilC: "/images/productos/perfil-c.webp",
+  complementarios: "/images/productos/complementarios.webp",
 };
 
 const paymentLogos = {
@@ -34,7 +36,7 @@ const paymentLogos = {
   sucredito: "/images/pagos/sucredito.webp",
 } as const;
 
-type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar";
+type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario";
 
 interface Props {
   precios?: Precios;
@@ -224,6 +226,38 @@ const cards = [
     ),
     desc:
       "Chapas en medidas fijas para portones, revestimientos y piezas metálicas. Negras, galvanizadas y prepintadas. Consultá disponibilidad por calibre.",
+  },
+  {
+    key: "perfil_c" as const,
+    img: productImages.perfilC,
+    alt: "Perfiles C de acero estructural",
+    imgPosition: "object-center",
+    fallback: {
+      bg: "bg-gradient-to-br from-slate-700 via-slate-800 to-slate-950",
+      line1: "Perfil C",
+      line2: "Estructural",
+    } satisfies CardFallback,
+    title: "Perfil C",
+    subtitle: (
+      <span className="text-[15px] font-semibold text-emerald-700">Común · Galvanizado</span>
+    ),
+    desc: "Barras de 12 metros. Perfil C común y galvanizado. Amplia variedad de medidas para estructuras y construcción.",
+  },
+  {
+    key: "complementario" as const,
+    img: productImages.complementarios,
+    alt: "Complementarios para construcción",
+    imgPosition: "object-center",
+    fallback: {
+      bg: "bg-gradient-to-br from-amber-900 via-slate-900 to-slate-950",
+      line1: "Complementarios",
+      line2: "Cumbreras · Tornillos · Estaño",
+    } satisfies CardFallback,
+    title: "Complementarios",
+    subtitle: (
+      <span className="text-[15px] font-semibold text-emerald-700">Cumbreras · Tornillos · Estaño</span>
+    ),
+    desc: "Cumbreras (sinusoidal, trapezoidal y lisa), autoperforantes, tornillos y estaño para tus proyectos.",
   },
 ];
 
@@ -510,11 +544,13 @@ export default function Home({
           >
             {cards.map((card, i) => {
               const price =
-              card.key === "chapa_perfilada"
-                ? minTecho
-                : card.key === "bobina"
-                  ? minBobina
-                  : minChapaEstandar;
+                card.key === "chapa_perfilada"
+                  ? minTecho
+                  : card.key === "bobina"
+                    ? minBobina
+                    : card.key === "chapa_estandar"
+                      ? minChapaEstandar
+                      : null;
               return (
                 <motion.button
                   key={card.key}
@@ -526,7 +562,7 @@ export default function Home({
                   <div className="relative h-48 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
                     <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
                     <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-600/10 bg-white/90 px-[10px] py-[2.5px] text-xs font-bold text-emerald-700/90 opacity-80 shadow-sm select-none group-hover:opacity-100">
-                      {i === 0 ? "Lo más vendido" : i === 1 ? "Usos profesionales" : "Medidas listas"}
+                      {i === 0 ? "Lo más vendido" : i === 1 ? "Usos profesionales" : i === 2 ? "Medidas listas" : i === 3 ? "Estructural" : "Obra completa"}
                     </span>
                   </div>
 
@@ -537,7 +573,9 @@ export default function Home({
                     <div className="mb-2 w-full">{card.subtitle}</div>
                     <p className="mb-6 flex-1 break-words text-[15px] leading-snug text-slate-600">{card.desc}</p>
                     <div className="mt-auto flex w-full flex-col items-center gap-3 pt-1">
-                      {priceBadge(price, card.key === "chapa_estandar" ? "" : "/ metro")}
+                      {(card.key === "perfil_c" || card.key === "complementario")
+                        ? null
+                        : priceBadge(price, card.key === "chapa_estandar" ? "" : "/ metro")}
                       <ArrowRight
                         className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600"
                         aria-hidden
