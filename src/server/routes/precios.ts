@@ -9,13 +9,33 @@ const PRECIOS_PATH =
   process.env.PRECIOS_PATH || join(process.cwd(), "precios.json");
 
 function ensurePreciosFile() {
-  if (existsSync(PRECIOS_PATH)) return;
-
   const fallbackPath = join(process.cwd(), "precios.json");
-  const initialData = readFileSync(fallbackPath, "utf-8");
 
-  mkdirSync(dirname(PRECIOS_PATH), { recursive: true });
-  writeFileSync(PRECIOS_PATH, initialData);
+  if (!existsSync(PRECIOS_PATH)) {
+    // Crear desde el archivo bundleado si no existe
+    const initialData = readFileSync(fallbackPath, "utf-8");
+    mkdirSync(dirname(PRECIOS_PATH), { recursive: true });
+    writeFileSync(PRECIOS_PATH, initialData);
+    return;
+  }
+
+  // Archivo ya existe → agregar claves faltantes del bundleado (migración no destructiva)
+  try {
+    const current = JSON.parse(readFileSync(PRECIOS_PATH, "utf-8"));
+    const defaults = JSON.parse(readFileSync(fallbackPath, "utf-8"));
+    const missingKeys = Object.keys(defaults).filter((k) => !(k in current));
+
+    if (missingKeys.length > 0) {
+      for (const key of missingKeys) {
+        current[key] = defaults[key];
+      }
+      writeFileSync(PRECIOS_PATH, JSON.stringify(current, null, 2));
+      console.log("[precios] Migración: se agregaron campos faltantes:", missingKeys.join(", "));
+    }
+  } catch (e) {
+    // No romper si falla la migración — el archivo existente se usa tal cual
+    console.error("[precios] Aviso: no se pudo migrar campos nuevos:", e);
+  }
 }
 
 // GET /precios es pública (ya no usa requireAdminAuth)

@@ -28,19 +28,19 @@ interface Props {
   onAdd: (item: Omit<CartItem, "id">) => void;
 }
 
-const FALLBACK_IMAGE = "/images/productos/chapas-estandar.png";
+const FALLBACK_IMAGE = "/images/productos/chapas-estandar.webp";
 
 const CATEGORY_IMAGES: Record<string, string> = {
-  negra_estampada: "/images/configurador/estandar/negra-estampada.png",
-  chapa_negra_estampada: "/images/configurador/estandar/negra-estampada.png",
-  lisa_negra: "/images/configurador/estandar/lisa-negra.png",
-  lisa_negra_laf: "/images/configurador/estandar/lisa-negra.png",
-  chapa_lisa_negra: "/images/configurador/estandar/lisa-negra.png",
-  chapa_lisa_negra_laf: "/images/configurador/estandar/lisa-negra.png",
-  lisa_galvanizada: "/images/configurador/estandar/lisa-galvanizada.png",
-  chapa_lisa_galvanizada: "/images/configurador/estandar/lisa-galvanizada.png",
-  lisa_prepintada: "/images/configurador/estandar/lisa-prepintada.png",
-  chapa_lisa_prepintada: "/images/configurador/estandar/lisa-prepintada.png",
+  negra_estampada: "/images/configurador/estandar/negra-estampada.webp",
+  chapa_negra_estampada: "/images/configurador/estandar/negra-estampada.webp",
+  lisa_negra: "/images/configurador/estandar/lisa-negra.webp",
+  lisa_negra_laf: "/images/configurador/estandar/lisa-negra.webp",
+  chapa_lisa_negra: "/images/configurador/estandar/lisa-negra.webp",
+  chapa_lisa_negra_laf: "/images/configurador/estandar/lisa-negra.webp",
+  lisa_galvanizada: "/images/configurador/estandar/lisa-galvanizada.webp",
+  chapa_lisa_galvanizada: "/images/configurador/estandar/lisa-galvanizada.webp",
+  lisa_prepintada: "/images/configurador/estandar/lisa-prepintada.webp",
+  chapa_lisa_prepintada: "/images/configurador/estandar/lisa-prepintada.webp",
 };
 
 const colorStyles: Record<string, string> = {
@@ -89,19 +89,19 @@ function getCategoryImage(category: string, label = ""): string {
   const text = normalizeCategoryText(`${category} ${label}`);
 
   if (text.includes("negra") && text.includes("estampada")) {
-    return "/images/configurador/estandar/negra-estampada.png";
+    return "/images/configurador/estandar/negra-estampada.webp";
   }
 
   if (text.includes("galvanizada")) {
-    return "/images/configurador/estandar/lisa-galvanizada.png";
+    return "/images/configurador/estandar/lisa-galvanizada.webp";
   }
 
   if (text.includes("prepintada")) {
-    return "/images/configurador/estandar/lisa-prepintada.png";
+    return "/images/configurador/estandar/lisa-prepintada.webp";
   }
 
   if (text.includes("lisa") && text.includes("negra")) {
-    return "/images/configurador/estandar/lisa-negra.png";
+    return "/images/configurador/estandar/lisa-negra.webp";
   }
 
   return CATEGORY_IMAGES[category] ?? FALLBACK_IMAGE;
@@ -427,7 +427,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
                         src={image}
                         alt={c.label}
                         className="h-36 rounded-b-none border-x-0 border-t-0"
-                        imageClassName="p-2 scale-[1.08]"
+                        imageClassName="!object-cover"
                       />
                       <div className="p-4">
                         <h4 className="text-base font-black leading-tight text-slate-950">{c.label}</h4>
