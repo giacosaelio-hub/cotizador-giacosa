@@ -24,6 +24,7 @@ const SUBCATEGORIA_LABELS: Record<Subcategoria, string> = {
   estaño: "Estaño",
 };
 
+// Colores lisas con hex para swatches
 const COLORES_LISA = ["azul", "gris", "negra", "roja", "verde", "sin_pintar"] as const;
 const COLOR_DISPLAY: Record<string, string> = {
   azul: "Azul",
@@ -33,18 +34,49 @@ const COLOR_DISPLAY: Record<string, string> = {
   verde: "Verde",
   sin_pintar: "Sin pintar",
 };
+const COLOR_HEX: Record<string, string> = {
+  azul: "#1d4ed8",
+  gris: "#6b7280",
+  negra: "#111827",
+  roja: "#dc2626",
+  verde: "#15803d",
+  sin_pintar: "#94a3b8",
+};
 
-function formatAutoperforanteKey(key: string): string {
-  // e.g. "1_rosca_chapa" → `1" Rosca Chapa`
-  const parts = key.split("_");
-  const size = parts[0];
-  const rest = parts.slice(1).map((p) => p.charAt(0).toUpperCase() + p.slice(1));
-  return `${size}" ${rest.join(" ")}`;
-}
+// Autoperforantes: separados por tipo de rosca
+const AUTO_ROSCA_OPTIONS = ["chapa", "madera"] as const;
+type AutoRosca = typeof AUTO_ROSCA_OPTIONS[number];
 
-function formatTornilloKey(key: string): string {
-  // e.g. "T1_punta_aguja" → "T1 Punta Aguja"
-  return key.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+const AUTO_ROSCA_LABEL: Record<AutoRosca, string> = {
+  chapa: "Rosca Chapa",
+  madera: "Rosca Madera",
+};
+
+// Medidas de autoperforantes por rosca
+const AUTO_MEDIDAS: Record<AutoRosca, string[]> = {
+  chapa: ["1", "1.5", "2", "2.5"],
+  madera: ["2", "2.5", "3"],
+};
+
+// Tornillos: separados por punta
+const TORNILLO_PUNTA_OPTIONS = ["aguja", "mecha"] as const;
+type TornilloPunta = typeof TORNILLO_PUNTA_OPTIONS[number];
+
+const TORNILLO_PUNTA_LABEL: Record<TornilloPunta, string> = {
+  aguja: "Punta Aguja",
+  mecha: "Punta Mecha",
+};
+
+const TORNILLO_MODELOS: Record<TornilloPunta, string[]> = {
+  aguja: ["T1", "T2", "T3", "T4"],
+  mecha: ["T1", "T2", "T3"],
+};
+
+// Normaliza bolsas a múltiplos de 0.5 con mínimo 0.5
+function normalizeBolsas(val: string): string {
+  const n = parseFloat(val.replace(",", "."));
+  if (!isFinite(n) || n < 0.5) return "0.5";
+  return String(Math.round(n * 2) / 2);
 }
 
 function OptionButton({
@@ -114,17 +146,24 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
 
   const [subcategoria, setSubcategoria] = useState<Subcategoria | "">("");
 
-  // Cumbreras state
+  // Cumbreras
   const [cumbrerasTipo, setCumbrerasTipo] = useState<CumbrerasTipo | "">("");
   const [lisaDesarrollo, setLisaDesarrollo] = useState<ListaDesarrollo | "">("");
   const [lisaColor, setLisaColor] = useState<string>("");
   const [metrosStr, setMetrosStr] = useState<string>("");
 
-  // Autoperforantes / Tornillos state
-  const [selectedKey, setSelectedKey] = useState<string>("");
+  // Autoperforantes
+  const [autoRosca, setAutoRosca] = useState<AutoRosca | "">("");
+  const [autoMedida, setAutoMedida] = useState<string>("");
+
+  // Tornillos
+  const [tornilloPunta, setTornilloPunta] = useState<TornilloPunta | "">("");
+  const [tornilloModelo, setTornilloModelo] = useState<string>("");
+
+  // Shared bolsas
   const [bolsas, setBolsas] = useState<string>("1");
 
-  // Estaño state
+  // Estaño
   const [estanoKey, setEstanoKey] = useState<string>("");
   const [estanoCantidad, setEstanoCantidad] = useState<number>(1);
 
@@ -135,14 +174,17 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
     setLisaDesarrollo("");
     setLisaColor("");
     setMetrosStr("");
-    setSelectedKey("");
+    setAutoRosca("");
+    setAutoMedida("");
+    setTornilloPunta("");
+    setTornilloModelo("");
     setBolsas("1");
     setEstanoKey("");
     setEstanoCantidad(1);
     setError("");
   }
 
-  // Derived cumbreras key
+  // Keys derivados
   const cumbrerasKey = useMemo(() => {
     if (cumbrerasTipo === "sinusoidal") return "sinusoidal_negra";
     if (cumbrerasTipo === "trapezoidal") return "trapezoidal_negra";
@@ -152,13 +194,21 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
     return "";
   }, [cumbrerasTipo, lisaDesarrollo, lisaColor]);
 
+  const autoKey = useMemo(() => {
+    if (!autoRosca || !autoMedida) return "";
+    return `${autoMedida}_rosca_${autoRosca}`;
+  }, [autoRosca, autoMedida]);
+
+  const tornilloKey = useMemo(() => {
+    if (!tornilloPunta || !tornilloModelo) return "";
+    return `${tornilloModelo}_punta_${tornilloPunta}`;
+  }, [tornilloPunta, tornilloModelo]);
+
   const metros = useMemo(() => {
-    const normalized = metrosStr.trim().replace(/,/g, ".");
-    const n = Number.parseFloat(normalized);
-    return Number.isFinite(n) && n > 0 ? n : null;
+    const n = parseFloat(metrosStr.trim().replace(/,/g, "."));
+    return isFinite(n) && n > 0 ? n : null;
   }, [metrosStr]);
 
-  // Preview computation
   const preview = useMemo(() => {
     if (!subcategoria) return null;
 
@@ -167,11 +217,18 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
       return calcComplementarioPrecio(precios, "cumbreras", cumbrerasKey, metros);
     }
 
-    if (subcategoria === "autoperforantes" || subcategoria === "tornillos") {
-      if (!selectedKey) return null;
-      const bolsasNum = Number.parseFloat(bolsas.replace(",", "."));
-      if (!Number.isFinite(bolsasNum) || bolsasNum <= 0) return null;
-      return calcComplementarioPrecio(precios, subcategoria, selectedKey, bolsasNum);
+    if (subcategoria === "autoperforantes") {
+      if (!autoKey) return null;
+      const n = parseFloat(bolsas.replace(",", "."));
+      if (!isFinite(n) || n < 0.5) return null;
+      return calcComplementarioPrecio(precios, "autoperforantes", autoKey, n);
+    }
+
+    if (subcategoria === "tornillos") {
+      if (!tornilloKey) return null;
+      const n = parseFloat(bolsas.replace(",", "."));
+      if (!isFinite(n) || n < 0.5) return null;
+      return calcComplementarioPrecio(precios, "tornillos", tornilloKey, n);
     }
 
     if (subcategoria === "estaño") {
@@ -180,7 +237,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
     }
 
     return null;
-  }, [subcategoria, cumbrerasKey, metros, selectedKey, bolsas, estanoKey, estanoCantidad, precios]);
+  }, [subcategoria, cumbrerasKey, metros, autoKey, tornilloKey, bolsas, estanoKey, estanoCantidad, precios]);
 
   function handleAdd() {
     if (!subcategoria) { setError("Seleccioná una categoría"); return; }
@@ -192,14 +249,13 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
         if (!lisaColor) { setError("Seleccioná el color"); return; }
       }
       if (metros === null) { setError("Ingresá la cantidad de metros"); return; }
-      if (!cumbrerasKey) { setError("Selección incompleta"); return; }
       if (!preview) return;
 
       const tipoLabel =
         cumbrerasTipo === "sinusoidal"
-          ? "Sinusoidal Negra"
+          ? "Sinusoidal Negra 0.6"
           : cumbrerasTipo === "trapezoidal"
-          ? "Trapezoidal Negra"
+          ? "Trapezoidal Negra T101 0.6"
           : `Lisa ${COLOR_DISPLAY[lisaColor] ?? lisaColor} des. ${lisaDesarrollo}`;
 
       onAdd({
@@ -214,21 +270,33 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
       return;
     }
 
-    if (subcategoria === "autoperforantes" || subcategoria === "tornillos") {
-      if (!selectedKey) { setError("Seleccioná el producto"); return; }
-      const bolsasNum = Number.parseFloat(bolsas.replace(",", "."));
-      if (!Number.isFinite(bolsasNum) || bolsasNum <= 0) { setError("Ingresá la cantidad de bolsas"); return; }
+    if (subcategoria === "autoperforantes") {
+      if (!autoRosca) { setError("Seleccioná el tipo de rosca"); return; }
+      if (!autoMedida) { setError("Seleccioná la medida"); return; }
+      const bolsasNum = parseFloat(bolsas.replace(",", "."));
+      if (!isFinite(bolsasNum) || bolsasNum < 0.5) { setError("Mínimo 0.5 bolsas"); return; }
       if (!preview) return;
-
-      const keyLabel =
-        subcategoria === "autoperforantes"
-          ? formatAutoperforanteKey(selectedKey)
-          : formatTornilloKey(selectedKey);
-
-      const catLabel = subcategoria === "autoperforantes" ? "Autoperforante" : "Tornillo";
       onAdd({
         tipo: "complementario",
-        descripcion: `${catLabel} ${keyLabel} × 100 uds`,
+        descripcion: `Autoperforante ${autoMedida}" ${AUTO_ROSCA_LABEL[autoRosca]} × 100 uds`,
+        medida: "bolsa × 100 uds",
+        cantidad: bolsasNum,
+        precioUnitarioUSD: 0,
+        precioUnitarioARS: preview.precioUnitarioARS,
+        subtotalARS: preview.subtotalARS,
+      });
+      return;
+    }
+
+    if (subcategoria === "tornillos") {
+      if (!tornilloPunta) { setError("Seleccioná el tipo de punta"); return; }
+      if (!tornilloModelo) { setError("Seleccioná el modelo"); return; }
+      const bolsasNum = parseFloat(bolsas.replace(",", "."));
+      if (!isFinite(bolsasNum) || bolsasNum < 0.5) { setError("Mínimo 0.5 bolsas"); return; }
+      if (!preview) return;
+      onAdd({
+        tipo: "complementario",
+        descripcion: `Tornillo ${tornilloModelo} ${TORNILLO_PUNTA_LABEL[tornilloPunta]} × 100 uds`,
         medida: "bolsa × 100 uds",
         cantidad: bolsasNum,
         precioUnitarioUSD: 0,
@@ -242,8 +310,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
       if (!estanoKey) { setError("Seleccioná la presentación"); return; }
       if (estanoCantidad < 1) { setError("La cantidad debe ser al menos 1"); return; }
       if (!preview) return;
-
-      const estanoLabel = estanoKey === "kg" ? "Estaño KG (8 barras ≈ 1070g)" : "Estaño Barra (133g)";
+      const estanoLabel = estanoKey === "kg" ? "Estaño 50% — paquete 8 barras (≈1070g)" : "Estaño 50% — barra individual (133g)";
       onAdd({
         tipo: "complementario",
         descripcion: estanoLabel,
@@ -256,9 +323,27 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
     }
   }
 
-  // Lists from precios
-  const autoperforanteKeys = Object.keys(precios.complementarios?.autoperforantes ?? {});
-  const tornilloKeys = Object.keys(precios.complementarios?.tornillos ?? {});
+  // Resumen label helpers
+  const previewLabel = useMemo(() => {
+    if (subcategoria === "cumbreras" && cumbrerasTipo) {
+      if (cumbrerasTipo === "sinusoidal") return "Sinusoidal Negra 0.6";
+      if (cumbrerasTipo === "trapezoidal") return "Trapezoidal Negra T101 0.6";
+      if (lisaColor && lisaDesarrollo)
+        return `Lisa ${COLOR_DISPLAY[lisaColor]} des. ${lisaDesarrollo}`;
+    }
+    if (subcategoria === "autoperforantes" && autoRosca && autoMedida)
+      return `${autoMedida}" ${AUTO_ROSCA_LABEL[autoRosca]}`;
+    if (subcategoria === "tornillos" && tornilloPunta && tornilloModelo)
+      return `${tornilloModelo} ${TORNILLO_PUNTA_LABEL[tornilloPunta]}`;
+    if (subcategoria === "estaño" && estanoKey)
+      return estanoKey === "kg" ? "KG (paquete)" : "Barra individual";
+    return null;
+  }, [subcategoria, cumbrerasTipo, lisaColor, lisaDesarrollo, autoRosca, autoMedida, tornilloPunta, tornilloModelo, estanoKey]);
+
+  // Step para cantidad en auto/tornillos
+  const bolsasStep = subcategoria === "autoperforantes" || subcategoria === "tornillos"
+    ? (subcategoria === "autoperforantes" ? (autoRosca ? "03" : "—") : (tornilloPunta ? "03" : "—"))
+    : "—";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 text-slate-950 sm:px-6 lg:px-8">
@@ -286,6 +371,8 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
 
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
           <div className="space-y-5">
+
+            {/* PASO 01 — Categoría */}
             <SectionCard
               step="01"
               title="Categoría"
@@ -307,7 +394,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
               </div>
             </SectionCard>
 
-            {/* CUMBRERAS */}
+            {/* ══════════ CUMBRERAS ══════════ */}
             {subcategoria === "cumbreras" && (
               <SectionCard
                 step="02"
@@ -315,87 +402,99 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                 description="Seleccioná el perfil de la cumbrera."
               >
                 <div className="grid gap-3 sm:grid-cols-3">
-                  {(["sinusoidal", "trapezoidal", "lisa"] as CumbrerasTipo[]).map((t) => (
-                    <OptionButton
-                      key={t}
-                      active={cumbrerasTipo === t}
-                      onClick={() => {
-                        setCumbrerasTipo(t);
-                        setLisaDesarrollo("");
-                        setLisaColor("");
-                        setMetrosStr("");
-                        setError("");
-                      }}
-                    >
-                      <span className="block capitalize">{t}</span>
-                      {t === "sinusoidal" && <span className="mt-1 block text-xs font-bold opacity-70">Negra</span>}
-                      {t === "trapezoidal" && <span className="mt-1 block text-xs font-bold opacity-70">Negra</span>}
-                      {t === "lisa" && <span className="mt-1 block text-xs font-bold opacity-70">Varios colores</span>}
-                    </OptionButton>
-                  ))}
+                  <OptionButton
+                    active={cumbrerasTipo === "sinusoidal"}
+                    onClick={() => { setCumbrerasTipo("sinusoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                  >
+                    <span className="block font-black">Sinusoidal</span>
+                    <span className="mt-1 block text-xs font-bold opacity-70">Negra · des. 0.6</span>
+                  </OptionButton>
+                  <OptionButton
+                    active={cumbrerasTipo === "trapezoidal"}
+                    onClick={() => { setCumbrerasTipo("trapezoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                  >
+                    <span className="block font-black">Trapezoidal</span>
+                    <span className="mt-1 block text-xs font-bold opacity-70">Negra T101 · des. 0.6</span>
+                  </OptionButton>
+                  <OptionButton
+                    active={cumbrerasTipo === "lisa"}
+                    onClick={() => { setCumbrerasTipo("lisa"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                  >
+                    <span className="block font-black">Lisa</span>
+                    <span className="mt-1 block text-xs font-bold opacity-70">Varios colores</span>
+                  </OptionButton>
                 </div>
               </SectionCard>
             )}
 
+            {/* Desarrollo (Lisa) */}
             {subcategoria === "cumbreras" && cumbrerasTipo === "lisa" && (
               <SectionCard
                 step="03"
                 title="Desarrollo"
-                description="Elegí el desarrollo (ancho desarrollado) de la cumbrera lisa."
+                description="Ancho total de la cumbrera al desplegarla."
               >
                 <div className="grid gap-3 sm:grid-cols-2">
                   <OptionButton
                     active={lisaDesarrollo === "40"}
-                    onClick={() => {
-                      setLisaDesarrollo("40");
-                      setLisaColor("");
-                      setMetrosStr("");
-                      setError("");
-                    }}
+                    onClick={() => { setLisaDesarrollo("40"); setLisaColor(""); setMetrosStr(""); setError(""); }}
                   >
-                    <span className="block text-lg">40 cm</span>
-                    <span className="mt-1 block text-xs font-bold opacity-70">Desarrollo estándar</span>
+                    <span className="block text-lg font-black">40 cm</span>
+                    <span className="mt-1 block text-xs font-bold text-slate-500">20 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={lisaDesarrollo === "60"}
-                    onClick={() => {
-                      setLisaDesarrollo("60");
-                      setLisaColor("");
-                      setMetrosStr("");
-                      setError("");
-                    }}
+                    onClick={() => { setLisaDesarrollo("60"); setLisaColor(""); setMetrosStr(""); setError(""); }}
                   >
-                    <span className="block text-lg">60 cm</span>
-                    <span className="mt-1 block text-xs font-bold opacity-70">Desarrollo amplio</span>
+                    <span className="block text-lg font-black">60 cm</span>
+                    <span className="mt-1 block text-xs font-bold text-slate-500">30 cm por lado</span>
                   </OptionButton>
                 </div>
               </SectionCard>
             )}
 
+            {/* Color (Lisa con desarrollo) */}
             {subcategoria === "cumbreras" && cumbrerasTipo === "lisa" && lisaDesarrollo && (
               <SectionCard
                 step="04"
                 title="Color"
                 description="Elegí el color de la cumbrera lisa."
               >
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {COLORES_LISA.map((c) => (
-                    <OptionButton
-                      key={c}
-                      active={lisaColor === c}
-                      onClick={() => {
-                        setLisaColor(c);
-                        setMetrosStr("");
-                        setError("");
-                      }}
-                    >
-                      <span className="block">{COLOR_DISPLAY[c]}</span>
-                    </OptionButton>
-                  ))}
+                <div className="flex flex-wrap gap-4">
+                  {COLORES_LISA.map((c) => {
+                    const selected = lisaColor === c;
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => { setLisaColor(c); setMetrosStr(""); setError(""); }}
+                        className="flex flex-col items-center gap-1.5 focus:outline-none"
+                      >
+                        <span
+                          className={`relative flex h-11 w-11 items-center justify-center rounded-full transition-all hover:scale-105 ${
+                            selected
+                              ? "ring-2 ring-emerald-600 ring-offset-2"
+                              : "ring-1 ring-slate-200 ring-offset-1"
+                          }`}
+                          style={{ backgroundColor: COLOR_HEX[c] }}
+                        >
+                          {selected && (
+                            <span className="absolute -bottom-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-black text-white shadow-sm">
+                              ✓
+                            </span>
+                          )}
+                        </span>
+                        <span className={`text-[11px] font-semibold leading-none ${selected ? "text-emerald-700" : "text-slate-500"}`}>
+                          {COLOR_DISPLAY[c]}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </SectionCard>
             )}
 
+            {/* Metros (Cumbreras) */}
             {subcategoria === "cumbreras" &&
               cumbrerasTipo &&
               (cumbrerasTipo !== "lisa" || (lisaDesarrollo && lisaColor)) && (
@@ -409,10 +508,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                       type="text"
                       inputMode="decimal"
                       value={metrosStr}
-                      onChange={(e) => {
-                        setMetrosStr(e.target.value);
-                        setError("");
-                      }}
+                      onChange={(e) => { setMetrosStr(e.target.value); setError(""); }}
                       placeholder="Ej: 6.5"
                       className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
                     />
@@ -433,61 +529,56 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                 </SectionCard>
               )}
 
-            {/* AUTOPERFORANTES */}
+            {/* ══════════ AUTOPERFORANTES ══════════ */}
+
+            {/* Tipo rosca */}
             {subcategoria === "autoperforantes" && (
               <SectionCard
                 step="02"
-                title="Producto"
-                description="Elegí el tipo de autoperforante."
+                title="Tipo de rosca"
+                description="Elegí entre rosca para chapa o rosca para madera."
               >
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {autoperforanteKeys.map((key) => (
+                  {AUTO_ROSCA_OPTIONS.map((r) => (
                     <OptionButton
-                      key={key}
-                      active={selectedKey === key}
-                      onClick={() => {
-                        setSelectedKey(key);
-                        setBolsas("1");
-                        setError("");
-                      }}
+                      key={r}
+                      active={autoRosca === r}
+                      onClick={() => { setAutoRosca(r); setAutoMedida(""); setBolsas("1"); setError(""); }}
                     >
-                      <span className="block">{formatAutoperforanteKey(key)}</span>
+                      <span className="block font-black">{AUTO_ROSCA_LABEL[r]}</span>
                     </OptionButton>
                   ))}
                 </div>
               </SectionCard>
             )}
 
-            {/* TORNILLOS */}
-            {subcategoria === "tornillos" && (
-              <SectionCard
-                step="02"
-                title="Producto"
-                description="Elegí el tipo de tornillo."
-              >
-                <div className="grid gap-3 sm:grid-cols-2">
-                  {tornilloKeys.map((key) => (
-                    <OptionButton
-                      key={key}
-                      active={selectedKey === key}
-                      onClick={() => {
-                        setSelectedKey(key);
-                        setBolsas("1");
-                        setError("");
-                      }}
-                    >
-                      <span className="block">{formatTornilloKey(key)}</span>
-                    </OptionButton>
-                  ))}
-                </div>
-              </SectionCard>
-            )}
-
-            {(subcategoria === "autoperforantes" || subcategoria === "tornillos") && selectedKey && (
+            {/* Medida autoperforante */}
+            {subcategoria === "autoperforantes" && autoRosca && (
               <SectionCard
                 step="03"
+                title="Medida"
+                description={`Autoperforantes ${AUTO_ROSCA_LABEL[autoRosca]} — elegí la medida en pulgadas.`}
+              >
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {AUTO_MEDIDAS[autoRosca].map((m) => (
+                    <OptionButton
+                      key={m}
+                      active={autoMedida === m}
+                      onClick={() => { setAutoMedida(m); setBolsas("1"); setError(""); }}
+                    >
+                      <span className="block text-lg font-black">{m}"</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* Cantidad autoperforantes */}
+            {subcategoria === "autoperforantes" && autoRosca && autoMedida && (
+              <SectionCard
+                step="04"
                 title="Cantidad (bolsas)"
-                description="Cada bolsa contiene 100 unidades. Podés pedir media bolsa (0.5)."
+                description="Cada bolsa contiene 100 unidades. Mínimo: media bolsa (0.5) = 50 autoperforantes."
               >
                 <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                   <input
@@ -496,17 +587,12 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                     value={bolsas}
                     min="0.5"
                     step="0.5"
-                    onChange={(e) => {
-                      setBolsas(e.target.value);
-                      setError("");
-                    }}
+                    onChange={(e) => { setBolsas(e.target.value); setError(""); }}
+                    onBlur={(e) => setBolsas(normalizeBolsas(e.target.value))}
                     className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
                   />
                   <span className="border-l border-slate-200 px-4 text-sm font-black text-slate-500">bolsas</span>
                 </div>
-                <p className="mt-2 text-xs font-bold text-slate-500">
-                  Precio por 100 unidades. Mínimo 0.5 = 50 unidades.
-                </p>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {[0.5, 1, 2, 3, 5].map((n) => (
                     <button
@@ -522,35 +608,106 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
               </SectionCard>
             )}
 
-            {/* ESTAÑO */}
+            {/* ══════════ TORNILLOS ══════════ */}
+
+            {/* Tipo punta */}
+            {subcategoria === "tornillos" && (
+              <SectionCard
+                step="02"
+                title="Tipo de punta"
+                description="Elegí entre punta aguja o punta mecha."
+              >
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {TORNILLO_PUNTA_OPTIONS.map((p) => (
+                    <OptionButton
+                      key={p}
+                      active={tornilloPunta === p}
+                      onClick={() => { setTornilloPunta(p); setTornilloModelo(""); setBolsas("1"); setError(""); }}
+                    >
+                      <span className="block font-black">{TORNILLO_PUNTA_LABEL[p]}</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* Modelo tornillo */}
+            {subcategoria === "tornillos" && tornilloPunta && (
+              <SectionCard
+                step="03"
+                title="Modelo"
+                description={`Tornillos ${TORNILLO_PUNTA_LABEL[tornilloPunta]} — elegí el modelo.`}
+              >
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {TORNILLO_MODELOS[tornilloPunta].map((m) => (
+                    <OptionButton
+                      key={m}
+                      active={tornilloModelo === m}
+                      onClick={() => { setTornilloModelo(m); setBolsas("1"); setError(""); }}
+                    >
+                      <span className="block text-lg font-black">{m}</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* Cantidad tornillos */}
+            {subcategoria === "tornillos" && tornilloPunta && tornilloModelo && (
+              <SectionCard
+                step="04"
+                title="Cantidad (bolsas)"
+                description="Cada bolsa contiene 100 unidades. Mínimo: media bolsa (0.5) = 50 tornillos."
+              >
+                <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
+                  <input
+                    type="number"
+                    inputMode="decimal"
+                    value={bolsas}
+                    min="0.5"
+                    step="0.5"
+                    onChange={(e) => { setBolsas(e.target.value); setError(""); }}
+                    onBlur={(e) => setBolsas(normalizeBolsas(e.target.value))}
+                    className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
+                  />
+                  <span className="border-l border-slate-200 px-4 text-sm font-black text-slate-500">bolsas</span>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {[0.5, 1, 2, 3, 5].map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => setBolsas(String(n))}
+                      className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800"
+                    >
+                      {n} bolsa{n !== 1 ? "s" : ""}
+                    </button>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* ══════════ ESTAÑO ══════════ */}
             {subcategoria === "estaño" && (
               <SectionCard
                 step="02"
                 title="Presentación"
-                description="Elegí la unidad de venta del estaño."
+                description="El estaño se vende por barra individual o en paquetes de 8 barras (≈ 1 kg)."
               >
                 <div className="grid gap-3 sm:grid-cols-2">
                   <OptionButton
                     active={estanoKey === "kg"}
-                    onClick={() => {
-                      setEstanoKey("kg");
-                      setEstanoCantidad(1);
-                      setError("");
-                    }}
+                    onClick={() => { setEstanoKey("kg"); setEstanoCantidad(1); setError(""); }}
                   >
-                    <span className="block text-base font-black">KG (paquete)</span>
-                    <span className="mt-1 block text-xs font-bold opacity-70">8 barras ≈ 1070g</span>
+                    <span className="block text-base font-black">KG — paquete</span>
+                    <span className="mt-1 block text-xs font-bold opacity-70">8 barras ≈ 1070 g</span>
                   </OptionButton>
                   <OptionButton
                     active={estanoKey === "barra"}
-                    onClick={() => {
-                      setEstanoKey("barra");
-                      setEstanoCantidad(1);
-                      setError("");
-                    }}
+                    onClick={() => { setEstanoKey("barra"); setEstanoCantidad(1); setError(""); }}
                   >
                     <span className="block text-base font-black">Barra individual</span>
-                    <span className="mt-1 block text-xs font-bold opacity-70">1 barra ≈ 133g</span>
+                    <span className="mt-1 block text-xs font-bold opacity-70">1 barra ≈ 133 g</span>
                   </OptionButton>
                 </div>
               </SectionCard>
@@ -568,12 +725,14 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                     onClick={() => setEstanoCantidad((p) => Math.max(1, p - 1))}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                   >
-                    -
+                    −
                   </button>
                   <div className="text-center">
                     <div className="text-3xl font-black text-slate-950">{estanoCantidad}</div>
                     <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
-                      {estanoKey === "kg" ? "paquete" + (estanoCantidad !== 1 ? "s" : "") : "barra" + (estanoCantidad !== 1 ? "s" : "")}
+                      {estanoKey === "kg"
+                        ? "paquete" + (estanoCantidad !== 1 ? "s" : "")
+                        : "barra" + (estanoCantidad !== 1 ? "s" : "")}
                     </div>
                   </div>
                   <button
@@ -594,6 +753,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
             )}
           </div>
 
+          {/* RESUMEN */}
           <aside className="lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
               <div className="border-b border-amber-100 bg-amber-50/70 px-5 py-4">
@@ -607,58 +767,28 @@ export default function ComplementariosConfig({ precios, onBack, onAdd }: Props)
                     label="Categoría"
                     value={subcategoria ? SUBCATEGORIA_LABELS[subcategoria] : "—"}
                   />
-                  {subcategoria === "cumbreras" && (
-                    <>
-                      <SummaryRow
-                        label="Tipo"
-                        value={
-                          cumbrerasTipo
-                            ? cumbrerasTipo === "lisa"
-                              ? `Lisa ${COLOR_DISPLAY[lisaColor] ?? "—"} des. ${lisaDesarrollo || "—"}`
-                              : cumbrerasTipo.charAt(0).toUpperCase() + cumbrerasTipo.slice(1) + " Negra"
-                            : "—"
-                        }
-                      />
-                      <SummaryRow label="Metros" value={metros !== null ? `${metros.toFixed(2)} m` : "—"} />
-                    </>
+                  {previewLabel && (
+                    <SummaryRow label="Producto" value={previewLabel} />
                   )}
-                  {(subcategoria === "autoperforantes" || subcategoria === "tornillos") && (
-                    <>
-                      <SummaryRow
-                        label="Producto"
-                        value={
-                          selectedKey
-                            ? subcategoria === "autoperforantes"
-                              ? formatAutoperforanteKey(selectedKey)
-                              : formatTornilloKey(selectedKey)
-                            : "—"
-                        }
-                      />
+                  {subcategoria === "cumbreras" && metros !== null && (
+                    <SummaryRow label="Metros" value={`${metros.toFixed(2)} m`} />
+                  )}
+                  {(subcategoria === "autoperforantes" || subcategoria === "tornillos") &&
+                    parseFloat(bolsas) >= 0.5 && (
                       <SummaryRow
                         label="Bolsas"
-                        value={
-                          bolsas && Number.parseFloat(bolsas) > 0
-                            ? `${bolsas} × 100 uds`
-                            : "—"
-                        }
+                        value={`${bolsas} × 100 uds`}
                       />
-                    </>
-                  )}
-                  {subcategoria === "estaño" && (
-                    <>
-                      <SummaryRow
-                        label="Presentación"
-                        value={estanoKey === "kg" ? "KG (paquete)" : estanoKey === "barra" ? "Barra" : "—"}
-                      />
-                      <SummaryRow
-                        label="Cantidad"
-                        value={
-                          estanoKey
-                            ? `${estanoCantidad} ${estanoKey === "kg" ? "paquete" + (estanoCantidad !== 1 ? "s" : "") : "barra" + (estanoCantidad !== 1 ? "s" : "")}`
-                            : "—"
-                        }
-                      />
-                    </>
+                    )}
+                  {subcategoria === "estaño" && estanoKey && (
+                    <SummaryRow
+                      label="Cantidad"
+                      value={`${estanoCantidad} ${
+                        estanoKey === "kg"
+                          ? "paquete" + (estanoCantidad !== 1 ? "s" : "")
+                          : "barra" + (estanoCantidad !== 1 ? "s" : "")
+                      }`}
+                    />
                   )}
                 </div>
 

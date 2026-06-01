@@ -19,8 +19,19 @@ interface Props {
   onAdd: (item: Omit<CartItem, "id">) => void;
 }
 
+// "80x1.6" → "80 × 1.6 mm"
 function formatPerfilKey(key: string): string {
   return key.replace("x", " × ") + " mm";
+}
+
+// "80x1.6" → "80"
+function getAltoFromKey(key: string): string {
+  return key.split("x")[0];
+}
+
+// "80x1.6" → "1.6"
+function getEspesorFromKey(key: string): string {
+  return key.split("x")[1];
 }
 
 function OptionButton({
@@ -89,15 +100,35 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
   }, []);
 
   const [subtipo, setSubtipo] = useState<"comun" | "galvanizado" | "">("");
+  const [espesorComun, setEspesorComun] = useState<string>("");
   const [medida, setMedida] = useState<string>("");
   const [cantidad, setCantidad] = useState<number>(1);
   const [error, setError] = useState<string>("");
 
-  const medidasDisponibles = useMemo(() => {
-    if (!subtipo) return [];
-    const record = precios.perfil_c?.[subtipo] ?? {};
-    return Object.keys(record);
-  }, [subtipo, precios]);
+  // All keys for comun
+  const comunKeys = useMemo(
+    () => Object.keys(precios.perfil_c?.comun ?? {}),
+    [precios]
+  );
+  const galvanizadoKeys = useMemo(
+    () => Object.keys(precios.perfil_c?.galvanizado ?? {}),
+    [precios]
+  );
+
+  // Unique espesores for comun (sorted)
+  const espesorasDisponibles = useMemo(() => {
+    const set = new Set(comunKeys.map(getEspesorFromKey));
+    return Array.from(set).sort((a, b) => parseFloat(a) - parseFloat(b));
+  }, [comunKeys]);
+
+  // Altos for selected espesor in comun
+  const altosDisponibles = useMemo(() => {
+    if (!espesorComun) return [];
+    return comunKeys
+      .filter((k) => getEspesorFromKey(k) === espesorComun)
+      .map(getAltoFromKey)
+      .sort((a, b) => parseInt(a) - parseInt(b));
+  }, [comunKeys, espesorComun]);
 
   const preview = useMemo(() => {
     if (!subtipo || !medida) return null;
@@ -106,13 +137,21 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
 
   function handleChangeSubtipo(v: "comun" | "galvanizado") {
     setSubtipo(v);
+    setEspesorComun("");
     setMedida("");
     setCantidad(1);
     setError("");
   }
 
+  function handleChangeEspesor(e: string) {
+    setEspesorComun(e);
+    setMedida("");
+    setError("");
+  }
+
   function handleAdd() {
     if (!subtipo) { setError("Seleccioná el tipo de perfil"); return; }
+    if (subtipo === "comun" && !espesorComun) { setError("Seleccioná el espesor"); return; }
     if (!medida) { setError("Seleccioná la medida"); return; }
     if (cantidad < 1) { setError("La cantidad debe ser al menos 1"); return; }
     if (!preview) { setError("Combinación inválida"); return; }
@@ -129,6 +168,13 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
       subtotalARS: preview.subtotalARS,
     });
   }
+
+  // Resolve step numbers dynamically
+  const stepMedidaGalv = "02";
+  const stepEspesor = "02";
+  const stepAlto = "03";
+  const stepCantidadComun = "04";
+  const stepCantidadGalv = "03";
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 text-slate-950 sm:px-6 lg:px-8">
@@ -154,7 +200,6 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
               <div className="mt-5 flex flex-wrap justify-center gap-2">
                 <span className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-emerald-800 shadow-sm">12 metros / barra</span>
                 <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-700 shadow-sm">Común · Galvanizado</span>
-                <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-700 shadow-sm">Precio en USD + IVA</span>
               </div>
             </div>
           </div>
@@ -162,10 +207,12 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
 
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
           <div className="space-y-5">
+
+            {/* PASO 01 — Tipo */}
             <SectionCard
               step="01"
               title="Tipo de Perfil C"
-              description="Elegí entre perfil común o galvanizado según tu aplicación."
+              description="Elegí entre perfil común o galvanizado."
             >
               <div className="grid gap-3 sm:grid-cols-2">
                 <OptionButton
@@ -173,50 +220,93 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                   onClick={() => handleChangeSubtipo("comun")}
                 >
                   <span className="block text-lg">Perfil C</span>
-                  <span className="mt-1 block text-xs font-bold opacity-70">Uso estructural estándar</span>
                 </OptionButton>
                 <OptionButton
                   active={subtipo === "galvanizado"}
                   onClick={() => handleChangeSubtipo("galvanizado")}
                 >
                   <span className="block text-lg">Perfil C Galvanizado</span>
-                  <span className="mt-1 block text-xs font-bold opacity-70">Mayor resistencia a la corrosión</span>
                 </OptionButton>
               </div>
             </SectionCard>
 
-            {subtipo && (
+            {/* PASO 02 — Espesor (solo comun) */}
+            {subtipo === "comun" && (
               <SectionCard
-                step="02"
-                title="Medida"
-                description="Seleccioná el ancho y espesor del perfil (alto × espesor)."
+                step={stepEspesor}
+                title="Espesor"
+                description="Elegí el espesor del perfil en mm."
               >
-                {medidasDisponibles.length > 0 ? (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-                    {medidasDisponibles.map((key) => (
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {espesorasDisponibles.map((e) => (
+                    <OptionButton
+                      key={e}
+                      active={espesorComun === e}
+                      onClick={() => handleChangeEspesor(e)}
+                    >
+                      <span className="block text-lg font-black">{e} mm</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* PASO 02 — Medida directa (galvanizado) */}
+            {subtipo === "galvanizado" && (
+              <SectionCard
+                step={stepMedidaGalv}
+                title="Medida"
+                description="Alto × espesor del perfil."
+              >
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {galvanizadoKeys.map((key) => (
+                    <OptionButton
+                      key={key}
+                      active={medida === key}
+                      onClick={() => { setMedida(key); setError(""); }}
+                    >
+                      <span className="block text-base">{formatPerfilKey(key)}</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+            )}
+
+            {/* PASO 03 — Alto (solo comun con espesor elegido) */}
+            {subtipo === "comun" && espesorComun && (
+              <SectionCard
+                step={stepAlto}
+                title="Alto del perfil"
+                description={`Medidas disponibles para espesor ${espesorComun} mm.`}
+              >
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                  {altosDisponibles.map((alto) => {
+                    const key = `${alto}x${espesorComun}`;
+                    return (
                       <OptionButton
                         key={key}
                         active={medida === key}
-                        onClick={() => {
-                          setMedida(key);
-                          setError("");
-                        }}
+                        onClick={() => { setMedida(key); setError(""); }}
                       >
-                        <span className="block text-base">{formatPerfilKey(key)}</span>
+                        <span className="block text-lg font-black">{alto} mm</span>
                       </OptionButton>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No hay medidas disponibles.</p>
+                    );
+                  })}
+                </div>
+                {medida && (
+                  <p className="mt-3 text-xs font-semibold text-slate-400">
+                    Medida seleccionada: alto {getAltoFromKey(medida)} mm · espesor {espesorComun} mm · ala 15 mm
+                  </p>
                 )}
               </SectionCard>
             )}
 
-            {subtipo && medida && (
+            {/* PASO — Cantidad */}
+            {((subtipo === "comun" && medida) || (subtipo === "galvanizado" && medida)) && (
               <SectionCard
-                step="03"
+                step={subtipo === "comun" ? stepCantidadComun : stepCantidadGalv}
                 title="Cantidad de barras"
-                description="Cada barra mide 12 metros. Indicá cuántas barras necesitás."
+                description="Cada barra mide 12 metros."
               >
                 <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm max-w-xs">
                   <button
@@ -224,7 +314,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                     onClick={() => setCantidad((prev) => Math.max(1, prev - 1))}
                     className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                   >
-                    -
+                    −
                   </button>
                   <div className="text-center">
                     <div className="text-3xl font-black text-slate-950">{cantidad}</div>
@@ -243,6 +333,10 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                 <p className="mt-3 text-sm font-semibold text-slate-500">
                   Total: {cantidad} barra{cantidad !== 1 ? "s" : ""} × 12 m = {cantidad * 12} metros lineales
                 </p>
+                {/* Nota varas 6 m */}
+                <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
+                  <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 m. En ese caso, pedí cantidad en múltiplos de 2 (2, 4, 6…).
+                </div>
               </SectionCard>
             )}
 
@@ -253,6 +347,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
             )}
           </div>
 
+          {/* RESUMEN */}
           <aside className="lg:sticky lg:top-24">
             <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
               <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">
