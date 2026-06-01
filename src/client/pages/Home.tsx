@@ -172,6 +172,7 @@ const cards = [
     key: "chapa_perfilada" as const,
     img: productImages.chapasTecho,
     alt: "Chapas para techo sinusoidales y trapezoidales",
+    imgPosition: "object-center",
     fallback: {
       bg: "bg-gradient-to-br from-slate-800 via-slate-900 to-emerald-950",
       line1: "Chapas para techo",
@@ -190,6 +191,7 @@ const cards = [
     key: "bobina" as const,
     img: productImages.bobinas,
     alt: "Bobinas de acero galvanizado",
+    imgPosition: "object-top",
     fallback: {
       bg: "bg-gradient-to-br from-zinc-900 via-slate-900 to-emerald-950",
       line1: "Bobinas de acero",
@@ -208,6 +210,7 @@ const cards = [
     key: "chapa_estandar" as const,
     img: productImages.chapasEstandar,
     alt: "Chapas estándar en medidas fijas",
+    imgPosition: "object-center",
     fallback: {
       bg: "bg-gradient-to-br from-slate-800 via-zinc-900 to-slate-950",
       line1: "Chapas estándar",
@@ -224,14 +227,60 @@ const cards = [
   },
 ];
 
+// ——— PROVEEDORES ———
+// Logos: guardá los archivos en /public/images/proveedores/ con estos nombres exactos.
+// Si el archivo no existe, se muestra el nombre en texto (fallback automático).
+const PROVEEDORES = [
+  {
+    name: "Ternium",
+    logo: "/images/proveedores/ternium.png",
+    principal: true,
+    desc: "Fabricante líder de acero en Argentina.",
+  },
+  {
+    name: "Sidersa",
+    logo: "/images/proveedores/sidersa.png",
+    principal: false,
+    desc: "Fabricante nacional de acero plano.",
+  },
+  {
+    name: "GalVylam",
+    logo: "/images/proveedores/galvylam.png",
+    principal: false,
+    desc: null,
+  },
+  {
+    name: "Acerbrag",
+    logo: "/images/proveedores/acerbrag.png",
+    principal: false,
+    desc: null,
+  },
+  {
+    name: "ArcelorMittal",
+    logo: "/images/proveedores/arcelormittal.png",
+    principal: false,
+    desc: null,
+  },
+  {
+    name: "Dunlock",
+    logo: "/images/proveedores/dunlock.png",
+    principal: false,
+    desc: null,
+  },
+] as const;
+
+const OTROS_PROVEEDORES = ["Tubos Argentinos", "Amafren"];
+
 function CardImage({
   src,
   alt,
   fallback,
+  imgPosition = "object-center",
 }: {
   src: string;
   alt: string;
   fallback: CardFallback;
+  imgPosition?: string;
 }) {
   const [failed, setFailed] = React.useState(false);
 
@@ -258,13 +307,49 @@ function CardImage({
     <img
       src={src}
       alt={alt}
-      className="h-full w-full object-cover object-center transition duration-300 group-hover:scale-105"
+      className={`h-full w-full object-cover transition duration-300 group-hover:scale-105 ${imgPosition}`}
       width={800}
       height={450}
       loading="lazy"
       onError={() => setFailed(true)}
       draggable={false}
     />
+  );
+}
+
+function ProveedorLogo({
+  name,
+  logo,
+  principal,
+  desc,
+}: {
+  name: string;
+  logo: string;
+  principal?: boolean;
+  desc?: string | null;
+}) {
+  const [imgFailed, setImgFailed] = React.useState(false);
+  return (
+    <div className="relative flex min-h-[100px] flex-col items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white px-5 py-6 text-center shadow-sm">
+      {principal && (
+        <span className="absolute -top-2.5 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-emerald-200 bg-emerald-50 px-3 py-0.5 text-[10px] font-black uppercase tracking-[0.14em] text-emerald-700">
+          Proveedor principal
+        </span>
+      )}
+      {!imgFailed ? (
+        <img
+          src={logo}
+          alt={name}
+          className="max-h-[48px] max-w-[140px] w-auto h-auto object-contain"
+          loading="lazy"
+          draggable={false}
+          onError={() => setImgFailed(true)}
+        />
+      ) : (
+        <p className="text-lg font-black tracking-tight text-slate-700">{name}</p>
+      )}
+      {desc && <p className="text-[13px] leading-snug text-slate-500">{desc}</p>}
+    </div>
   );
 }
 
@@ -482,8 +567,8 @@ export default function Home({
                   onClick={() => onSelect(card.key)}
                   className="group relative flex h-full min-h-[420px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400"
                 >
-                  <div className="relative h-44 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
-                    <CardImage src={card.img} alt={card.alt} fallback={card.fallback} />
+                  <div className="relative h-48 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
+                    <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
                     <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-600/10 bg-white/90 px-[10px] py-[2.5px] text-xs font-bold text-emerald-700/90 opacity-80 shadow-sm select-none group-hover:opacity-100">
                       {i === 0 ? "Lo más vendido" : i === 1 ? "Usos profesionales" : "Medidas listas"}
                     </span>
@@ -540,41 +625,23 @@ export default function Home({
             </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {/* Ternium */}
-            <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-8 text-center shadow-sm">
-              <span className="mb-5 inline-flex rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.14em] text-emerald-700">
-                Proveedor principal
-              </span>
-              <p className="mb-3 text-3xl font-black tracking-tight text-slate-800">Ternium</p>
-              <p className="text-[15px] leading-snug text-slate-600">
-                Fabricante líder de acero en Argentina. Garantía de calidad en cada chapa y bobina.
-              </p>
-            </div>
-
-            {/* Sidersa */}
-            <div className="flex flex-col items-center rounded-2xl border border-slate-200 bg-white px-6 py-8 text-center shadow-sm">
-              <div className="mb-5 h-[26px]" aria-hidden />
-              <p className="mb-3 text-3xl font-black tracking-tight text-slate-800">Sidersa</p>
-              <p className="text-[15px] leading-snug text-slate-600">
-                Fabricante nacional de acero plano. Amplia variedad de productos para construcción e industria.
-              </p>
-            </div>
-
-            {/* Otros proveedores */}
-            <div className="flex flex-col rounded-2xl border border-slate-200 bg-[#f6f7fb] px-6 py-8 shadow-sm sm:col-span-2 lg:col-span-1">
-              <h3 className="mb-5 text-center text-lg font-extrabold text-slate-800">También trabajamos con</h3>
-              <ul className="space-y-2.5">
-                {(["Durlock", "Tubos Argentinos", "Acindar", "Amafren"] as const).map((name) => (
-                  <li key={name} className="flex items-center gap-2.5 text-[15px] font-semibold text-slate-700">
-                    <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full bg-emerald-500" aria-hidden />
-                    {name}
-                  </li>
-                ))}
-                <li className="pl-4 pt-1 text-sm text-slate-400">entre otros</li>
-              </ul>
-            </div>
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-3">
+            {PROVEEDORES.map((p) => (
+              <ProveedorLogo
+                key={p.name}
+                name={p.name}
+                logo={p.logo}
+                principal={p.principal}
+                desc={p.desc}
+              />
+            ))}
           </div>
+          {OTROS_PROVEEDORES.length > 0 && (
+            <p className="mt-5 text-center text-sm text-slate-400">
+              También trabajamos con{" "}
+              {OTROS_PROVEEDORES.join(", ")} y otros según disponibilidad.
+            </p>
+          )}
         </div>
       </section>
 
