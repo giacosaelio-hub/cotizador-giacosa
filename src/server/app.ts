@@ -54,7 +54,12 @@ app.use(
           "https://facebook.com",
           "https://connect.facebook.net",
         ],
-        frameSrc:      ["'none'"],
+        frameSrc:      [
+          "'self'",
+          "https://www.facebook.com",
+          "https://td.doubleclick.net",
+          "https://www.googletagmanager.com",
+        ],
         objectSrc:     ["'none'"],
         baseUri:       ["'self'"],
         formAction:    ["'self'"],
