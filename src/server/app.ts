@@ -2,11 +2,52 @@ import path from "path";
 import express, { type Express } from "express";
 import cors from "cors";
 import compression from "compression";
+import helmet from "helmet";
 import router from "./routes/index";
 
 const app: Express = express();
 
+// Determina entorno — debe ir antes de los middlewares que lo usan
+const isProdEarly = process.env.NODE_ENV === "production";
+
 app.use(compression());
+
+// Security headers via helmet
+app.use(
+  helmet({
+    // CSP: permite scripts inline (necesario para Vite/React) y fuentes de Google
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc:     ["'self'"],
+        scriptSrc:      ["'self'", "'unsafe-inline'"],   // React/Vite usa inline scripts
+        scriptSrcAttr:  ["'unsafe-inline'"],
+        styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc:        ["'self'", "https://fonts.gstatic.com"],
+        imgSrc:         ["'self'", "data:", "https:"],   // permite imágenes externas (OG, proveedores)
+        connectSrc:     ["'self'"],
+        frameSrc:       ["'none'"],
+        objectSrc:      ["'none'"],
+        baseUri:        ["'self'"],
+        formAction:     ["'self'"],
+        upgradeInsecureRequests: [],
+      },
+    },
+    // HSTS: fuerza HTTPS por 1 año (solo en producción)
+    strictTransportSecurity: isProdEarly
+      ? { maxAge: 31536000, includeSubDomains: true }
+      : false,
+    // Evita que el browser adivine el tipo de contenido
+    noSniff: true,
+    // Evita clickjacking
+    frameguard: { action: "deny" },
+    // Oculta el header X-Powered-By: Express
+    hidePoweredBy: true,
+    // Política de referrer
+    referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+    // XSS filter (legacy, pero no hace daño)
+    xssFilter: true,
+  })
+);
 
 // Determina entorno
 const isProd = process.env.NODE_ENV === "production";

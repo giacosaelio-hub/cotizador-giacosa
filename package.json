@@ -16,7 +16,8 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "form-data": "^4.0.1"
+    "form-data": "^4.0.1",
+    "helmet": "^8.2.0"
   },
   "devDependencies": {
     "@hookform/resolvers": "^3.10.0",
