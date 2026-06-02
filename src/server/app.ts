@@ -15,20 +15,40 @@ app.use(compression());
 // Security headers via helmet
 app.use(
   helmet({
-    // CSP: permite scripts inline (necesario para Vite/React) y fuentes de Google
+    // CSP: permite React/Vite, Google Fonts, GTM y GA
     contentSecurityPolicy: {
       directives: {
-        defaultSrc:     ["'self'"],
-        scriptSrc:      ["'self'", "'unsafe-inline'"],   // React/Vite usa inline scripts
-        scriptSrcAttr:  ["'unsafe-inline'"],
-        styleSrc:       ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
-        fontSrc:        ["'self'", "https://fonts.gstatic.com"],
-        imgSrc:         ["'self'", "data:", "https:"],   // permite imágenes externas (OG, proveedores)
-        connectSrc:     ["'self'"],
-        frameSrc:       ["'none'"],
-        objectSrc:      ["'none'"],
-        baseUri:        ["'self'"],
-        formAction:     ["'self'"],
+        defaultSrc:    ["'self'"],
+        scriptSrc:     [
+          "'self'",
+          "'unsafe-inline'",
+          "'unsafe-eval'",                                // necesario para GTM
+          "https://www.googletagmanager.com",
+          "https://www.google-analytics.com",
+          "https://ssl.google-analytics.com",
+        ],
+        scriptSrcAttr: ["'unsafe-inline'"],
+        styleSrc:      ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+        fontSrc:       ["'self'", "https://fonts.gstatic.com"],
+        imgSrc:        [
+          "'self'",
+          "data:",
+          "https:",
+          "https://www.googletagmanager.com",
+          "https://www.google-analytics.com",
+        ],
+        connectSrc:    [
+          "'self'",
+          "https://www.googletagmanager.com",
+          "https://www.google-analytics.com",
+          "https://analytics.google.com",
+          "https://region1.analytics.google.com",        // GA4 endpoint regional
+          "https://region1.google-analytics.com",
+        ],
+        frameSrc:      ["'none'"],
+        objectSrc:     ["'none'"],
+        baseUri:       ["'self'"],
+        formAction:    ["'self'"],
         upgradeInsecureRequests: [],
       },
     },
