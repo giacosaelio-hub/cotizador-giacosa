@@ -28,6 +28,8 @@ app.use(
           "https://ssl.google-analytics.com",
           "https://connect.facebook.net",                // Meta Pixel via GTM
           "https://facebook.net",
+          "https://www.facebook.com",
+          "https://facebook.com",
         ],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc:      ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -39,6 +41,7 @@ app.use(
           "https://www.googletagmanager.com",
           "https://www.google-analytics.com",
           "https://www.facebook.com",                    // Meta Pixel beacon
+          "https://facebook.com",
         ],
         connectSrc:    [
           "'self'",
@@ -48,6 +51,7 @@ app.use(
           "https://region1.analytics.google.com",        // GA4 endpoint regional
           "https://region1.google-analytics.com",
           "https://www.facebook.com",                    // Meta Pixel events
+          "https://facebook.com",
           "https://connect.facebook.net",
         ],
         frameSrc:      ["'none'"],
