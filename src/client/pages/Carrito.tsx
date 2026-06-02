@@ -1,4 +1,11 @@
 import { useRef, useState } from "react";
+
+// Declaración global para window.dataLayer (GTM)
+declare global {
+  interface Window {
+    dataLayer: Record<string, unknown>[];
+  }
+}
 import {
   CartItem,
   Precios,
@@ -324,7 +331,15 @@ export default function Carrito({
 
     setPreview({ pngDataUrl, numero });
     setLoading(false);
-    
+
+    // GTM: cotización completada
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "cotizacion_completada",
+      cotizacion_total: totalFinal,
+      forma_pago: formaPagoLabel || "No especificada",
+    });
+
     window.setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
     }, 80);
