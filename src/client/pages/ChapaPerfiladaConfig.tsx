@@ -26,20 +26,20 @@ const MATERIAL_LABELS: Record<string, string> = {
 };
 
 const PERFIL_IMAGES: Record<string, string> = {
-  sinusoidal: "/images/configurador/perfiles/sinusoidal.png",
-  trapezoidal: "/images/configurador/perfiles/trapezoidal.png",
+  sinusoidal: "/images/configurador/perfiles/sinusoidal.webp",
+  trapezoidal: "/images/configurador/perfiles/trapezoidal.webp",
 };
 
 const MATERIAL_IMAGES: Record<string, string> = {
-  galv: "/images/configurador/materiales/galvanizada.png",
-  cincalum: "/images/configurador/materiales/cincalum.png",
-  prepintada: "/images/configurador/materiales/prepintada.png",
+  galv: "/images/configurador/materiales/galvanizada.webp",
+  cincalum: "/images/configurador/materiales/cincalum.webp",
+  prepintada: "/images/configurador/materiales/prepintada.webp",
 };
 
 const SINUSOIDAL_MATERIAL_IMAGES: Record<string, string> = {
-  galv: "/images/configurador/materiales/sinusoidal-galvanizada.png",
-  cincalum: "/images/configurador/materiales/sinusoidal-cincalum.png",
-  prepintada: "/images/configurador/materiales/sinusoidal-prepintada.png",
+  galv: "/images/configurador/materiales/sinusoidal-galvanizada.webp",
+  cincalum: "/images/configurador/materiales/sinusoidal-cincalum.webp",
+  prepintada: "/images/configurador/materiales/sinusoidal-prepintada.webp",
 };
 
 function getMaterialImage(perfil: string, material: string): string {
@@ -57,7 +57,7 @@ const PERFIL_DESCS: Record<string, string> = {
 };
 
 const MATERIAL_DESCS: Record<string, string> = {
-  galv: "Zinc estándar. Resistente y de buen precio.",
+  galv: "Zinc estándar (también: chapa de zinc). Resistente y de buen precio.",
   cincalum: "Zinc + aluminio. Mayor durabilidad en exterior.",
   prepintada: "Con terminación de color. Lista para instalar.",
 };
@@ -246,7 +246,7 @@ export default function ChapaPerfiladaConfig({
   }, [combinacionValida, isPrepintada, color, pies, cantidad, precios, perfil, material, calibre]);
 
   const noExisteCombinacion = perfil && material && calibre && !combinacionValida;
-  const resumenPerfilImage = perfil && PERFIL_IMAGES[perfil] ? PERFIL_IMAGES[perfil] : "/images/configurador/perfiles/sinusoidal.png";
+  const resumenPerfilImage = perfil && PERFIL_IMAGES[perfil] ? PERFIL_IMAGES[perfil] : "/images/configurador/perfiles/sinusoidal.webp";
 
   function handleChangePerfil(newPerfil: string) {
     setPerfil(newPerfil);
@@ -308,6 +308,14 @@ export default function ChapaPerfiladaConfig({
     const desc = `${perfilLabel} ${materialLabel}${colorStr} Cal. ${calibre}`;
     const medida = formatMetros(Number(pies), anchoUtil);
 
+    // GTM: micro-conversión — producto agregado al carrito.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "agregar_al_carrito",
+      cotizacion_categoria: "chapas-para-techo",
+      cotizacion_monto: subtotalARS,
+    });
+
     onAdd({
       tipo: "chapa_perfilada",
       descripcion: desc,
@@ -341,7 +349,7 @@ export default function ChapaPerfiladaConfig({
                 Chapas perfiladas a medida
               </h1>
               <p className="mt-3 max-w-xl text-base font-medium leading-7 text-slate-600">
-                Cortamos al largo que necesitás. Sinusoidal o trapezoidal, galvanizada, cincalum o prepintada.
+                Cortamos al largo que necesitás. Chapa acanalada (también llamada sinusoidal) o trapezoidal, galvanizada, cincalum o prepintada.
                 Elegí perfil, material, calibre y cantidad.
               </p>
             </div>
@@ -608,7 +616,7 @@ export default function ChapaPerfiladaConfig({
                     loading="lazy"
                     draggable={false}
                     onError={(e) => {
-                      e.currentTarget.src = "/images/configurador/perfiles/sinusoidal.png";
+                      e.currentTarget.src = "/images/configurador/perfiles/sinusoidal.webp";
                     }}
                   />
                 </div>
