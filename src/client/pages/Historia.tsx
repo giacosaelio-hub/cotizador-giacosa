@@ -43,13 +43,17 @@ function JsonLd() {
     areaServed: ["San Miguel de Tucumán", "Tucumán", "Argentina"],
     url: typeof window !== "undefined" ? window.location.origin : undefined,
     sameAs: [COMPANY.maps],
-    makesOffer: [
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Chapas para techo", image: "https://giacosaelio.com.ar/images/productos/chapas-techo.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Bobinas de acero", image: "https://giacosaelio.com.ar/images/productos/bobinas.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Chapas estándar", image: "https://giacosaelio.com.ar/images/productos/chapas-estandar.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Perfil C estructural", image: "https://giacosaelio.com.ar/images/productos/perfil-c-hero.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
-      { "@type": "Offer", itemOffered: { "@type": "Service", name: "Cumbreras y complementarios", image: "https://giacosaelio.com.ar/images/productos/complementarios.webp", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } } },
-    ],
+    hasOfferCatalog: {
+      "@type": "OfferCatalog",
+      name: "Materiales para la construcción",
+      itemListElement: [
+        { "@type": "Service", name: "Chapas para techo", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } },
+        { "@type": "Service", name: "Bobinas de acero", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } },
+        { "@type": "Service", name: "Chapas estándar", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } },
+        { "@type": "Service", name: "Perfil C estructural", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } },
+        { "@type": "Service", name: "Cumbreras y complementarios", provider: { "@type": "LocalBusiness", name: "Giacosa Elio" } },
+      ],
+    },
   };
 
   return <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(data) }} />;

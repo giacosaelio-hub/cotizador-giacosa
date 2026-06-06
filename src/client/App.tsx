@@ -56,6 +56,50 @@ const ESTANDAR_SLUGS: Record<string, string> = {
   estampada: "estampada",
 };
 
+// Breadcrumbs por ruta principal (1 nivel bajo Inicio). Se inyecta como JSON-LD
+// en <head> desde setMeta. La home y las subpáginas (más de un segmento) no
+// llevan breadcrumb; /chapas-tucuman es HTML estático y ya tiene el suyo.
+const SITE_URL = "https://giacosaelio.com.ar";
+const BREADCRUMB_LABELS: Record<string, string> = {
+  "chapas-para-techo": "Chapas para techo",
+  "chapas-estandar": "Chapas estándar",
+  "bobinas": "Bobinas",
+  "perfil-c": "Perfil C",
+  "complementarios": "Complementarios",
+  "nuestra-historia": "Nuestra historia",
+  "informacion": "Información",
+  "contacto": "Contacto",
+};
+
+function setBreadcrumbJsonLd() {
+  const segments = window.location.pathname.replace(/^\/+|\/+$/g, "").split("/").filter(Boolean);
+  const existing = document.getElementById("breadcrumb-jsonld");
+
+  // Solo rutas principales conocidas (un único segmento de path).
+  const label = segments.length === 1 ? BREADCRUMB_LABELS[segments[0]] : undefined;
+  if (!label) {
+    existing?.remove();
+    return;
+  }
+
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: label, item: `${SITE_URL}/${segments[0]}` },
+    ],
+  };
+
+  const script = existing ?? document.createElement("script");
+  if (!existing) {
+    script.id = "breadcrumb-jsonld";
+    script.setAttribute("type", "application/ld+json");
+    document.head.appendChild(script);
+  }
+  script.textContent = JSON.stringify(data);
+}
+
 function resolveViewFromPath(): { view: View; preselection?: Preselection } {
   const path = window.location.pathname;
   const segments = path.replace(/^\//, "").split("/");
@@ -122,6 +166,9 @@ export default function App() {
         document.head.appendChild(link);
       }
       link.setAttribute("href", canonicalHref);
+
+      // BreadcrumbList por ruta (JSON-LD en <head>).
+      setBreadcrumbJsonLd();
     }
 
     const perfil = preselection?.perfil;
