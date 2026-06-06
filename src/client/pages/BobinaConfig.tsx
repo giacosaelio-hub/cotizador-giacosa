@@ -22,7 +22,7 @@ interface Props {
 }
 
 const WA_NUMBER = "5493815589875";
-const BOBINA_IMAGE = "/images/productos/bobinas.png";
+const BOBINA_IMAGE = "/images/productos/bobinas.webp";
 
 const colorStyles: Record<string, string> = {
   blanca: "#f8fafc",
@@ -316,6 +316,14 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
     const precioBobinaCompletaARS = subtotalARS;
     const precioBobinaCompletaUSD = precioUnitarioUSD * metros;
     const medida = `${metros.toFixed(2)} metros c/u`;
+
+    // GTM: micro-conversión — producto agregado al carrito.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "agregar_al_carrito",
+      cotizacion_categoria: "bobinas",
+      cotizacion_monto: precioBobinaCompletaARS * cantidad,
+    });
 
     onAdd({
       tipo: "bobina",

@@ -175,6 +175,15 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
 
     setError("");
     const subtipoLabel = subtipo === "comun" ? "Perfil C" : "Perfil C Galvanizado";
+
+    // GTM: micro-conversión — producto agregado al carrito.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "agregar_al_carrito",
+      cotizacion_categoria: "perfil-c",
+      cotizacion_monto: preview.subtotalARS,
+    });
+
     onAdd({
       tipo: "perfil_c",
       descripcion: `${subtipoLabel} ${formatPerfilKey(medida)} · 12 m/barra`,

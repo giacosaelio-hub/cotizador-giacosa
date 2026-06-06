@@ -56,6 +56,26 @@ function onlyDigits(value: string): string {
   return value.replace(/\D/g, "");
 }
 
+// Mapea el tipo interno del ítem al slug de categoría que usa GTM/GA4
+// (mismo estilo que las rutas en VIEW_PATHS de App.tsx).
+const TIPO_TO_CATEGORIA: Record<string, string> = {
+  chapa_perfilada: "chapas-para-techo",
+  chapa_estandar: "chapas-estandar",
+  bobina: "bobinas",
+  perfil_c: "perfil-c",
+  complementario: "complementarios",
+};
+
+// Categoría de la cotización para GTM: el slug si todos los ítems comparten
+// tipo, o "mixto" si el carrito combina varios. Compartida por los eventos
+// cotizacion_generada (handleGenerar) y cotizacion_completada (handleWhatsApp).
+function getCotizacionCategoria(cart: CartItem[]): string {
+  const tiposUnicos = Array.from(new Set(cart.map((item) => item.tipo)));
+  return tiposUnicos.length === 1
+    ? TIPO_TO_CATEGORIA[tiposUnicos[0]] ?? tiposUnicos[0]
+    : "mixto";
+}
+
 function cuotaNumero(cuota: CuotaOpcion | null): number {
   if (!cuota || cuota.key === "zeta") return 0;
   const parsed = parseInt(cuota.key, 10);
@@ -258,6 +278,17 @@ export default function Carrito({
     event?.stopPropagation();
   
     if (!canGenerar) return;
+
+    // GTM: el usuario generó la cotización (paso previo al envío por WhatsApp).
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "cotizacion_generada",
+      cotizacion_categoria: getCotizacionCategoria(cart),
+      cotizacion_monto: totalFinal,
+      cotizacion_moneda: "ARS",
+      cotizacion_items: cart.length,
+    });
+
     setLoading(true);
     setErrorMsg("");
     setPreview(null);
@@ -332,13 +363,8 @@ export default function Carrito({
     setPreview({ pngDataUrl, numero });
     setLoading(false);
 
-    // GTM: cotización completada
-    window.dataLayer = window.dataLayer || [];
-    window.dataLayer.push({
-      event: "cotizacion_completada",
-      cotizacion_total: totalFinal,
-      forma_pago: formaPagoLabel || "No especificada",
-    });
+    // Nota: la conversión `cotizacion_completada` se dispara en handleWhatsApp
+    // (envío real), no acá. Generar el PDF es un paso previo del funnel.
 
     window.setTimeout(() => {
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -357,6 +383,22 @@ export default function Carrito({
     const num = preview?.numero || "la cotización";
     const pagoStr = formaPagoLabel ? ` Forma de pago: ${formaPagoLabel}.` : "";
     const text = encodeURIComponent(`Hola, quiero confirmar la cotización ${num}.${pagoStr} ¿Hay stock disponible?`);
+
+    // GTM: conversión real — el usuario envía la cotización por WhatsApp.
+    // Se dispara ANTES de abrir WhatsApp para no perder el evento si el
+    // navegador cambia de pestaña/contexto al abrir el link.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "cotizacion_completada",
+      cotizacion_categoria: getCotizacionCategoria(cart),
+      cotizacion_monto: totalFinal,
+      cotizacion_moneda: "ARS",
+      cotizacion_items: cart.length,
+      // Campos legacy del evento anterior, por compatibilidad con GTM existente:
+      cotizacion_total: totalFinal,
+      forma_pago: formaPagoLabel || "No especificada",
+    });
+
     window.open(`https://wa.me/5493815589875?text=${text}`, "_blank");
   }
 

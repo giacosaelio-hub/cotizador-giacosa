@@ -57,8 +57,8 @@ const colorStyles: Record<string, string> = {
 
 const CATEGORY_DESCRIPTIONS: Record<string, string> = {
   estampada: "Para portones y cerramientos. Chapa negra con relieve decorativo.",
-  lisa_negra: "LAF/LAC sin tratamiento. Para herrería, fabricación y estructuras.",
-  lisa_galv: "Con protección de zinc. Resistente a la humedad en exteriores.",
+  lisa_negra: "LAF/LAC sin tratamiento (también: hoja negra). Para herrería, fabricación y estructuras.",
+  lisa_galv: "Con protección de zinc (también: hoja galvanizada). Resistente a la humedad en exteriores.",
   lisa_prepintada: "Terminación de color aplicada en fábrica. Lista para instalar.",
 };
 
@@ -345,6 +345,15 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
 
     const { precioUnitarioUSD, precioUnitarioARS, subtotalARS } = result;
     const medidaLabel = MEDIDA_LABELS[medida] ?? medida;
+
+    // GTM: micro-conversión — producto agregado al carrito.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "agregar_al_carrito",
+      cotizacion_categoria: "chapas-estandar",
+      cotizacion_monto: subtotalARS,
+    });
+
     onAdd({
       tipo: "chapa_estandar",
       descripcion: buildDescripcion(),

@@ -131,6 +131,7 @@ app.use("/api", router);
 
 // Redirects SEO 301 → rutas canónicas del cotizador
 const SEO_REDIRECTS: Record<string, string> = {
+  "/chapass-tucuman":             "/chapas-tucuman",          // typo (doble "s") indexado en GSC
   "/chapa-sinusoidal-tucuman":    "/chapas-para-techo/sinusoidal",
   "/chapa-trapezoidal-tucuman":   "/chapas-para-techo/trapezoidal",
   "/chapa-acanalada-tucuman":     "/chapas-para-techo/sinusoidal",

@@ -282,6 +282,16 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
   function handleAdd() {
     if (!subcategoria) { setError("Seleccioná una categoría"); return; }
 
+    // GTM: micro-conversión — producto agregado al carrito.
+    const trackAdd = (monto: number) => {
+      window.dataLayer = window.dataLayer || [];
+      window.dataLayer.push({
+        event: "agregar_al_carrito",
+        cotizacion_categoria: "complementarios",
+        cotizacion_monto: monto,
+      });
+    };
+
     if (subcategoria === "cumbreras") {
       if (!cumbrerasTipo) { setError("Seleccioná el tipo de cumbrera"); return; }
       if (cumbrerasTipo === "lisa") {
@@ -298,6 +308,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
           ? "Trapezoidal Negra 0.6"
           : `Lisa ${COLOR_DISPLAY[lisaColor] ?? lisaColor} des. ${lisaDesarrollo}`;
 
+      trackAdd(preview.subtotalARS);
       onAdd({
         tipo: "complementario",
         descripcion: `Cumbrera ${tipoLabel}`,
@@ -316,6 +327,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
       const bolsasNum = parseFloat(bolsas.replace(",", "."));
       if (!isFinite(bolsasNum) || bolsasNum < 0.5) { setError("Mínimo 0.5 bolsas"); return; }
       if (!preview) return;
+      trackAdd(preview.subtotalARS);
       onAdd({
         tipo: "complementario",
         descripcion: `Autoperforante ${autoMedida}" ${AUTO_ROSCA_LABEL[autoRosca]} × 100 uds`,
@@ -334,6 +346,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
       const bolsasNum = parseFloat(bolsas.replace(",", "."));
       if (!isFinite(bolsasNum) || bolsasNum < 0.5) { setError("Mínimo 0.5 bolsas"); return; }
       if (!preview) return;
+      trackAdd(preview.subtotalARS);
       onAdd({
         tipo: "complementario",
         descripcion: `Tornillo ${tornilloModelo} ${TORNILLO_PUNTA_LABEL[tornilloPunta]} × 100 uds`,
@@ -351,6 +364,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
       if (estanoCantidad < 1) { setError("La cantidad debe ser al menos 1"); return; }
       if (!preview) return;
       const estanoLabel = estanoKey === "kg" ? "Estaño 50% — paquete 8 barras (≈1070g)" : "Estaño 50% — barra individual (133g)";
+      trackAdd(preview.subtotalARS);
       onAdd({
         tipo: "complementario",
         descripcion: estanoLabel,

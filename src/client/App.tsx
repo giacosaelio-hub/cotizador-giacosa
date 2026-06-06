@@ -102,23 +102,103 @@ export default function App() {
 
   const pendingSectionScroll = useRef<string | null>(null);
 
-  // Título dinámico por ruta — actualiza document.title al navegar
+  // Título dinámico y meta description por ruta/subpágina
   useEffect(() => {
-    const titles: Partial<Record<View, string>> = {
-      home:          "Giacosa Elio | Cotizador online de materiales en Tucumán",
-      chapa_perfilada: "Chapas para techo en Tucumán | Giacosa Elio",
-      chapa_estandar:  "Chapas estándar en Tucumán | Giacosa Elio",
-      bobina:          "Bobinas de acero en Tucumán | Giacosa Elio",
-      perfil_c:        "Perfil C en Tucumán | Cotizador online | Giacosa Elio",
-      complementario:  "Complementarios para obra en Tucumán | Giacosa Elio",
-      informacion:     "Información sobre materiales para obra | Giacosa Elio",
-      historia:        "Nuestra historia | Giacosa Elio Corralón en Tucumán",
-      contacto:        "Contacto | Giacosa Elio Corralón en Tucumán",
-      carrito:         "Cotización | Giacosa Elio",
-      admin:           "Admin | Giacosa Elio",
+    function setMeta(title: string, description: string) {
+      document.title = title;
+      const el = document.querySelector('meta[name="description"]');
+      if (el) el.setAttribute("content", description);
+
+      // Canonical dinámico: cada ruta declara su propia URL canónica.
+      // Sin esto, el <link rel="canonical"> estático de index.html apunta
+      // siempre a "/" y Google trata todas las rutas como copias de la home.
+      const path = window.location.pathname;
+      const canonicalPath = path === "/" ? "/" : path.replace(/\/+$/, "");
+      const canonicalHref = `https://giacosaelio.com.ar${canonicalPath}`;
+      let link = document.querySelector('link[rel="canonical"]');
+      if (!link) {
+        link = document.createElement("link");
+        link.setAttribute("rel", "canonical");
+        document.head.appendChild(link);
+      }
+      link.setAttribute("href", canonicalHref);
+    }
+
+    const perfil = preselection?.perfil;
+    const cat    = preselection?.categoria;
+
+    // Subpáginas de chapa perfilada
+    if (view === "chapa_perfilada" && perfil === "sinusoidal") {
+      setMeta(
+        "Chapa Acanalada (Sinusoidal) en Tucumán | Giacosa Elio",
+        "Chapa acanalada (sinusoidal) galvanizada, cincalum y prepintada en Tucumán. Cortada a medida desde bobina, calibre 24 y 27. Cotizá online al instante. Giacosa Elio, Suipacha 482."
+      );
+      return;
+    }
+    if (view === "chapa_perfilada" && perfil === "trapezoidal") {
+      setMeta(
+        "Chapa Trapezoidal en Tucumán | Giacosa Elio",
+        "Chapa trapezoidal galvanizada, cincalum y prepintada en Tucumán. Mayor superficie cubierta por chapa. Cortada a medida, calibre 24 y 27. Cotizá online. Giacosa Elio, Suipacha 482."
+      );
+      return;
+    }
+
+    // Subpáginas de chapa estándar
+    if (view === "chapa_estandar" && cat === "lisa_negra") {
+      setMeta(
+        "Chapa Negra (LAF) en Tucumán | Giacosa Elio",
+        "Chapa negra (LAF/LAC, también: hoja negra) sin tratamiento en medidas 1×2 m y 1.22×2.44 m. Para herrería, fabricación y estructuras en Tucumán. Cotizá por unidad online. Giacosa Elio, Suipacha 482."
+      );
+      return;
+    }
+    if (view === "chapa_estandar" && cat === "estampada") {
+      setMeta(
+        "Chapa Negra Estampada en Tucumán | Giacosa Elio",
+        "Chapa negra estampada con relieve decorativo para portones y cerramientos en Tucumán. Medidas 1×2 m y 1.22×2.44 m. Cotizá por unidad online. Giacosa Elio, Suipacha 482."
+      );
+      return;
+    }
+    if (view === "chapa_estandar" && cat === "lisa_galv") {
+      setMeta(
+        "Chapa Lisa Galvanizada (Hoja Galvanizada) en Tucumán | Giacosa Elio",
+        "Chapa lisa galvanizada (hoja galvanizada) con protección de zinc. Medidas 1×2 m y 1.22×2.44 m. Para exteriores en Tucumán. Cotizá por unidad online. Giacosa Elio, Suipacha 482."
+      );
+      return;
+    }
+    if (view === "chapa_estandar" && cat === "lisa_prepintada") {
+      setMeta(
+        "Chapa Lisa Prepintada en Tucumán | Giacosa Elio",
+        "Chapa lisa prepintada con terminación de color aplicada en fábrica. Medidas 1×2 m y 1.22×2.44 m. Lista para instalar en Tucumán. Cotizá por unidad online. Giacosa Elio."
+      );
+      return;
+    }
+
+    // Páginas principales
+    type TD = { title: string; description: string };
+    const pages: Partial<Record<View, TD>> = {
+      home:            { title: "Giacosa Elio | Cotizador online de materiales en Tucumán",                              description: "Cotizá online chapas para techo, bobinas de acero, chapas estándar, Perfil C y complementarios para obra en Tucumán. Giacosa Elio, Suipacha 482." },
+      chapa_perfilada: { title: "Chapas para Techo en Tucumán: Acanalada y Trapezoidal | Giacosa Elio",                  description: "Chapa acanalada (sinusoidal) y trapezoidal en Tucumán: galvanizada, cincalum y prepintada. Cortadas a medida desde bobina. Cotizá online al instante. Giacosa Elio, Suipacha 482." },
+      chapa_estandar:  { title: "Chapas Estándar en Tucumán: Hoja Galvanizada, Negra y Lisa | Giacosa Elio",             description: "Hoja galvanizada, chapa negra (LAF), chapa lisa prepintada, perforada y estampada en medidas fijas. Para herrería, portones y fabricación en Tucumán. Cotizá por unidad online." },
+      bobina:          { title: "Bobinas de acero en Tucumán | Giacosa Elio",                                            description: "Bobinas de acero galvanizado, cincalum y prepintado en Tucumán. Cotizá online por kilo y ancho. Giacosa Elio, Suipacha 482." },
+      perfil_c:        { title: "Perfil C en Tucumán | Cotizador online | Giacosa Elio",                                 description: "Perfil C de acero galvanizado en Tucumán. Cotizá online por longitud y calibre. Giacosa Elio, Suipacha 482." },
+      complementario:  { title: "Complementarios para obra en Tucumán | Giacosa Elio",                                   description: "Cumbreras, autoperforantes, tornillos y estaño para obras en Tucumán. Cotizá online. Giacosa Elio, Suipacha 482." },
+      informacion:     { title: "Información sobre materiales para obra | Giacosa Elio",                                 description: "Información técnica sobre chapas, bobinas, perfil C y complementarios para obra en Tucumán. Giacosa Elio." },
+      historia:        { title: "Nuestra historia | Giacosa Elio Corralón en Tucumán",                                   description: "Conocé la historia de Giacosa Elio, corralón y materiales para la construcción en San Miguel de Tucumán." },
+      contacto:        { title: "Contacto | Giacosa Elio Corralón en Tucumán",                                           description: "Contactá a Giacosa Elio en Suipacha 482, San Miguel de Tucumán. Horarios de atención y WhatsApp." },
+      carrito:         { title: "Cotización | Giacosa Elio",                                                              description: "Revisá tu cotización de materiales en Giacosa Elio." },
+      admin:           { title: "Admin | Giacosa Elio",                                                                   description: "Panel de administración de precios — Giacosa Elio." },
     };
-    document.title = titles[view] ?? "Giacosa Elio | Materiales para la Construcción en Tucumán";
-  }, [view]);
+
+    const page = pages[view];
+    if (page) {
+      setMeta(page.title, page.description);
+    } else {
+      setMeta(
+        "Giacosa Elio | Materiales para la Construcción en Tucumán",
+        "Giacosa Elio, corralón y materiales para la construcción en San Miguel de Tucumán."
+      );
+    }
+  }, [view, preselection]);
 
   useEffect(() => {
     fetch("/api/precios")
