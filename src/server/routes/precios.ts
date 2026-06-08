@@ -19,22 +19,46 @@ function ensurePreciosFile() {
     return;
   }
 
-  // Archivo ya existe → agregar claves faltantes del bundleado (migración no destructiva)
+  // Archivo ya existe → migraciones no destructivas sobre el volumen en vivo.
   try {
     const current = JSON.parse(readFileSync(PRECIOS_PATH, "utf-8"));
     const defaults = JSON.parse(readFileSync(fallbackPath, "utf-8"));
-    const missingKeys = Object.keys(defaults).filter((k) => !(k in current));
+    let changed = false;
 
+    // 1) Agregar claves de primer nivel faltantes del bundleado.
+    const missingKeys = Object.keys(defaults).filter((k) => !(k in current));
     if (missingKeys.length > 0) {
       for (const key of missingKeys) {
         current[key] = defaults[key];
       }
-      writeFileSync(PRECIOS_PATH, JSON.stringify(current, null, 2));
+      changed = true;
       console.log("[precios] Migración: se agregaron campos faltantes:", missingKeys.join(", "));
+    }
+
+    // 2) Asegurar la cuota "1" en sucredito (-15%) y credicash (-10%) si faltan.
+    //    Las cuotas casi nunca cambian; esto las inyecta en el volumen en vivo
+    //    SOLO si no existen. Si ya están, no se tocan (se respeta lo editado en admin).
+    const CUOTA_UNO: Record<string, number> = { sucredito: -15, credicash: -10 };
+    if (Array.isArray(current.formas_pago)) {
+      for (const tarjeta of current.formas_pago) {
+        const id: string = tarjeta?.id;
+        if (!Object.prototype.hasOwnProperty.call(CUOTA_UNO, id)) continue;
+        if (!Array.isArray(tarjeta.cuotas)) continue;
+        const yaExiste = tarjeta.cuotas.some((c: { key?: string }) => c?.key === "1");
+        if (!yaExiste) {
+          tarjeta.cuotas.unshift({ key: "1", label: "1 cuota", porcentaje: CUOTA_UNO[id], activo: true });
+          changed = true;
+          console.log(`[precios] Migración: cuota '1' agregada a ${id} (${CUOTA_UNO[id]}%)`);
+        }
+      }
+    }
+
+    if (changed) {
+      writeFileSync(PRECIOS_PATH, JSON.stringify(current, null, 2));
     }
   } catch (e) {
     // No romper si falla la migración — el archivo existente se usa tal cual
-    console.error("[precios] Aviso: no se pudo migrar campos nuevos:", e);
+    console.error("[precios] Aviso: no se pudo migrar:", e);
   }
 }
 

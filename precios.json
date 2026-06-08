@@ -408,6 +408,12 @@
       "label": "Sucredito",
       "cuotas": [
         {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -15,
+          "activo": true
+        },
+        {
           "key": "3",
           "label": "3 cuotas",
           "porcentaje": -10,
@@ -449,6 +455,12 @@
       "id": "credicash",
       "label": "Credicash",
       "cuotas": [
+        {
+          "key": "1",
+          "label": "1 cuota",
+          "porcentaje": -10,
+          "activo": true
+        },
         {
           "key": "3",
           "label": "3 cuotas",

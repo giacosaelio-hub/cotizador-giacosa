@@ -32,6 +32,7 @@ app.use(
           "https://facebook.com",
           "https://www.clarity.ms",                      // Microsoft Clarity via GTM
           "https://*.clarity.ms",
+          "https://capi-automation.s3.us-east-2.amazonaws.com",  // Meta CAPI clientParamBuilder
         ],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc:      ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
