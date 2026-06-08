@@ -30,6 +30,8 @@ app.use(
           "https://facebook.net",
           "https://www.facebook.com",
           "https://facebook.com",
+          "https://www.clarity.ms",                      // Microsoft Clarity via GTM
+          "https://*.clarity.ms",
         ],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc:      ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -53,6 +55,8 @@ app.use(
           "https://www.facebook.com",                    // Meta Pixel events
           "https://facebook.com",
           "https://connect.facebook.net",
+          "https://*.clarity.ms",                        // Microsoft Clarity (beacons)
+          "https://c.bing.com",                          // Microsoft Clarity (beacons)
         ],
         frameSrc:      [
           "'self'",
