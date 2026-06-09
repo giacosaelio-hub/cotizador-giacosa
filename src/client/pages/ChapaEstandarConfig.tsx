@@ -131,6 +131,8 @@ function ProductImage({
         src={src}
         alt={alt}
         className={`relative z-10 h-full w-full object-contain drop-shadow-[0_16px_24px_rgba(15,23,42,0.16)] ${imageClassName}`}
+        loading="lazy"
+        decoding="async"
         onError={(event) => {
           if (!event.currentTarget.src.includes(FALLBACK_IMAGE)) {
             event.currentTarget.src = FALLBACK_IMAGE;
@@ -179,9 +181,9 @@ function SummaryRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
-      <span className="font-semibold text-slate-500">{label}</span>
-      <span className="text-right font-black text-slate-900">{value}</span>
+    <div className="flex items-center justify-between gap-2 py-1.5 text-sm">
+      <span className="shrink-0 font-semibold text-slate-500">{label}</span>
+      <span className="min-w-0 truncate text-right font-black text-slate-900">{value}</span>
     </div>
   );
 }
@@ -221,10 +223,22 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
   const [calibre, setCalibre] = useState("");
   const [medida, setMedida] = useState("");
   const [color, setColor] = useState("");
-  const [cantidad, setCantidad] = useState(1);
+  const [cantidadStr, setCantidadStr] = useState("1");
+  const cantidad = Math.max(1, Math.min(300, parseInt(cantidadStr, 10) || 1));
   const [error, setError] = useState("");
 
   const calibreRef = useRef<HTMLDivElement>(null);
+  const medidaRef = useRef<HTMLDivElement>(null);
+  const colorRef = useRef<HTMLDivElement>(null);
+  const cantidadRef = useRef<HTMLDivElement>(null);
+
+  function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, delay);
+  }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -369,7 +383,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
   const selectedMedidaLabel = medida ? MEDIDA_LABELS[medida] ?? medida : "—";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 text-slate-950 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 pb-24 text-slate-950 sm:px-6 lg:px-8 lg:pb-5">
       <div className="mx-auto max-w-[1320px]">
         <button
           onClick={onBack}
@@ -404,7 +418,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
         </div>
 
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_360px] xl:grid-cols-[1fr_390px]">
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
             <SectionCard
               step="01"
               title="Elegí la categoría"
@@ -423,8 +437,9 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
                         setCalibre("");
                         setMedida("");
                         setColor("");
-                        setCantidad(1);
+                        setCantidadStr("1");
                         setError("");
+                        scrollNextStep(calibreRef);
                       }}
                       className={`group relative overflow-hidden rounded-[24px] border bg-white text-left transition-all hover:-translate-y-0.5 hover:shadow-lg ${
                         active
@@ -477,6 +492,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
                           setMedida("");
                           setColor("");
                           setError("");
+                          scrollNextStep(medidaRef);
                         }}
                       >
                         <span className="block text-lg">{c}</span>
@@ -494,7 +510,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
             )}
 
             {calibre && medidasDisponibles.length > 0 && (
-              <motion.div variants={stepVariant} initial="hidden" animate="visible">
+              <motion.div ref={medidaRef} className="scroll-mt-28" variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step="03"
                 title="Elegí la medida"
@@ -509,6 +525,11 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
                         setMedida(m);
                         if (!isPrepintada) setColor("");
                         setError("");
+                        if (isPrepintada) {
+                          scrollNextStep(colorRef);
+                        } else {
+                          scrollNextStep(cantidadRef);
+                        }
                       }}
                     >
                       <span className="block text-base">{MEDIDA_LABELS[m] ?? m}</span>
@@ -521,7 +542,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
             )}
 
             {isPrepintada && medida && (
-              <motion.div variants={stepVariant} initial="hidden" animate="visible">
+              <motion.div ref={colorRef} className="scroll-mt-28" variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step="04"
                 title="Elegí el color"
@@ -538,6 +559,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
                         onClick={() => {
                           setColor(c);
                           setError("");
+                          scrollNextStep(cantidadRef);
                         }}
                         aria-label={`Color ${c}`}
                         className="flex flex-col items-center gap-1.5 focus:outline-none"
@@ -564,7 +586,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
             )}
 
             {medida && (!isPrepintada || color) && (
-              <motion.div variants={stepVariant} initial="hidden" animate="visible">
+              <motion.div ref={cantidadRef} className="scroll-mt-28" variants={stepVariant} initial="hidden" animate="visible">
               <SectionCard
                 step={isPrepintada ? "05" : "04"}
                 title="Definí la cantidad"
@@ -584,7 +606,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
                   <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                     <button
                       type="button"
-                      onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                      onClick={() => setCantidadStr(String(Math.max(1, cantidad - 1)))}
                       className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                     >
                       −
@@ -592,14 +614,12 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
 
                     <div className="text-center">
                       <input
-                        type="number"
-                        min={1}
-                        max={300}
-                        value={cantidad}
-                        onChange={(e) => {
-                          const next = Math.max(1, Math.min(300, Number(e.target.value) || 1));
-                          setCantidad(next);
-                        }}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={cantidadStr}
+                        onChange={(e) => setCantidadStr(e.target.value.replace(/[^0-9]/g, ""))}
+                        onBlur={() => setCantidadStr(String(Math.max(1, Math.min(300, parseInt(cantidadStr, 10) || 1))))}
                         className="w-24 bg-transparent text-center text-3xl font-black text-slate-950 outline-none"
                       />
                       <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
@@ -609,7 +629,7 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
 
                     <button
                       type="button"
-                      onClick={() => setCantidad((c) => Math.min(300, c + 1))}
+                      onClick={() => setCantidadStr(String(Math.min(300, cantidad + 1)))}
                       className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                     >
                       +
@@ -633,8 +653,29 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
             )}
           </div>
 
-          <aside className="lg:sticky lg:top-24">
-            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
+          {/* ── Barra sticky mobile ── */}
+          {preview && (
+            <div
+              className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t border-slate-200 bg-white/96 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm lg:hidden"
+              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total</p>
+                <p className="truncate text-xl font-black text-slate-950">{formatARS(preview.subtotalARS)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex shrink-0 items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-800/25 active:bg-emerald-800"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Agregar al carrito
+              </button>
+            </div>
+          )}
+
+          <aside className="min-w-0 lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
               <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-800">Resumen de cotización</p>
                 <p className="mt-1 text-sm font-extrabold text-slate-600">Tu selección en tiempo real</p>

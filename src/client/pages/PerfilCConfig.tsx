@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Precios,
   CartItem,
   calcPerfilCPrecio,
   formatARS,
-  formatUSD,
 } from "@/lib/precios";
 import {
   ArrowLeft,
+  Minus,
   PackageCheck,
+  Plus,
   Ruler,
   ShoppingCart,
 } from "lucide-react";
@@ -104,14 +105,70 @@ function PerfilImg() {
 
 function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
-      <span className="font-semibold text-slate-500">{label}</span>
-      <span className="text-right font-black text-slate-900">{value}</span>
+    <div className="flex items-center justify-between gap-2 py-1.5 text-sm">
+      <span className="shrink-0 font-semibold text-slate-500">{label}</span>
+      <span className="min-w-0 truncate text-right font-black text-slate-900">{value}</span>
     </div>
   );
 }
 
+// ── Option B: inyecta Product schema con precios reales ──
+function usePerfilCSchema(precios: Precios) {
+  useEffect(() => {
+    const comunVals = Object.values(precios.perfil_c?.comun ?? {}).filter((n) => n > 0);
+    const galvVals  = Object.values(precios.perfil_c?.galvanizado ?? {}).filter((n) => n > 0);
+    const allVals   = [...comunVals, ...galvVals];
+    if (!allVals.length || !precios.dolar) return;
+
+    const IVA = 1.21;
+    const lowPrice  = Math.round(Math.min(...allVals) * precios.dolar * IVA);
+    const highPrice = Math.round(Math.max(...allVals) * precios.dolar * IVA);
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Perfil C Estructural – Giacosa Elio Tucumán",
+      "description": "Perfil C de acero común y galvanizado en barras de 12 metros. Amplia variedad de medidas para estructuras y construcción. Venta en San Miguel de Tucumán.",
+      "brand": { "@type": "Brand", "name": "Acindar" },
+      "url": "https://giacosaelio.com.ar/perfil-c",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "ARS",
+        "lowPrice": lowPrice,
+        "highPrice": highPrice,
+        "offerCount": allVals.length,
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "LocalBusiness",
+          "name": "Giacosa Elio",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Batalla de Suipacha 482",
+            "addressLocality": "San Miguel de Tucumán",
+            "addressRegion": "Tucumán",
+            "addressCountry": "AR"
+          }
+        }
+      }
+    };
+
+    const id = "schema-product-perfil-c";
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = id;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(schema);
+
+    return () => { document.getElementById(id)?.remove(); };
+  }, [precios]);
+}
+
 export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
+  usePerfilCSchema(precios);
+
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
@@ -119,8 +176,25 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
   const [subtipo, setSubtipo] = useState<"comun" | "galvanizado" | "">("");
   const [espesorComun, setEspesorComun] = useState<string>("");
   const [medida, setMedida] = useState<string>("");
-  const [cantidad, setCantidad] = useState<number>(1);
+  const [cantidadStr, setCantidadStr] = useState<string>("1");
   const [error, setError] = useState<string>("");
+
+  // Refs para auto-scroll entre pasos
+  const espesorRef = useRef<HTMLDivElement>(null);
+  const medidaGalvRef = useRef<HTMLDivElement>(null);
+  const altoRef = useRef<HTMLDivElement>(null);
+  const cantidadRef = useRef<HTMLDivElement>(null);
+
+  function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, delay);
+  }
+
+  // Derived: always a valid integer ≥ 1
+  const cantidad = Math.max(1, parseInt(cantidadStr, 10) || 1);
 
   // All keys for comun
   const comunKeys = useMemo(
@@ -156,14 +230,20 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
     setSubtipo(v);
     setEspesorComun("");
     setMedida("");
-    setCantidad(1);
+    setCantidadStr("1");
     setError("");
+    if (v === "comun") {
+      scrollNextStep(espesorRef);
+    } else {
+      scrollNextStep(medidaGalvRef);
+    }
   }
 
   function handleChangeEspesor(e: string) {
     setEspesorComun(e);
     setMedida("");
     setError("");
+    scrollNextStep(altoRef);
   }
 
   function handleAdd() {
@@ -203,7 +283,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
   const stepCantidadGalv = "03";
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 text-slate-950 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 pb-24 text-slate-950 sm:px-6 lg:px-8 lg:pb-5">
       <div className="mx-auto max-w-[1320px]">
         <button
           onClick={onBack}
@@ -232,7 +312,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
         </div>
 
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
 
             {/* PASO 01 — Tipo */}
             <SectionCard
@@ -258,6 +338,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
 
             {/* PASO 02 — Alma menor (solo comun) */}
             {subtipo === "comun" && (
+              <div ref={espesorRef}>
               <SectionCard
                 step={stepEspesor}
                 title="Alma menor"
@@ -275,10 +356,12 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* PASO 02 — Medida directa (galvanizado) */}
             {subtipo === "galvanizado" && (
+              <div ref={medidaGalvRef}>
               <SectionCard
                 step={stepMedidaGalv}
                 title="Medida"
@@ -289,17 +372,19 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                     <OptionButton
                       key={key}
                       active={medida === key}
-                      onClick={() => { setMedida(key); setError(""); }}
+                      onClick={() => { setMedida(key); setError(""); scrollNextStep(cantidadRef); }}
                     >
                       <span className="block text-base">{formatPerfilKey(key)}</span>
                     </OptionButton>
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* PASO 03 — Alto (solo comun con espesor elegido) */}
             {subtipo === "comun" && espesorComun && (
+              <div ref={altoRef}>
               <SectionCard
                 step={stepAlto}
                 title="Alto del perfil"
@@ -312,7 +397,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                       <OptionButton
                         key={key}
                         active={medida === key}
-                        onClick={() => { setMedida(key); setError(""); }}
+                        onClick={() => { setMedida(key); setError(""); scrollNextStep(cantidadRef); }}
                       >
                         <span className="block text-lg font-black">{alto} mm</span>
                       </OptionButton>
@@ -325,10 +410,12 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                   </p>
                 )}
               </SectionCard>
+              </div>
             )}
 
             {/* PASO — Cantidad */}
             {((subtipo === "comun" && medida) || (subtipo === "galvanizado" && medida)) && (
+              <div ref={cantidadRef}>
               <SectionCard
                 step={subtipo === "comun" ? stepCantidadComun : stepCantidadGalv}
                 title="Cantidad de barras"
@@ -337,23 +424,34 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                 <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm max-w-xs">
                   <button
                     type="button"
-                    onClick={() => setCantidad((prev) => Math.max(1, prev - 1))}
+                    onClick={() => setCantidadStr(String(Math.max(1, cantidad - 1)))}
+                    aria-label="Restar una barra"
                     className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                   >
-                    −
+                    <Minus className="h-5 w-5" />
                   </button>
-                  <div className="text-center">
-                    <div className="text-3xl font-black text-slate-950">{cantidad}</div>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={cantidadStr}
+                      onChange={(e) => setCantidadStr(e.target.value.replace(/[^0-9]/g, ""))}
+                      onBlur={() => setCantidadStr(String(Math.max(1, parseInt(cantidadStr, 10) || 1)))}
+                      className="w-16 bg-transparent text-center text-3xl font-black text-slate-950 outline-none"
+                      aria-label="Cantidad de barras"
+                    />
                     <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
                       barra{cantidad !== 1 ? "s" : ""}
                     </div>
                   </div>
                   <button
                     type="button"
-                    onClick={() => setCantidad((prev) => prev + 1)}
+                    onClick={() => setCantidadStr(String(cantidad + 1))}
+                    aria-label="Sumar una barra"
                     className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                   >
-                    +
+                    <Plus className="h-5 w-5" />
                   </button>
                 </div>
                 <p className="mt-3 text-sm font-semibold text-slate-500">
@@ -364,6 +462,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
                   <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 m. En ese caso, pedí cantidad en múltiplos de 2 (2, 4, 6…).
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {error && (
@@ -373,9 +472,30 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
             )}
           </div>
 
+          {/* ── Barra sticky mobile ── */}
+          {preview && (
+            <div
+              className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t border-slate-200 bg-white/96 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm lg:hidden"
+              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total</p>
+                <p className="truncate text-xl font-black text-slate-950">{formatARS(preview.subtotalARS)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex shrink-0 items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-800/25 active:bg-emerald-800"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Agregar al carrito
+              </button>
+            </div>
+          )}
+
           {/* RESUMEN */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
               <PerfilImg />
               <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-800">Resumen de cotización</p>
@@ -395,11 +515,7 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
 
                 <div className="mt-4 space-y-1 border-b border-slate-100 pb-4">
                   <SummaryRow
-                    label="Precio unitario (USD)"
-                    value={preview ? formatUSD(preview.precioUnitarioUSD) : "—"}
-                  />
-                  <SummaryRow
-                    label="Precio unitario (ARS)"
+                    label="Precio unitario"
                     value={preview ? formatARS(preview.precioUnitarioARS) : "—"}
                   />
                   <SummaryRow

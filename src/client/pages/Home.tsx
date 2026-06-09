@@ -47,7 +47,8 @@ interface Props {
   navigateToHomeSection?: (sectionId: string) => void;
 }
 
-const GOOGLE_LINK = "https://www.google.com/search?q=Giacosa+Elio+Tucuman";
+// Enlace directo al perfil de Google Business — abre la ficha en Maps, no una búsqueda
+const GOOGLE_LINK = "https://maps.app.goo.gl/Z7h2TYXir8mYTKBt5";
 const FACEBOOK_LINK = "https://www.facebook.com/giacosaelio";
 
 function collectNumbers(value: unknown): number[] {
@@ -137,10 +138,10 @@ function minFromChapasEstandar(
 }
 
 const benefits = [
-  { label: "20% OFF", desc: "en efectivo" },
-  { label: "12 cuotas", desc: "sin interés" },
-  { label: "Precios", desc: "actualizados hoy" },
-  { label: "Cortes", desc: "a medida" },
+  { label: "20% OFF", desc: "en efectivo", scrollTo: "formas-de-pago" },
+  { label: "12 cuotas", desc: "sin interés", scrollTo: "formas-de-pago" },
+  { label: "Precios", desc: "actualizados hoy", scrollTo: null },
+  { label: "Cortes", desc: "a medida", scrollTo: null },
 ];
 
 type PaymentDisplayItem = {
@@ -478,55 +479,70 @@ export default function Home({
 
         <div className="relative z-10 mx-auto flex min-h-[620px] max-w-[1600px] flex-col px-4 sm:px-8 lg:min-h-[700px] lg:px-12">
           <div className="flex flex-wrap justify-center gap-3 border-b border-white/10 py-4 lg:justify-center">
-            {benefits.map((b) => (
-              <span
-                key={b.label}
-                className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.07] px-3.5 py-1.5 text-[11px] font-bold text-white/75 shadow-sm backdrop-blur sm:text-xs"
-              >
-                <strong className="mr-1.5 font-black uppercase tracking-tight text-emerald-300">{b.label}</strong>
-                {b.desc}
-              </span>
-            ))}
+            {benefits.map((b) =>
+              b.scrollTo ? (
+                <button
+                  key={b.label}
+                  type="button"
+                  onClick={() => {
+                    const el = document.getElementById(b.scrollTo!);
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }}
+                  className="inline-flex cursor-pointer items-center rounded-full border border-white/10 bg-white/[0.07] px-3.5 py-1.5 text-[11px] font-bold text-white/75 shadow-sm backdrop-blur transition hover:border-emerald-400/40 hover:bg-white/[0.13] hover:text-white sm:text-xs"
+                  title={`Ver ${b.label} ${b.desc}`}
+                >
+                  <strong className="mr-1.5 font-black uppercase tracking-tight text-emerald-300">{b.label}</strong>
+                  {b.desc}
+                </button>
+              ) : (
+                <span
+                  key={b.label}
+                  className="inline-flex items-center rounded-full border border-white/10 bg-white/[0.07] px-3.5 py-1.5 text-[11px] font-bold text-white/75 shadow-sm backdrop-blur sm:text-xs"
+                >
+                  <strong className="mr-1.5 font-black uppercase tracking-tight text-emerald-300">{b.label}</strong>
+                  {b.desc}
+                </span>
+              )
+            )}
           </div>
 
-          <div className="flex flex-1 items-center py-14 lg:py-20">
+          <div className="flex flex-1 items-center py-10 lg:py-20">
             <div className="max-w-[740px]">
-              <div className="mb-5 inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-300">
+              <div className="mb-4 inline-flex items-center rounded-full border border-emerald-400/20 bg-emerald-400/10 px-4 py-1.5 text-[11px] font-black uppercase tracking-[0.18em] text-emerald-300">
                 Cotización rápida
               </div>
 
-              <h1 className="max-w-[860px] text-4xl font-black leading-[0.95] tracking-[-0.045em] text-white sm:text-6xl lg:text-[78px]">
-                  Cotizá materiales
-                  <span className="block text-emerald-400">para tu obra</span>
-                  <span className="block text-emerald-400">en Tucumán</span>
-                </h1>
+              <h1 className="max-w-[860px] text-4xl font-black leading-[0.93] tracking-[-0.045em] text-white sm:text-6xl lg:text-[78px]">
+                Cotizá materiales
+                <span className="block text-emerald-400">para tu obra</span>
+                <span className="block text-emerald-400">en Tucumán</span>
+              </h1>
 
-              <p className="mt-6 max-w-[620px] text-base font-medium leading-7 text-white/78 sm:text-lg">
-                Chapas para techo, chapas estándar, bobinas, Perfil C y mucho más.
-                Configurá medidas y obtené tu cotización en pocos pasos.
+              <p className="mt-4 max-w-[620px] text-[15px] font-medium leading-6 text-white/78 sm:mt-6 sm:text-lg sm:leading-7">
+                Chapas, bobinas, Perfil C y más. Configurá medidas y obtené tu cotización en minutos.
               </p>
 
-              <ul className="mt-8 flex max-w-[640px] flex-col gap-3 text-sm font-semibold text-white/88 sm:text-[15px]">
+              <ul className="mt-5 flex max-w-[640px] flex-col gap-2.5 text-sm font-semibold text-white/88 sm:mt-8 sm:gap-3 sm:text-[15px]">
                 <li className="flex items-center gap-3">
                   <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  12 cuotas sin interés
+                  20% OFF pagando en efectivo o transferencia
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  Atención en Batalla de Suipacha 482
+                  12 cuotas sin interés con tarjeta
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-xs font-black text-white">✓</span>
-                  En 2 minutos tenés precio
+                  Precio al instante — sin registro
                 </li>
               </ul>
 
               <button
                 type="button"
                 onClick={goToCategorias}
-                className="mt-10 inline-flex items-center gap-3 rounded-full bg-emerald-700 px-8 py-4 text-sm font-black uppercase tracking-[0.02em] text-white shadow-[0_18px_50px_rgba(0,140,69,0.28)] transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 sm:px-10 sm:py-5 sm:text-base"
+                className="mt-7 inline-flex items-center gap-3 rounded-full bg-emerald-700 px-8 py-4 text-sm font-black uppercase tracking-[0.02em] text-white shadow-[0_18px_50px_rgba(0,140,69,0.28)] transition hover:bg-emerald-800 focus:outline-none focus:ring-2 focus:ring-emerald-400 sm:mt-10 sm:px-10 sm:py-5 sm:text-base"
               >
-                Ver precios y agregar al carrito
+                Ver precios y cotizar
                 <ArrowRight className="h-5 w-5" />
               </button>
             </div>
@@ -571,9 +587,9 @@ export default function Home({
                   variants={cardVariant}
                   type="button"
                   onClick={() => onSelect(card.key)}
-                  className="group relative flex h-full min-h-[420px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400"
+                  className="group relative flex h-full min-h-[360px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400 sm:min-h-[420px]"
                 >
-                  <div className="relative h-48 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
+                  <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419] sm:h-48">
                     <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
                     <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-600/10 bg-white/90 px-[10px] py-[2.5px] text-xs font-bold text-emerald-700/90 opacity-80 shadow-sm select-none group-hover:opacity-100">
                       {card.badge}
@@ -607,9 +623,9 @@ export default function Home({
                 variants={cardVariant}
                 type="button"
                 onClick={() => onSelect(card.key)}
-                className="group relative flex h-full min-h-[420px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400"
+                className="group relative flex h-full min-h-[360px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400 sm:min-h-[420px]"
               >
-                <div className="relative h-48 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419]">
+                <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419] sm:h-48">
                   <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
                   <span className="absolute right-3 top-3 z-10 rounded-full border border-emerald-600/10 bg-white/90 px-[10px] py-[2.5px] text-xs font-bold text-emerald-700/90 opacity-80 shadow-sm select-none group-hover:opacity-100">
                     {card.badge}
@@ -630,7 +646,7 @@ export default function Home({
         </div>
       </section>
 
-      <section className="w-full border-b border-slate-200 bg-[#f6f7fb]">
+      <section id="formas-de-pago" className="w-full border-b border-slate-200 bg-[#f6f7fb]">
         <div className="mx-auto max-w-[1450px] px-4 py-16 sm:px-8 lg:py-[74px]">
           <div className="mb-10 text-center">
             <h2 className="mb-2 text-2xl font-extrabold text-slate-900 lg:text-3xl">Formas de pago</h2>

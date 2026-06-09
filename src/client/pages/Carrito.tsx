@@ -213,6 +213,18 @@ export default function Carrito({
   const [docNumero, setDocNumero] = useState("");
   const [preview, setPreview] = useState<{ pngDataUrl: string; numero: string } | null>(null);
   const docRef = useRef<HTMLDivElement>(null);
+  const tarjetasRef = useRef<HTMLDivElement>(null);
+  const cuotasRef = useRef<HTMLDivElement>(null);
+  const datosRef = useRef<HTMLElement>(null);
+
+  function scrollTo(ref: React.RefObject<HTMLElement | HTMLDivElement | null>) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      // Deja 80 px de margen arriba para que el encabezado de la sección sea visible
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, 80);
+  }
 
   const fecha = formatFecha(new Date());
   const totalBase = cart.reduce((sum, item) => sum + getSafePrecio(item?.subtotalARS), 0);
@@ -559,12 +571,19 @@ export default function Carrito({
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)]">
       <div className="mx-auto max-w-[1320px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="mb-4 flex items-center justify-start">
+        <div className="mb-4 flex items-center justify-between gap-3">
           <button
             onClick={onAgregarMas}
             className="inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-black text-slate-600 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700"
           >
             <ArrowLeft className="h-4 w-4" /> Inicio
+          </button>
+          {/* Botón "Agregar más" visible en mobile en la parte superior del carrito */}
+          <button
+            onClick={scrollToCotizadorCategorias}
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-4 py-2 text-sm font-black text-emerald-700 shadow-sm transition hover:bg-emerald-100 lg:hidden"
+          >
+            <Plus className="h-4 w-4" /> Agregar más productos
           </button>
         </div>
 
@@ -766,7 +785,13 @@ export default function Carrito({
                       type="button"
                       onClick={() => {
                         setMedioPago(opt.id);
-                        if (opt.id !== "tarjeta") { setTarjetaId(""); setCuotaKey(""); }
+                        if (opt.id !== "tarjeta") {
+                          setTarjetaId("");
+                          setCuotaKey("");
+                          scrollTo(datosRef);
+                        } else {
+                          scrollTo(tarjetasRef);
+                        }
                       }}
                       className={`relative rounded-3xl border p-4 text-left transition ${
                         selected
@@ -792,7 +817,7 @@ export default function Carrito({
               </div>
 
               {medioPago === "tarjeta" && (
-                <div className="mt-5 space-y-5">
+                <div ref={tarjetasRef} className="mt-5 space-y-5 scroll-mt-6">
                   <div>
                     <p className="mb-3 text-sm font-black text-slate-800">Seleccioná la tarjeta</p>
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -805,6 +830,7 @@ export default function Carrito({
                             onClick={() => {
                               setTarjetaId(t.id);
                               setCuotaKey("");
+                              scrollTo(cuotasRef);
                             }}
                             className={`relative flex min-h-[82px] items-center justify-center rounded-2xl border bg-white px-4 py-3 text-center transition ${
                               selected ? "border-emerald-400 ring-4 ring-emerald-100" : "border-slate-200 hover:border-emerald-200"
@@ -820,7 +846,7 @@ export default function Carrito({
                   </div>
 
                   {tarjetaSeleccionada && cuotasDisponibles.length > 0 && (
-                    <div>
+                    <div ref={cuotasRef} className="scroll-mt-6">
                       <p className="mb-3 text-sm font-black text-slate-800">Elegí las cuotas</p>
                       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
                         {cuotasDisponibles.map((c) => {
@@ -829,7 +855,7 @@ export default function Carrito({
                             <button
                               key={c.key}
                               type="button"
-                              onClick={() => setCuotaKey(c.key)}
+                              onClick={() => { setCuotaKey(c.key); scrollTo(datosRef); }}
                               className={`rounded-2xl border px-4 py-3 text-left transition ${
                                 selected ? "border-emerald-400 bg-emerald-50 ring-4 ring-emerald-100" : "border-slate-200 bg-white hover:border-emerald-200"
                               }`}
@@ -855,7 +881,7 @@ export default function Carrito({
               )}
             </section>
 
-            <section className="rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_20px_70px_rgba(15,23,42,0.06)]">
+            <section ref={datosRef} className="scroll-mt-6 rounded-[26px] border border-slate-200 bg-white p-5 shadow-[0_20px_70px_rgba(15,23,42,0.06)]">
               <div className="mb-5 flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-700 text-sm font-black text-white">3</span>
                 <div>

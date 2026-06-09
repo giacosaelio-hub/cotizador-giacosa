@@ -9,7 +9,7 @@ import {
   formatARS,
 } from "@/lib/precios";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, ShoppingCart } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { stepVariant } from "@/lib/motion";
 
@@ -101,11 +101,11 @@ function FallbackImage({ label }: { label: string }) {
 
 function SectionTitle({ step, title, description }: { step: string; title: string; description?: string }) {
   return (
-    <div className="mb-3 flex items-end justify-between gap-3">
+    <div className="mb-4 flex items-end justify-between gap-3">
       <div>
-        <p className="text-[11px] font-black uppercase tracking-[0.18em] text-emerald-700">{step}</p>
-        <h3 className="mt-1 text-lg font-black tracking-tight text-slate-950">{title}</h3>
-        {description ? <p className="mt-1 text-sm text-slate-500">{description}</p> : null}
+        <p className="text-[11px] font-black uppercase tracking-[0.2em] text-emerald-700">{step}</p>
+        <h3 className="mt-0.5 text-xl font-black tracking-tight text-slate-950 sm:text-2xl">{title}</h3>
+        {description ? <p className="mt-1 text-sm font-medium text-slate-500">{description}</p> : null}
       </div>
     </div>
   );
@@ -145,6 +145,64 @@ function Chips({
   );
 }
 
+const IVA = 1.21;
+
+// ── Option B: inyecta Product schema con precios reales en el <head> ──
+function useProductSchema(precios: Precios) {
+  useEffect(() => {
+    const vals = Object.values(precios.chapas_perfiladas).filter((n) => n > 0);
+    if (!vals.length || !precios.dolar) return;
+
+    const lowUSD  = Math.min(...vals);
+    const highUSD = Math.max(...vals);
+    const d = precios.dolar;
+
+    // Por metro: dividimos por el largo máximo (42.62 pies = ~12.99 m) para lowPrice por metro
+    const lowPricePerM  = Math.round((lowUSD  * d * IVA) / 13);
+    const highPricePerM = Math.round((highUSD * d * IVA) / 6 * 10) / 10; // chapa corta = precio/m más alto
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Chapas para Techo – Giacosa Elio Tucumán",
+      "description": "Chapas sinusoidal y trapezoidal, galvanizada, cincalum y prepintada, cortadas a medida desde bobina. Calibres 24 y 27. Venta en San Miguel de Tucumán.",
+      "brand": { "@type": "Brand", "name": "Ternium" },
+      "url": "https://giacosaelio.com.ar/chapas-para-techo",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "ARS",
+        "lowPrice": lowPricePerM,
+        "highPrice": highPricePerM,
+        "offerCount": vals.length,
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "LocalBusiness",
+          "name": "Giacosa Elio",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Batalla de Suipacha 482",
+            "addressLocality": "San Miguel de Tucumán",
+            "addressRegion": "Tucumán",
+            "addressCountry": "AR"
+          }
+        }
+      }
+    };
+
+    const id = "schema-product-chapa-perfilada";
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = id;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(schema);
+
+    return () => { document.getElementById(id)?.remove(); };
+  }, [precios]);
+}
+
 export default function ChapaPerfiladaConfig({
   precios,
   preselection,
@@ -157,6 +215,7 @@ export default function ChapaPerfiladaConfig({
   onAdd: (item: Omit<CartItem, "id">) => void;
 }) {
   const keys = useMemo(() => Object.keys(precios.chapas_perfiladas), [precios]);
+  useProductSchema(precios);
 
   // Validar preselección contra datos reales antes de inicializar
   const initialPerfil = useMemo(() => {
@@ -170,10 +229,22 @@ export default function ChapaPerfiladaConfig({
   const [calibre, setCalibre] = useState("");
   const [color, setColor] = useState("");
   const [pies, setPies] = useState("");
-  const [cantidad, setCantidad] = useState(1);
+  const [cantidadStr, setCantidadStr] = useState("1");
+  const cantidad = Math.max(1, Math.min(300, parseInt(cantidadStr, 10) || 1));
   const [error, setError] = useState("");
 
   const materialRef = useRef<HTMLDivElement>(null);
+  const calibreRef = useRef<HTMLDivElement>(null);
+  const colorRef = useRef<HTMLDivElement>(null);
+  const largoRef = useRef<HTMLDivElement>(null);
+
+  function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, delay);
+  }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
@@ -255,6 +326,7 @@ export default function ChapaPerfiladaConfig({
     setColor("");
     setPies("");
     setError("");
+    scrollNextStep(materialRef);
   }
 
   function handleChangeMaterial(newMaterial: string) {
@@ -263,6 +335,7 @@ export default function ChapaPerfiladaConfig({
     setColor("");
     setPies("");
     setError("");
+    scrollNextStep(calibreRef);
   }
 
   function handleChangeCalibre(newCalibre: string) {
@@ -270,12 +343,18 @@ export default function ChapaPerfiladaConfig({
     setColor("");
     setPies("");
     setError("");
+    if (material === "prepintada") {
+      scrollNextStep(colorRef);
+    } else {
+      scrollNextStep(largoRef);
+    }
   }
 
   function handleChangeColor(newColor: string) {
     setColor(newColor);
     setPies("");
     setError("");
+    scrollNextStep(largoRef);
   }
 
   function handleChangeLargo(newPies: string) {
@@ -329,7 +408,7 @@ export default function ChapaPerfiladaConfig({
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)]">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] pb-24 lg:pb-0">
       <div className="mx-auto max-w-[1320px] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mb-5 flex items-center justify-between gap-3">
           <button
@@ -480,7 +559,7 @@ export default function ChapaPerfiladaConfig({
             ) : null}
 
             {perfil && material && calibresDisponibles.length > 0 ? (
-              <motion.section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
+              <motion.section ref={calibreRef} className="scroll-mt-28 rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="03" title="Seleccioná calibre" description="El calibre varía según perfil y material elegido." />
                 <Chips
                   options={calibresDisponibles.map((c) => ({ v: c, label: `Cal. ${c}` }))}
@@ -505,7 +584,7 @@ export default function ChapaPerfiladaConfig({
             ) : null}
 
             {isPrepintada && calibre && combinacionValida ? (
-              <motion.section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
+              <motion.section ref={colorRef} className="scroll-mt-28 rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="04" title="Elegí color" description="La imagen es referencial; el color se define acá." />
                 <div className="flex flex-wrap gap-4">
                   {COLORES_PREPINTADA.map((c) => {
@@ -540,7 +619,7 @@ export default function ChapaPerfiladaConfig({
             ) : null}
 
             {combinacionValida && (!isPrepintada || color) ? (
-              <motion.section className="rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
+              <motion.section ref={largoRef} className="scroll-mt-28 rounded-[26px] border border-slate-200 bg-white p-4 shadow-[0_18px_50px_rgba(15,23,42,0.045)] sm:p-5" variants={stepVariant} initial="hidden" animate="visible">
                 <SectionTitle step="05" title="Definí largo y cantidad" description="Seleccioná la medida disponible y cuántas unidades necesitás." />
                 <div className="grid gap-4 md:grid-cols-[1fr_220px]">
                   <div>
@@ -565,22 +644,23 @@ export default function ChapaPerfiladaConfig({
                       <div className="flex h-12 items-center justify-between rounded-2xl border border-slate-200 bg-white px-3">
                         <button
                           type="button"
-                          onClick={() => setCantidad((c) => Math.max(1, c - 1))}
+                          onClick={() => setCantidadStr(String(Math.max(1, cantidad - 1)))}
                           className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-lg font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700"
                         >
                           −
                         </button>
                         <input
-                          type="number"
-                          min={1}
-                          max={300}
-                          value={cantidad}
-                          onChange={(e) => setCantidad(Math.max(1, Math.min(300, Number(e.target.value))))}
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={cantidadStr}
+                          onChange={(e) => setCantidadStr(e.target.value.replace(/[^0-9]/g, ""))}
+                          onBlur={() => setCantidadStr(String(Math.max(1, Math.min(300, parseInt(cantidadStr, 10) || 1))))}
                           className="w-20 border-0 bg-transparent text-center text-xl font-black text-slate-950 focus:outline-none"
                         />
                         <button
                           type="button"
-                          onClick={() => setCantidad((c) => Math.min(300, c + 1))}
+                          onClick={() => setCantidadStr(String(Math.min(300, cantidad + 1)))}
                           className="flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 text-lg font-black text-slate-700 transition hover:border-emerald-300 hover:text-emerald-700"
                         >
                           +
@@ -599,8 +679,29 @@ export default function ChapaPerfiladaConfig({
             ) : null}
           </main>
 
-          <aside className="lg:sticky lg:top-24">
-            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+          {/* ── Barra sticky mobile — aparece cuando hay precio calculado ── */}
+          {preview && (
+            <div
+              className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t border-slate-200 bg-white/96 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm lg:hidden"
+              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total</p>
+                <p className="truncate text-xl font-black text-slate-950">{formatARS(preview.subtotalARS)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex shrink-0 items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-800/25 active:bg-emerald-800"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Agregar al carrito
+              </button>
+            </div>
+          )}
+
+          <aside className="min-w-0 lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
               <div className="border-b border-emerald-100 bg-gradient-to-r from-emerald-50 to-white px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-emerald-700">Resumen de cotización</p>
                 <p className="mt-1 text-sm font-semibold text-slate-600">Tu selección en tiempo real</p>

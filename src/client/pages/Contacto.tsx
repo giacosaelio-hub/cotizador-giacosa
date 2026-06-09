@@ -1,7 +1,11 @@
 import { useEffect } from "react";
-import { Clock, ExternalLink, Facebook, Instagram, MapPin, MessageCircle, Phone, Send, ShieldCheck } from "lucide-react";
+import { ExternalLink, Facebook, Instagram, MapPin, MessageCircle, Phone, ShieldCheck } from "lucide-react";
 
 const WA_NUMBER = "5493815589875";
+const WA_PRESET_MSG = "Hola, estoy interesado, vengo de la página web, estoy interesado en cotizar.";
+function waLink(msg = WA_PRESET_MSG) {
+  return `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`;
+}
 const DISPLAY_PHONE = "381-558-9875";
 const MAPS_LINK = "https://maps.app.goo.gl/Z7h2TYXir8mYTKBt5";
 const FB_LINK = "https://www.facebook.com/Giacosaelio";
@@ -45,10 +49,6 @@ export default function Contacto() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "auto" });
   }, []);
-  function openWA(msg: string) {
-    window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
-  }
-
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(0,140,69,0.12),transparent_38%),linear-gradient(180deg,#f8fafc_0%,#fff_55%,#f6f7fb_100%)] text-slate-950">
       <JsonLd />
@@ -60,9 +60,9 @@ export default function Contacto() {
             Contactá a Giacosa Elio – Corralón y Materiales en San Miguel de Tucumán. Te ayudamos con chapas para techo, bobinas, chapas estándar, Perfil C, complementarios y otros materiales para construcción.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <button onClick={() => openWA("Hola Giacosa Elio, quiero consultar por una cotización de chapas y materiales.")} className="inline-flex items-center gap-3 rounded-full bg-emerald-700 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.24)] transition hover:bg-emerald-800">
+            <a href={waLink()} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 rounded-full bg-emerald-700 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.24)] transition hover:bg-emerald-800">
               <MessageCircle className="h-5 w-5" /> Consultar por WhatsApp
-            </button>
+            </a>
             <a href={MAPS_LINK} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-7 py-4 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700">
               <MapPin className="h-5 w-5" /> Ver ubicación
             </a>
@@ -78,11 +78,18 @@ export default function Contacto() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">WhatsApp comercial</p>
-                  <h2 className="mt-1 text-2xl font-black">{DISPLAY_PHONE}</h2>
+                  <a
+                    href={waLink()}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 block text-2xl font-black text-slate-950 underline-offset-4 hover:text-emerald-700 hover:underline"
+                  >
+                    {DISPLAY_PHONE}
+                  </a>
                   <p className="mt-2 text-sm leading-7 text-slate-600">Canal recomendado para consultas, confirmación de cotizaciones, coordinación de productos y atención comercial.</p>
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <button onClick={() => openWA("Hola, quiero cotizar chapas para techo.")} className="rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800">Cotizar chapas</button>
-                    <button onClick={() => openWA("Hola, quiero consultar por bobinas de acero.")} className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">Consultar bobinas</button>
+                    <a href={waLink("Hola, quiero cotizar chapas para techo.")} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800">Cotizar chapas</a>
+                    <a href={waLink("Hola, quiero consultar por bobinas de acero.")} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">Consultar bobinas</a>
                   </div>
                 </div>
               </div>
@@ -95,7 +102,14 @@ export default function Contacto() {
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Dirección</p>
-                  <h2 className="mt-1 text-xl font-black">Batalla de Suipacha 482</h2>
+                  <a
+                    href={MAPS_LINK}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="mt-1 block text-xl font-black text-slate-950 underline-offset-4 hover:text-emerald-700 hover:underline"
+                  >
+                    Batalla de Suipacha 482
+                  </a>
                   <p className="mt-2 text-sm leading-7 text-slate-600">San Miguel de Tucumán, Tucumán. Atención local para clientes de la ciudad y alrededores.</p>
                   <a href={MAPS_LINK} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">
                     Abrir en Google Maps <ExternalLink className="h-4 w-4" />

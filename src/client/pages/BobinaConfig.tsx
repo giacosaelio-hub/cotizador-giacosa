@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Precios,
   CartItem,
@@ -10,7 +10,9 @@ import {
   ArrowLeft,
   CheckCircle2,
   MessageCircle,
+  Minus,
   PackageCheck,
+  Plus,
   Ruler,
   ShoppingCart,
 } from "lucide-react";
@@ -86,7 +88,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-[26px] border border-slate-200 bg-white/95 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.06)] sm:p-6">
+    <section className="rounded-[26px] border border-slate-200 bg-white/95 p-5 shadow-xl sm:p-6">
       <div className="mb-4 flex items-start gap-3">
         <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-black text-emerald-800">
           {step}
@@ -109,9 +111,9 @@ function SummaryRow({
   value: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
-      <span className="font-semibold text-slate-500">{label}</span>
-      <span className="text-right font-black text-slate-900">{value}</span>
+    <div className="flex items-center justify-between gap-2 py-1.5 text-sm">
+      <span className="shrink-0 font-semibold text-slate-500">{label}</span>
+      <span className="min-w-0 truncate text-right font-black text-slate-900">{value}</span>
     </div>
   );
 }
@@ -125,12 +127,13 @@ function BobinaImage({ className = "" }: { className?: string }) {
       <img
         src={BOBINA_IMAGE}
         alt="Bobina de acero"
-        className="relative z-10 h-full w-full object-contain p-5 drop-shadow-[0_18px_28px_rgba(15,23,42,0.18)]"
+        className="relative z-10 h-full w-full object-contain p-5"
+        loading="lazy"
+        decoding="async"
         onError={(event) => {
           event.currentTarget.style.display = "none";
         }}
       />
-      <div className="pointer-events-none absolute inset-x-10 bottom-4 h-5 rounded-full bg-slate-900/10 blur-xl" />
     </div>
   );
 }
@@ -147,8 +150,25 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
   const [tipo, setTipo] = useState<string>("");
   const [color, setColor] = useState<string>("");
   const [metrosStr, setMetrosStr] = useState<string>("");
-  const [cantidad, setCantidad] = useState<number>(1);
+  const [cantidadStr, setCantidadStr] = useState<string>("1");
   const [error, setError] = useState<string>("");
+
+  // Refs para auto-scroll entre pasos
+  const anchoRef = useRef<HTMLDivElement>(null);
+  const tipoRef = useRef<HTMLDivElement>(null);
+  const colorRef = useRef<HTMLDivElement>(null);
+  const metrosRef = useRef<HTMLDivElement>(null);
+
+  function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, delay);
+  }
+
+  // Derived: always a valid integer ≥ 1
+  const cantidad = Math.max(1, parseInt(cantidadStr, 10) || 1);
 
   const calibresDisponibles = useMemo(() => {
     const unicos: number[] = [];
@@ -178,6 +198,15 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
     }
     return tipos;
   }, [calibre, ancho, variantes]);
+
+  // Si solo hay un tipo disponible (ej: siempre Galvanizada) se auto-selecciona;
+  // el paso 03 solo se muestra cuando hay más de una opción.
+  useEffect(() => {
+    if (tiposDisponibles.length === 1) {
+      setTipo(tiposDisponibles[0]);
+      setColor("");
+    }
+  }, [tiposDisponibles]);
 
   const coloresDisponibles = useMemo(() => {
     if (!calibre || !ancho || tipo !== "Prepintada") return [];
@@ -262,8 +291,9 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
     setTipo("");
     setColor("");
     setMetrosStr("");
-    setCantidad(1);
+    setCantidadStr("1");
     setError("");
+    scrollNextStep(anchoRef);
   };
 
   const handleChangeAncho = (v: string) => {
@@ -271,23 +301,35 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
     setTipo("");
     setColor("");
     setMetrosStr("");
-    setCantidad(1);
+    setCantidadStr("1");
     setError("");
+    // Si hay múltiples tipos → scroll a paso 03; si se auto-selecciona → scroll a metros.
+    window.setTimeout(() => {
+      const target = tipoRef.current ?? metrosRef.current;
+      if (!target) return;
+      const top = target.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, 350);
   };
 
   const handleChangeTipo = (v: string) => {
     setTipo(v);
     setColor("");
     setMetrosStr("");
-    setCantidad(1);
+    setCantidadStr("1");
     setError("");
+    if (v !== "Prepintada") {
+      scrollNextStep(metrosRef);
+    }
+    // Si es prepintada, el paso de color aparece con animación y el usuario lo ve
   };
 
   const handleChangeColor = (v: string) => {
     setColor(v);
     setMetrosStr("");
-    setCantidad(1);
+    setCantidadStr("1");
     setError("");
+    scrollNextStep(metrosRef);
   };
 
   function handleAdd() {
@@ -343,7 +385,7 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 text-slate-950 sm:px-6 lg:px-8">
+    <div className="min-h-screen [overflow-x:clip] bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 pb-24 text-slate-950 sm:px-6 lg:px-8 lg:pb-5">
       <div className="mx-auto max-w-[1320px]">
         <button
           onClick={onBack}
@@ -354,7 +396,7 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
           Volver
         </button>
 
-        <div className="mb-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f7fffb_48%,#eefbf4_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
+        <div className="mb-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f7fffb_48%,#eefbf4_100%)] shadow-xl">
           <div className="relative px-6 py-7 text-center sm:px-10 lg:px-12 lg:py-8">
             <div className="pointer-events-none absolute inset-y-0 left-0 w-2/5 bg-[radial-gradient(circle_at_left,rgba(16,185,129,0.16),transparent_58%)]" />
             <div className="pointer-events-none absolute right-0 top-0 h-full w-1/3 bg-[linear-gradient(135deg,transparent,rgba(15,23,42,0.04))]" />
@@ -374,7 +416,7 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
         </div>
 
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
             <SectionCard
               step="01"
               title="Elegí el calibre"
@@ -401,6 +443,7 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
             </SectionCard>
 
             {calibre && (
+              <div ref={anchoRef}>
               <SectionCard
                 step="02"
                 title="Seleccioná el ancho"
@@ -423,9 +466,11 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                   <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No hay anchos disponibles para este calibre.</p>
                 )}
               </SectionCard>
+              </div>
             )}
 
-            {calibre && ancho && (
+            {calibre && ancho && tiposDisponibles.length > 1 && (
+              <div ref={tipoRef}>
               <SectionCard
                 step="03"
                 title="Tipo de bobina"
@@ -463,9 +508,11 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                   <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No hay tipos para ese calibre y ancho.</p>
                 )}
               </SectionCard>
+              </div>
             )}
 
             {calibre && ancho && tipo === "Prepintada" && (
+              <div ref={colorRef}>
               <SectionCard
                 step="04"
                 title="Elegí el color"
@@ -501,16 +548,18 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                   <p className="rounded-2xl bg-slate-50 p-4 text-sm font-semibold text-slate-500">No hay colores disponibles para esa selección.</p>
                 )}
               </SectionCard>
+              </div>
             )}
 
             {puedeElegirMetros && (
+              <div ref={metrosRef}>
               <SectionCard
                 step="05"
                 title="Definí metros y cantidad"
                 description="Elegí cuántos metros lleva cada bobina y cuántas bobinas querés comprar."
               >
                 <div className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-                  <div>
+                  <div className="min-w-0">
                     <label className="mb-2 block text-sm font-black text-slate-800">Metros por bobina</label>
                     <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100">
                       <input
@@ -521,7 +570,11 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                           setMetrosStr(event.target.value);
                           setError("");
                         }}
-                        placeholder="Ej: 15,24"
+                        onFocus={(e) => {
+                          // En mobile el teclado tapa el input → lo desplazamos al centro
+                          setTimeout(() => e.target.scrollIntoView({ behavior: "smooth", block: "center" }), 350);
+                        }}
+                        placeholder="Ej: 15"
                         className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
                       />
                       <span className="border-l border-slate-200 px-4 text-sm font-black text-slate-500">metros</span>
@@ -538,13 +591,13 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                       </p>
                     )}
 
-                    <div className="mt-3 flex flex-wrap gap-2">
+                    <div className="mt-3 flex gap-2 overflow-x-auto pb-1">
                       {[5, 10, 15, 20, 24, 30].map((m) => (
                         <button
                           key={m}
                           type="button"
                           onClick={() => setMetrosStr(String(m))}
-                          className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800"
+                          className="shrink-0 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-black text-slate-700 transition hover:border-emerald-400 hover:bg-emerald-50 hover:text-emerald-800"
                         >
                           {m} m
                         </button>
@@ -552,28 +605,39 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="min-w-0">
                     <label className="mb-2 block text-sm font-black text-slate-800">Cantidad de bobinas</label>
                     <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
                       <button
                         type="button"
-                        onClick={() => setCantidad((prev) => Math.max(1, prev - 1))}
+                        onClick={() => setCantidadStr(String(Math.max(1, cantidad - 1)))}
+                        aria-label="Restar una bobina"
                         className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                       >
-                        -
+                        <Minus className="h-5 w-5" />
                       </button>
 
-                      <div className="text-center">
-                        <div className="text-3xl font-black text-slate-950">{cantidad}</div>
+                      <div className="flex flex-col items-center gap-0.5">
+                        <input
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          value={cantidadStr}
+                          onChange={(e) => setCantidadStr(e.target.value.replace(/[^0-9]/g, ""))}
+                          onBlur={() => setCantidadStr(String(Math.max(1, parseInt(cantidadStr, 10) || 1)))}
+                          className="w-16 bg-transparent text-center text-3xl font-black text-slate-950 outline-none"
+                          aria-label="Cantidad de bobinas"
+                        />
                         <div className="text-xs font-bold uppercase tracking-wide text-slate-400">bobinas</div>
                       </div>
 
                       <button
                         type="button"
-                        onClick={() => setCantidad((prev) => prev + 1)}
+                        onClick={() => setCantidadStr(String(cantidad + 1))}
+                        aria-label="Sumar una bobina"
                         className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
                       >
-                        +
+                        <Plus className="h-5 w-5" />
                       </button>
                     </div>
 
@@ -583,6 +647,7 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
                   </div>
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {error && (
@@ -592,8 +657,42 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
             )}
           </div>
 
-          <aside className="lg:sticky lg:top-24">
-            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
+          {/* ── Barra sticky mobile ── */}
+          {(preview || isWhatsApp) && metrosValido && (
+            <div
+              className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t border-slate-200 bg-white/96 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm lg:hidden"
+              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total</p>
+                <p className="truncate text-xl font-black text-slate-950">
+                  {preview ? formatARS(totalFinalARS) : "Consultar precio"}
+                </p>
+              </div>
+              {isWhatsApp ? (
+                <button
+                  type="button"
+                  onClick={handleWhatsApp}
+                  className="flex shrink-0 items-center gap-2 rounded-2xl bg-[#25D366] px-5 py-3.5 text-sm font-black text-white shadow-lg active:brightness-95"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  WhatsApp
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  className="flex shrink-0 items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-800/25 active:bg-emerald-800"
+                >
+                  <ShoppingCart className="h-4 w-4" />
+                  Agregar al carrito
+                </button>
+              )}
+            </div>
+          )}
+
+          <aside className="min-w-0 lg:sticky lg:top-24">
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
               <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-800">Resumen de cotización</p>
                 <p className="mt-1 text-sm font-extrabold text-slate-600">Tu selección en tiempo real</p>

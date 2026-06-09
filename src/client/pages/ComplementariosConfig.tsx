@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Precios,
   CartItem,
@@ -93,11 +93,11 @@ const TORNILLO_MODELOS: Record<TornilloPunta, string[]> = {
   mecha: ["T1", "T2", "T3"],
 };
 
-// Clampea bolsas a [0.5, 8] con 1 decimal — permite paso 0.1
-function normalizeBolsas(val: string): string {
+// Clampea bolsas a [0.5, max] con 1 decimal — permite paso 0.1
+function normalizeBolsas(val: string, max = 8): string {
   const n = parseFloat(val.replace(",", "."));
   if (!isFinite(n) || n < 0.5) return "0.5";
-  if (n > 8) return "8";
+  if (n > max) return String(max);
   return String(Math.round(n * 10) / 10);
 }
 
@@ -154,9 +154,9 @@ function SectionCard({
 
 function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between gap-4 py-1.5 text-sm">
-      <span className="font-semibold text-slate-500">{label}</span>
-      <span className="text-right font-black text-slate-900">{value}</span>
+    <div className="flex items-center justify-between gap-2 py-1.5 text-sm">
+      <span className="shrink-0 font-semibold text-slate-500">{label}</span>
+      <span className="min-w-0 truncate text-right font-black text-slate-900">{value}</span>
     </div>
   );
 }
@@ -190,6 +190,20 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
   const [estanoCantidad, setEstanoCantidad] = useState<number>(1);
 
   const [error, setError] = useState<string>("");
+
+  // Refs compartidos — solo una subcategoría activa a la vez, así que no hay conflicto.
+  const paso2Ref = useRef<HTMLDivElement>(null);
+  const paso3Ref = useRef<HTMLDivElement>(null);
+  const paso4Ref = useRef<HTMLDivElement>(null);
+  const metrosRef = useRef<HTMLDivElement>(null); // cumbreras metros
+
+  function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, delay);
+  }
 
   function resetSubState() {
     setCumbrerasTipo("");
@@ -424,7 +438,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
         </div>
 
         <div className="grid items-start gap-5 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
-          <div className="space-y-5">
+          <div className="min-w-0 space-y-5">
 
             {/* PASO 01 — Categoría */}
             <SectionCard
@@ -440,6 +454,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     onClick={() => {
                       setSubcategoria(cat);
                       resetSubState();
+                      scrollNextStep(paso2Ref);
                     }}
                   >
                     <span className="block">{SUBCATEGORIA_LABELS[cat]}</span>
@@ -448,8 +463,21 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </div>
             </SectionCard>
 
+            {/* Imagen inline para mobile — aparece después de elegir categoría, antes de las opciones */}
+            {subcategoria && sidebarImage && (
+              <div className="overflow-hidden rounded-[22px] border border-slate-200 lg:hidden">
+                <img
+                  src={sidebarImage}
+                  alt="Imagen del producto"
+                  className="h-44 w-full object-cover object-center"
+                  loading="lazy"
+                />
+              </div>
+            )}
+
             {/* ══════════ CUMBRERAS ══════════ */}
             {subcategoria === "cumbreras" && (
+              <div ref={paso2Ref}>
               <SectionCard
                 step="02"
                 title="Tipo de cumbrera"
@@ -458,31 +486,33 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                 <div className="grid gap-3 sm:grid-cols-3">
                   <OptionButton
                     active={cumbrerasTipo === "sinusoidal"}
-                    onClick={() => { setCumbrerasTipo("sinusoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                    onClick={() => { setCumbrerasTipo("sinusoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); scrollNextStep(metrosRef); }}
                   >
                     <span className="block font-black">Sinusoidal</span>
                     <span className="mt-1 block text-xs font-semibold text-slate-500">Negra — 60 cm totales · 30 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={cumbrerasTipo === "trapezoidal"}
-                    onClick={() => { setCumbrerasTipo("trapezoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                    onClick={() => { setCumbrerasTipo("trapezoidal"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); scrollNextStep(metrosRef); }}
                   >
                     <span className="block font-black">Trapezoidal</span>
                     <span className="mt-1 block text-xs font-semibold text-slate-500">Negra — 60 cm totales · 30 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={cumbrerasTipo === "lisa"}
-                    onClick={() => { setCumbrerasTipo("lisa"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                    onClick={() => { setCumbrerasTipo("lisa"); setLisaDesarrollo(""); setLisaColor(""); setMetrosStr(""); setError(""); scrollNextStep(paso3Ref); }}
                   >
                     <span className="block font-black">Lisa</span>
                     <span className="mt-1 block text-xs font-bold opacity-70">Varios colores</span>
                   </OptionButton>
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Desarrollo (Lisa) */}
             {subcategoria === "cumbreras" && cumbrerasTipo === "lisa" && (
+              <div ref={paso3Ref}>
               <SectionCard
                 step="03"
                 title="Desarrollo"
@@ -491,24 +521,26 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                 <div className="grid gap-3 sm:grid-cols-2">
                   <OptionButton
                     active={lisaDesarrollo === "40"}
-                    onClick={() => { setLisaDesarrollo("40"); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                    onClick={() => { setLisaDesarrollo("40"); setLisaColor(""); setMetrosStr(""); setError(""); scrollNextStep(paso4Ref); }}
                   >
                     <span className="block text-lg font-black">40 cm</span>
                     <span className="mt-1 block text-xs font-bold text-slate-500">20 cm por lado</span>
                   </OptionButton>
                   <OptionButton
                     active={lisaDesarrollo === "60"}
-                    onClick={() => { setLisaDesarrollo("60"); setLisaColor(""); setMetrosStr(""); setError(""); }}
+                    onClick={() => { setLisaDesarrollo("60"); setLisaColor(""); setMetrosStr(""); setError(""); scrollNextStep(paso4Ref); }}
                   >
                     <span className="block text-lg font-black">60 cm</span>
                     <span className="mt-1 block text-xs font-bold text-slate-500">30 cm por lado</span>
                   </OptionButton>
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Color (Lisa con desarrollo) */}
             {subcategoria === "cumbreras" && cumbrerasTipo === "lisa" && lisaDesarrollo && (
+              <div ref={paso4Ref}>
               <SectionCard
                 step="04"
                 title="Color"
@@ -521,7 +553,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                       <button
                         key={c}
                         type="button"
-                        onClick={() => { setLisaColor(c); setMetrosStr(""); setError(""); }}
+                        onClick={() => { setLisaColor(c); setMetrosStr(""); setError(""); scrollNextStep(metrosRef); }}
                         className="flex flex-col items-center gap-1.5 focus:outline-none"
                       >
                         <span
@@ -546,12 +578,14 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                   })}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Metros (Cumbreras) */}
             {subcategoria === "cumbreras" &&
               cumbrerasTipo &&
               (cumbrerasTipo !== "lisa" || (lisaDesarrollo && lisaColor)) && (
+                <div ref={metrosRef}>
                 <SectionCard
                   step={cumbrerasTipo === "lisa" ? "05" : "03"}
                   title="Metros"
@@ -559,16 +593,19 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                 >
                   <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                     <input
-                      type="number"
+                      type="text"
                       inputMode="numeric"
+                      pattern="[0-9]*"
                       value={metrosStr}
-                      min="1"
-                      step="1"
                       onChange={(e) => {
-                        // Solo enteros ≥ 1
                         const v = e.target.value.replace(/[^0-9]/g, "");
                         setMetrosStr(v);
                         setError("");
+                      }}
+                      onBlur={() => {
+                        const n = parseInt(metrosStr.trim(), 10);
+                        if (!isFinite(n) || n < 1) setMetrosStr("1");
+                        else setMetrosStr(String(n));
                       }}
                       placeholder="Ej: 6"
                       className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
@@ -589,12 +626,14 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     ))}
                   </div>
                 </SectionCard>
+                </div>
               )}
 
             {/* ══════════ AUTOPERFORANTES ══════════ */}
 
             {/* Tipo rosca */}
             {subcategoria === "autoperforantes" && (
+              <div ref={paso2Ref}>
               <SectionCard
                 step="02"
                 title="Tipo de rosca"
@@ -605,17 +644,19 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     <OptionButton
                       key={r}
                       active={autoRosca === r}
-                      onClick={() => { setAutoRosca(r); setAutoMedida(""); setBolsas("1"); setError(""); }}
+                      onClick={() => { setAutoRosca(r); setAutoMedida(""); setBolsas("1"); setError(""); scrollNextStep(paso3Ref); }}
                     >
                       <span className="block font-black">{AUTO_ROSCA_LABEL[r]}</span>
                     </OptionButton>
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Medida autoperforante */}
             {subcategoria === "autoperforantes" && autoRosca && (
+              <div ref={paso3Ref}>
               <SectionCard
                 step="03"
                 title="Medida"
@@ -626,17 +667,19 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     <OptionButton
                       key={m}
                       active={autoMedida === m}
-                      onClick={() => { setAutoMedida(m); setBolsas("1"); setError(""); }}
+                      onClick={() => { setAutoMedida(m); setBolsas("1"); setError(""); scrollNextStep(paso4Ref); }}
                     >
                       <span className="block text-lg font-black">{m}"</span>
                     </OptionButton>
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Cantidad autoperforantes */}
             {subcategoria === "autoperforantes" && autoRosca && autoMedida && (
+              <div ref={paso4Ref}>
               <SectionCard
                 step="04"
                 title="Cantidad (bolsas)"
@@ -644,12 +687,9 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               >
                 <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                   <input
-                    type="number"
+                    type="text"
                     inputMode="decimal"
                     value={bolsas}
-                    min="0.5"
-                    max="8"
-                    step="0.1"
                     onChange={(e) => { setBolsas(e.target.value); setError(""); }}
                     onBlur={(e) => setBolsas(normalizeBolsas(e.target.value))}
                     className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
@@ -669,12 +709,14 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* ══════════ TORNILLOS ══════════ */}
 
             {/* Tipo punta */}
             {subcategoria === "tornillos" && (
+              <div ref={paso2Ref}>
               <SectionCard
                 step="02"
                 title="Tipo de punta"
@@ -685,17 +727,19 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     <OptionButton
                       key={p}
                       active={tornilloPunta === p}
-                      onClick={() => { setTornilloPunta(p); setTornilloModelo(""); setBolsas("1"); setError(""); }}
+                      onClick={() => { setTornilloPunta(p); setTornilloModelo(""); setBolsas("1"); setError(""); scrollNextStep(paso3Ref); }}
                     >
                       <span className="block font-black">{TORNILLO_PUNTA_LABEL[p]}</span>
                     </OptionButton>
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Modelo tornillo */}
             {subcategoria === "tornillos" && tornilloPunta && (
+              <div ref={paso3Ref}>
               <SectionCard
                 step="03"
                 title="Modelo"
@@ -706,38 +750,37 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                     <OptionButton
                       key={m}
                       active={tornilloModelo === m}
-                      onClick={() => { setTornilloModelo(m); setBolsas("1"); setError(""); }}
+                      onClick={() => { setTornilloModelo(m); setBolsas("1"); setError(""); scrollNextStep(paso4Ref); }}
                     >
                       <span className="block text-lg font-black">{m}</span>
                     </OptionButton>
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* Cantidad tornillos */}
             {subcategoria === "tornillos" && tornilloPunta && tornilloModelo && (
+              <div ref={paso4Ref}>
               <SectionCard
                 step="04"
                 title="Cantidad (bolsas)"
-                description="Cada bolsa contiene 100 unidades. Mínimo: 0.5 bolsa = 50 tornillos."
+                description="Cada bolsa contiene 100 unidades. Mínimo: 0.5 bolsa = 50 tornillos. Máximo: 15 bolsas = 1.500 tornillos."
               >
                 <div className="flex items-center overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm focus-within:border-emerald-400 focus-within:ring-4 focus-within:ring-emerald-100 max-w-xs">
                   <input
-                    type="number"
+                    type="text"
                     inputMode="decimal"
                     value={bolsas}
-                    min="0.5"
-                    max="8"
-                    step="0.1"
                     onChange={(e) => { setBolsas(e.target.value); setError(""); }}
-                    onBlur={(e) => setBolsas(normalizeBolsas(e.target.value))}
+                    onBlur={(e) => setBolsas(normalizeBolsas(e.target.value, 15))}
                     className="min-w-0 flex-1 bg-transparent px-5 py-4 text-2xl font-black text-slate-950 outline-none"
                   />
                   <span className="border-l border-slate-200 px-4 text-sm font-black text-slate-500">bolsas</span>
                 </div>
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {[0.5, 1, 2, 3, 5].map((n) => (
+                  {[1, 2, 5, 7, 10].map((n) => (
                     <button
                       key={n}
                       type="button"
@@ -749,10 +792,12 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                   ))}
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {/* ══════════ ESTAÑO ══════════ */}
             {subcategoria === "estaño" && (
+              <div ref={paso2Ref}>
               <SectionCard
                 step="02"
                 title="Presentación"
@@ -761,23 +806,25 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                 <div className="grid gap-3 sm:grid-cols-2">
                   <OptionButton
                     active={estanoKey === "kg"}
-                    onClick={() => { setEstanoKey("kg"); setEstanoCantidad(1); setError(""); }}
+                    onClick={() => { setEstanoKey("kg"); setEstanoCantidad(1); setError(""); scrollNextStep(paso3Ref); }}
                   >
                     <span className="block text-base font-black">KG — paquete</span>
                     <span className="mt-1 block text-xs font-bold opacity-70">8 barras ≈ 1070 g</span>
                   </OptionButton>
                   <OptionButton
                     active={estanoKey === "barra"}
-                    onClick={() => { setEstanoKey("barra"); setEstanoCantidad(1); setError(""); }}
+                    onClick={() => { setEstanoKey("barra"); setEstanoCantidad(1); setError(""); scrollNextStep(paso3Ref); }}
                   >
                     <span className="block text-base font-black">Barra individual</span>
                     <span className="mt-1 block text-xs font-bold opacity-70">1 barra ≈ 133 g</span>
                   </OptionButton>
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {subcategoria === "estaño" && estanoKey && (
+              <div ref={paso3Ref}>
               <SectionCard
                 step="03"
                 title="Cantidad"
@@ -814,6 +861,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                   </button>
                 </div>
               </SectionCard>
+              </div>
             )}
 
             {error && (
@@ -824,10 +872,12 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
           </div>
 
           {/* RESUMEN */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
-            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.12)]">
-              {/* Imagen dinámica según subcategoría/tipo seleccionado */}
-              <SidebarImg src={sidebarImage} />
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+              {/* Imagen dinámica según subcategoría/tipo seleccionado — solo desktop */}
+              <div className="hidden lg:block">
+                <SidebarImg src={sidebarImage} />
+              </div>
               <div className="border-b border-amber-100 bg-amber-50/70 px-5 py-4">
                 <p className="text-xs font-black uppercase tracking-[0.24em] text-amber-800">Resumen de cotización</p>
                 <p className="mt-1 text-sm font-extrabold text-slate-600">Tu selección en tiempo real</p>
