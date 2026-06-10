@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useCallback, Suspense, lazy } from "react";
-import { Toaster } from "@/components/ui/toaster";
 import { ShoppingCart, Menu, X, ArrowRight } from "lucide-react";
 const logoGiacosa = "/logo-giacosa.webp";
 import Home from "@/pages/Home";
@@ -604,8 +603,6 @@ export default function App() {
           </div>
         </div>
       </footer>
-
-      <Toaster />
     </div>
   );
 }
