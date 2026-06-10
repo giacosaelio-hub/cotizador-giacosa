@@ -14,6 +14,7 @@ import {
   formatARS,
   formatFecha,
 } from "@/lib/precios";
+import { trackWhatsAppClick } from "@/lib/analytics";
 import {
   ArrowLeft,
   CheckCircle,
@@ -410,6 +411,7 @@ export default function Carrito({
       cotizacion_total: totalFinal,
       forma_pago: formaPagoLabel || "No especificada",
     });
+    trackWhatsAppClick("carrito_confirmacion");
 
     window.open(`https://wa.me/5493815589875?text=${text}`, "_blank");
   }

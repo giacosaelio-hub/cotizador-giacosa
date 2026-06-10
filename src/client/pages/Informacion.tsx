@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { ArrowRight, CheckCircle2, CreditCard, FileText, HelpCircle, MessageCircle, Ruler, ShieldCheck, ShoppingCart, Truck, Layers, Wrench } from "lucide-react";
+import { trackWhatsAppClick } from "@/lib/analytics";
 
 type Props = {
   navigateToHomeSection?: (sectionId: string) => void;
@@ -225,7 +226,7 @@ export default function Informacion({ navigateToHomeSection }: Props) {
               <button onClick={() => goToCotizador(navigateToHomeSection)} className="inline-flex items-center gap-3 rounded-full bg-emerald-700 px-6 py-4 text-sm font-black text-white transition hover:bg-emerald-800">
                 Cotizar ahora <ArrowRight className="h-5 w-5" />
               </button>
-              <a href="https://wa.me/5493815589875" target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-6 py-4 text-sm font-black text-white transition hover:bg-white/15">
+              <a href="https://wa.me/5493815589875" target="_blank" rel="noreferrer" onClick={() => trackWhatsAppClick("informacion_cta")} className="inline-flex items-center gap-3 rounded-full border border-white/15 bg-white/10 px-6 py-4 text-sm font-black text-white transition hover:bg-white/15">
                 <MessageCircle className="h-5 w-5" /> WhatsApp
               </a>
             </div>

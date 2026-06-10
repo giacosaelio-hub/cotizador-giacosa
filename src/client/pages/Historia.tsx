@@ -1,6 +1,7 @@
 const logoGiacosa = "/logo-giacosa.webp";
 import { useEffect } from "react";
 import { Award, Building2, CheckCircle2, Hammer, MapPin, ShieldCheck, ShoppingCart, Users, Wrench, Star } from "lucide-react";
+import { trackWhatsAppClick, trackMapsClick } from "@/lib/analytics";
 
 type Props = {
   navigateToHomeSection?: (sectionId: string) => void;
@@ -203,10 +204,10 @@ export default function Historia({ navigateToHomeSection }: Props) {
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
-              <a href={COMPANY.maps} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">
+              <a href={COMPANY.maps} target="_blank" rel="noreferrer" onClick={() => trackMapsClick("historia_cta")} className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">
                 <Building2 className="h-4 w-4" /> Ver ubicación
               </a>
-              <a href={`https://wa.me/${COMPANY.whatsapp}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:bg-emerald-800">
+              <a href={`https://wa.me/${COMPANY.whatsapp}`} target="_blank" rel="noreferrer" onClick={() => trackWhatsAppClick("historia_cta")} className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white shadow-lg transition hover:bg-emerald-800">
                 <Users className="h-4 w-4" /> Hablar por WhatsApp
               </a>
             </div>

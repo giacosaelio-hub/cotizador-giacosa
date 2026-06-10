@@ -7,6 +7,7 @@ import {
   Facebook as FacebookIcon,
 } from "lucide-react";
 import { Precios } from "@/lib/precios";
+import { trackMapsClick } from "@/lib/analytics";
 import React from "react";
 import { motion } from "framer-motion";
 import { staggerContainer, cardVariant } from "@/lib/motion";
@@ -704,7 +705,7 @@ export default function Home({
             <Phone className="h-4 w-4 text-emerald-600" strokeWidth={2} />
             <span>Contactanos</span>
           </FooterAction>
-          <FooterAction href={GOOGLE_LINK} variant="red">
+          <FooterAction href={GOOGLE_LINK} variant="red" onClick={() => trackMapsClick("home_footer_resena")}>
             <Star className="h-4 w-4" strokeWidth={2.1} />
             <span>Dejá tu reseña en Google</span>
           </FooterAction>
@@ -740,7 +741,7 @@ function FooterAction({
 
   if (href) {
     return (
-      <a href={href} target="_blank" rel="noreferrer" className={`${base} ${styles}`}>
+      <a href={href} target="_blank" rel="noreferrer" onClick={onClick} className={`${base} ${styles}`}>
         {children}
       </a>
     );

@@ -6,6 +6,7 @@ import {
   calcBobinaPrecio,
   formatARS,
 } from "@/lib/precios";
+import { trackWhatsAppClick } from "@/lib/analytics";
 import {
   ArrowLeft,
   CheckCircle2,
@@ -381,6 +382,7 @@ export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
   function handleWhatsApp() {
     let txt = `Hola, quiero consultar precio de ${formatMeters(metros)} de bobina calibre ${calibre} - ${ancho} mts`;
     if (tipo === "Prepintada" && color) txt += ` prepintada ${color}`;
+    trackWhatsAppClick("bobina_config_30m");
     window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(txt)}`, "_blank");
   }
 

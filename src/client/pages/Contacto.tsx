@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { ExternalLink, Facebook, Instagram, MapPin, MessageCircle, Phone, ShieldCheck } from "lucide-react";
+import { trackWhatsAppClick, trackMapsClick } from "@/lib/analytics";
 
 const WA_NUMBER = "5493815589875";
 const WA_PRESET_MSG = "Hola, estoy interesado, vengo de la página web, estoy interesado en cotizar.";
@@ -60,10 +61,10 @@ export default function Contacto() {
             Contactá a Giacosa Elio – Corralón y Materiales en San Miguel de Tucumán. Te ayudamos con chapas para techo, bobinas, chapas estándar, Perfil C, complementarios y otros materiales para construcción.
           </p>
           <div className="mt-7 flex flex-wrap justify-center gap-3">
-            <a href={waLink()} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 rounded-full bg-emerald-700 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.24)] transition hover:bg-emerald-800">
+            <a href={waLink()} target="_blank" rel="noreferrer" onClick={() => trackWhatsAppClick("contacto_hero")} className="inline-flex items-center gap-3 rounded-full bg-emerald-700 px-7 py-4 text-sm font-black text-white shadow-[0_18px_40px_rgba(0,140,69,0.24)] transition hover:bg-emerald-800">
               <MessageCircle className="h-5 w-5" /> Consultar por WhatsApp
             </a>
-            <a href={MAPS_LINK} target="_blank" rel="noreferrer" className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-7 py-4 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700">
+            <a href={MAPS_LINK} target="_blank" rel="noreferrer" onClick={() => trackMapsClick("contacto_hero")} className="inline-flex items-center gap-3 rounded-full border border-slate-200 bg-white px-7 py-4 text-sm font-black text-slate-700 shadow-sm transition hover:border-emerald-200 hover:text-emerald-700">
               <MapPin className="h-5 w-5" /> Ver ubicación
             </a>
           </div>
@@ -82,14 +83,15 @@ export default function Contacto() {
                     href={waLink()}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() => trackWhatsAppClick("contacto_telefono")}
                     className="mt-1 block text-2xl font-black text-slate-950 underline-offset-4 hover:text-emerald-700 hover:underline"
                   >
                     {DISPLAY_PHONE}
                   </a>
                   <p className="mt-2 text-sm leading-7 text-slate-600">Canal recomendado para consultas, confirmación de cotizaciones, coordinación de productos y atención comercial.</p>
                   <div className="mt-5 flex flex-wrap gap-3">
-                    <a href={waLink("Hola, quiero cotizar chapas para techo.")} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800">Cotizar chapas</a>
-                    <a href={waLink("Hola, quiero consultar por bobinas de acero.")} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">Consultar bobinas</a>
+                    <a href={waLink("Hola, quiero cotizar chapas para techo.")} target="_blank" rel="noreferrer" onClick={() => trackWhatsAppClick("contacto_preset_chapas")} className="rounded-full bg-emerald-700 px-5 py-3 text-sm font-black text-white transition hover:bg-emerald-800">Cotizar chapas</a>
+                    <a href={waLink("Hola, quiero consultar por bobinas de acero.")} target="_blank" rel="noreferrer" onClick={() => trackWhatsAppClick("contacto_preset_bobinas")} className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">Consultar bobinas</a>
                   </div>
                 </div>
               </div>
@@ -106,12 +108,13 @@ export default function Contacto() {
                     href={MAPS_LINK}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() => trackMapsClick("contacto_direccion")}
                     className="mt-1 block text-xl font-black text-slate-950 underline-offset-4 hover:text-emerald-700 hover:underline"
                   >
                     Batalla de Suipacha 482
                   </a>
                   <p className="mt-2 text-sm leading-7 text-slate-600">San Miguel de Tucumán, Tucumán. Atención local para clientes de la ciudad y alrededores.</p>
-                  <a href={MAPS_LINK} target="_blank" rel="noreferrer" className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">
+                  <a href={MAPS_LINK} target="_blank" rel="noreferrer" onClick={() => trackMapsClick("contacto_boton")} className="mt-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-black text-slate-700 transition hover:border-emerald-200 hover:text-emerald-700">
                     Abrir en Google Maps <ExternalLink className="h-4 w-4" />
                   </a>
                 </div>

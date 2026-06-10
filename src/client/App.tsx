@@ -3,6 +3,7 @@ import { ShoppingCart, Menu, X, ArrowRight } from "lucide-react";
 const logoGiacosa = "/logo-giacosa.webp";
 import Home from "@/pages/Home";
 import { CartItem, Precios, Preselection } from "@/lib/precios";
+import { trackMapsClick } from "@/lib/analytics";
 
 const ChapaPerfiladaConfig   = lazy(() => import("@/pages/ChapaPerfiladaConfig"));
 const BobinaConfig           = lazy(() => import("@/pages/BobinaConfig"));
@@ -144,6 +145,19 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const pendingSectionScroll = useRef<string | null>(null);
+
+  // Captura de gclid (Google Ads Click ID) para conversiones offline/enhanced.
+  // Se guarda en localStorage porque el usuario puede entrar por /chapas-para-techo,
+  // /bobinas, etc. (no solo "/"), y el carrito lo lee recién al enviar la cotización.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const gclid = params.get("gclid");
+
+    if (gclid) {
+      localStorage.setItem("gclid", gclid);
+      localStorage.setItem("gclid_timestamp", new Date().toISOString());
+    }
+  }, []);
 
   // Título dinámico y meta description por ruta/subpágina
   useEffect(() => {
@@ -596,6 +610,7 @@ export default function App() {
               href="https://maps.app.goo.gl/Z7h2TYXir8mYTKBt5"
               target="_blank"
               rel="noopener noreferrer"
+              onClick={() => trackMapsClick("footer_global")}
               className="text-xs text-gray-500 hover:text-[#008C45] transition-colors"
             >
               Ver en Google Maps →
