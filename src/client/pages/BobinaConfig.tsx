@@ -18,6 +18,61 @@ import {
   ShoppingCart,
 } from "lucide-react";
 
+const IVA = 1.21;
+
+// Product schema con precios reales en el <head> (mismo patrón que
+// ChapaPerfiladaConfig): le da a Google/AI Overviews rangos de precio
+// por metro de bobina en ARS.
+function useProductSchema(precios: Precios) {
+  useEffect(() => {
+    const vals = (precios.bobinas_variantes ?? []).map((v) => v.precio).filter((n) => n > 0);
+    if (!vals.length || !precios.dolar) return;
+
+    const d = precios.dolar;
+    const lowPricePerM  = Math.round(Math.min(...vals) * d * IVA);
+    const highPricePerM = Math.round(Math.max(...vals) * d * IVA);
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Bobinas de Acero – Giacosa Elio Tucumán",
+      "description": "Bobinas de acero galvanizadas y prepintadas (blanco y negro), calibres 22, 25 y 27, anchos de 0.41 a 1.22 m. Corte a medida y venta por metro en San Miguel de Tucumán.",
+      "url": "https://giacosaelio.com.ar/bobinas",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "ARS",
+        "lowPrice": lowPricePerM,
+        "highPrice": highPricePerM,
+        "offerCount": vals.length,
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "LocalBusiness",
+          "name": "Giacosa Elio",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Batalla de Suipacha 482",
+            "addressLocality": "San Miguel de Tucumán",
+            "addressRegion": "Tucumán",
+            "addressCountry": "AR"
+          }
+        }
+      }
+    };
+
+    const id = "schema-product-bobina";
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = id;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(schema);
+
+    return () => { document.getElementById(id)?.remove(); };
+  }, [precios]);
+}
+
 interface Props {
   precios: Precios;
   onBack: () => void;
@@ -140,6 +195,7 @@ function BobinaImage({ className = "" }: { className?: string }) {
 }
 
 export default function BobinaConfig({ precios, onBack, onAdd }: Props) {
+  useProductSchema(precios);
   const variantes: BobinaVariante[] = precios.bobinas_variantes ?? [];
 
   useEffect(() => {

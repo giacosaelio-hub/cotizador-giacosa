@@ -28,6 +28,64 @@ interface Props {
   onAdd: (item: Omit<CartItem, "id">) => void;
 }
 
+const IVA = 1.21;
+
+// Product schema con precios reales en el <head> (mismo patrón que
+// ChapaPerfiladaConfig): rangos de precio por unidad en ARS para
+// Google/AI Overviews.
+function useProductSchema(precios: Precios) {
+  useEffect(() => {
+    const vals: number[] = [];
+    for (const cat of Object.values(precios.chapas_estandar ?? {})) {
+      for (const v of Object.values(cat)) if (v > 0) vals.push(v);
+    }
+    if (!vals.length || !precios.dolar) return;
+
+    const d = precios.dolar;
+    const lowPrice  = Math.round(Math.min(...vals) * d * IVA);
+    const highPrice = Math.round(Math.max(...vals) * d * IVA);
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Chapas Estándar – Giacosa Elio Tucumán",
+      "description": "Chapa lisa galvanizada, chapa negra (LAF), lisa prepintada y negra estampada en medidas 1×2 m y 1.22×2.44 m. Venta por unidad en San Miguel de Tucumán.",
+      "url": "https://giacosaelio.com.ar/chapas-estandar",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "ARS",
+        "lowPrice": lowPrice,
+        "highPrice": highPrice,
+        "offerCount": vals.length,
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "LocalBusiness",
+          "name": "Giacosa Elio",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Batalla de Suipacha 482",
+            "addressLocality": "San Miguel de Tucumán",
+            "addressRegion": "Tucumán",
+            "addressCountry": "AR"
+          }
+        }
+      }
+    };
+
+    const id = "schema-product-chapa-estandar";
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = id;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(schema);
+
+    return () => { document.getElementById(id)?.remove(); };
+  }, [precios]);
+}
+
 const FALLBACK_IMAGE = "/images/productos/chapas-estandar.webp";
 
 const CATEGORY_IMAGES: Record<string, string> = {
@@ -213,6 +271,7 @@ function OptionButton({
 }
 
 export default function ChapaEstandarConfig({ precios, preselection, onBack, onAdd }: Props) {
+  useProductSchema(precios);
   const initialCategoria = useMemo(() => {
     const slug = preselection?.categoria ?? "";
     const disponibles = Object.keys(precios.chapas_estandar || {});
