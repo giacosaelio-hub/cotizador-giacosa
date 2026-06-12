@@ -394,8 +394,22 @@ export default function Carrito({
 
   function handleWhatsApp() {
     const num = preview?.numero || "la cotización";
+
+    // Detalle de productos en el mensaje para que el vendedor pueda responder
+    // sin tener que abrir Telegram a mirar la imagen. Si el carrito es muy
+    // grande se trunca para no exceder el largo razonable de una URL wa.me.
+    const MAX_ITEMS = 6;
+    const lineas = cart.slice(0, MAX_ITEMS).map(
+      (item) => `• ${item.cantidad}x ${item.descripcion} (${item.medida})`,
+    );
+    if (cart.length > MAX_ITEMS) {
+      lineas.push(`• ...y ${cart.length - MAX_ITEMS} productos más`);
+    }
+    const detalle = lineas.length > 0 ? `\n${lineas.join("\n")}\n` : " ";
     const pagoStr = formaPagoLabel ? ` Forma de pago: ${formaPagoLabel}.` : "";
-    const text = encodeURIComponent(`Hola, quiero confirmar la cotización ${num}.${pagoStr} ¿Hay stock disponible?`);
+    const text = encodeURIComponent(
+      `Hola, quiero confirmar la cotización ${num}:${detalle}Total: ${formatARS(totalFinal)}.${pagoStr} ¿Hay stock disponible?`,
+    );
 
     // GTM: conversión real — el usuario envía la cotización por WhatsApp.
     // Se dispara ANTES de abrir WhatsApp para no perder el evento si el
