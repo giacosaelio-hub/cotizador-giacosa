@@ -81,6 +81,11 @@ app.use(
     frameguard: { action: "deny" },
     // Oculta el header X-Powered-By: Express
     hidePoweredBy: true,
+    // COOP deshabilitado: el default de helmet ("same-origin") corta la
+    // comunicación entre ventanas cross-origin y rompe el modo de depuración
+    // de Google Tag Assistant (Vista previa de GTM). "unsafe-none" es el
+    // default del navegador; el sitio no usa popups de OAuth ni SharedArrayBuffer.
+    crossOriginOpenerPolicy: false,
     // Política de referrer
     referrerPolicy: { policy: "strict-origin-when-cross-origin" },
     // XSS filter (legacy, pero no hace daño)
