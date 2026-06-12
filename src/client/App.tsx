@@ -3,7 +3,7 @@ import { ShoppingCart, Menu, X, ArrowRight } from "lucide-react";
 const logoGiacosa = "/logo-giacosa.webp";
 import Home from "@/pages/Home";
 import { CartItem, Precios, Preselection } from "@/lib/precios";
-import { trackMapsClick } from "@/lib/analytics";
+import { trackMapsClick, trackWhatsAppClick } from "@/lib/analytics";
 
 const ChapaPerfiladaConfig   = lazy(() => import("@/pages/ChapaPerfiladaConfig"));
 const BobinaConfig           = lazy(() => import("@/pages/BobinaConfig"));
@@ -604,7 +604,15 @@ export default function App() {
           <div className="text-center sm:text-right">
             <p>
               WhatsApp:{" "}
-              <span className="text-[#008C45] font-medium">381-558-9875</span>
+              <a
+                href="https://wa.me/5493815589875"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackWhatsAppClick("footer_global")}
+                className="text-[#008C45] font-medium hover:underline"
+              >
+                381-558-9875
+              </a>
             </p>
             <a
               href="https://maps.app.goo.gl/Z7h2TYXir8mYTKBt5"
