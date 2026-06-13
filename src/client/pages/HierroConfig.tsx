@@ -176,7 +176,13 @@ export default function HierroConfig({ precios, onBack, onAdd }: Props) {
   function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
     window.setTimeout(() => {
       if (!ref.current) return;
-      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      const rect = ref.current.getBoundingClientRect();
+      const vh = window.innerHeight;
+      // Si el paso nuevo ya está totalmente visible, no scrollear (evita saltos bruscos).
+      if (rect.top >= 64 && rect.bottom <= vh) return;
+      // Dejar el paso nuevo en el tercio superior: se ve el paso recién elegido arriba
+      // y el nuevo abajo, sin bajar hasta el fondo.
+      const top = rect.top + window.scrollY - vh * 0.34;
       window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }, delay);
   }
@@ -354,7 +360,7 @@ export default function HierroConfig({ precios, onBack, onAdd }: Props) {
                 </p>
                 {/* Nota varas 6 m */}
                 <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
-                  <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se corta en 2 piezas de 6 m. Pedí la cantidad en pares: 2 barras = 4 varas de 6 m, y así.
+                  <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 m. Pedí la cantidad en pares: 2 barras = 4 varas de 6 m, y así.
                 </div>
               </SectionCard>
               </div>
