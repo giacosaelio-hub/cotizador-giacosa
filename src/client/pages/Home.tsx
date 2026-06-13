@@ -20,6 +20,7 @@ const productImages = {
   bobinas: "/images/productos/bobinas.webp",
   chapasEstandar: "/images/productos/chapas-estandar.webp",
   perfilC: "/images/productos/perfil-c-hero.webp",
+  hierros: "/images/productos/hierros-hero.webp",
   complementarios: "/images/productos/complementarios.webp",
 };
 
@@ -37,7 +38,7 @@ const paymentLogos = {
   sucredito: "/images/pagos/sucredito.webp",
 } as const;
 
-type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario";
+type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "hierro" | "complementario";
 
 interface Props {
   precios?: Precios;
@@ -252,6 +253,23 @@ const cardsRow2 = [
     desc: "Barras de 12 metros. Perfil C común y galvanizado. Amplia variedad de medidas para estructuras y construcción.",
   },
   {
+    key: "hierro" as const,
+    img: productImages.hierros,
+    alt: "Barras de hierro de construcción liso y torsionado",
+    imgPosition: "object-center",
+    badge: "Hormigón armado",
+    fallback: {
+      bg: "bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-950",
+      line1: "Hierro",
+      line2: "Liso · Torsionado",
+    } satisfies CardFallback,
+    title: "Barras de Hierro",
+    subtitle: (
+      <span className="text-[15px] font-semibold text-emerald-700">Liso · Torsionado</span>
+    ),
+    desc: "Hierro de construcción liso y torsionado (nervado), del 4.2 al 25. Barras de 12 metros para columnas, vigas y losas.",
+  },
+  {
     key: "complementario" as const,
     img: productImages.complementarios,
     alt: "Complementarios para construcción",
@@ -457,6 +475,16 @@ export default function Home({
   })();
   const minPerfilC = toARS(precios, minPerfilCUSD);
 
+  // Precio mínimo de Hierros (liso + torsionado combinados)
+  const minHierroUSD = (() => {
+    const vals = [
+      minFromRecord(precios?.hierros?.liso),
+      minFromRecord(precios?.hierros?.torsionado),
+    ].filter((n): n is number => n !== null);
+    return vals.length ? Math.min(...vals) : null;
+  })();
+  const minHierro = toARS(precios, minHierroUSD);
+
   const goToCategorias = () => {
     if (navigateToHomeSection) {
       navigateToHomeSection("cotizador-categorias");
@@ -610,9 +638,9 @@ export default function Home({
             })}
           </motion.div>
 
-          {/* Fila 2: Perfil C · Complementarios — centradas en desktop */}
+          {/* Fila 2: Perfil C · Hierros · Complementarios */}
           <motion.div
-            className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:mx-auto lg:w-2/3 xl:w-[60%]"
+            className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
             variants={staggerContainer}
             initial="hidden"
             whileInView="visible"
@@ -637,7 +665,9 @@ export default function Home({
                   <div className="mb-2 w-full">{card.subtitle}</div>
                   <p className="mb-6 flex-1 break-words text-[15px] leading-snug text-slate-600">{card.desc}</p>
                   <div className="mt-auto flex w-full flex-col items-center gap-3 pt-1">
-                    {card.key === "perfil_c" ? priceBadge(minPerfilC, "/ barra") : null}
+                    {card.key === "perfil_c" ? priceBadge(minPerfilC, "/ barra")
+                      : card.key === "hierro" && minHierro ? priceBadge(minHierro, "/ barra")
+                      : null}
                     <ArrowRight className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden />
                   </div>
                 </div>

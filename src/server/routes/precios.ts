@@ -114,6 +114,7 @@ router.post("/precios", requireAdminAuth, (req, res): void => {
       formas_pago: body.formas_pago ?? current.formas_pago,
       perfil_c: body.perfil_c ?? current.perfil_c,
       complementarios: body.complementarios ?? current.complementarios,
+      hierros: body.hierros ?? current.hierros,
     };
 
     writeFileSync(PRECIOS_PATH, JSON.stringify(updated, null, 2));

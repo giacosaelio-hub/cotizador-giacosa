@@ -1,0 +1,466 @@
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Precios,
+  CartItem,
+  calcHierroPrecio,
+  getDiametrosHierroDisponibles,
+  formatARS,
+} from "@/lib/precios";
+import {
+  ArrowLeft,
+  Minus,
+  PackageCheck,
+  Plus,
+  Ruler,
+  ShoppingCart,
+} from "lucide-react";
+
+interface Props {
+  precios: Precios;
+  onBack: () => void;
+  onAdd: (item: Omit<CartItem, "id">) => void;
+}
+
+// "6" → "Ø 6 mm" · "4.2" → "Ø 4.2 mm"
+function formatDiametro(d: string): string {
+  return `Ø ${d} mm`;
+}
+
+function OptionButton({
+  active,
+  children,
+  onClick,
+}: {
+  active: boolean;
+  children: React.ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`rounded-2xl border px-4 py-3 text-left text-sm font-extrabold transition-all ${
+        active
+          ? "border-emerald-500 bg-emerald-50 text-emerald-800 shadow-sm"
+          : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function SectionCard({
+  step,
+  title,
+  description,
+  children,
+}: {
+  step: string;
+  title: string;
+  description: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="rounded-[26px] border border-slate-200 bg-white/95 p-5 shadow-[0_20px_70px_rgba(15,23,42,0.06)] sm:p-6">
+      <div className="mb-4 flex items-start gap-3">
+        <span className="mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-xs font-black text-emerald-800">
+          {step}
+        </span>
+        <div>
+          <h3 className="text-lg font-black tracking-tight text-slate-950">{title}</h3>
+          <p className="mt-1 text-sm font-medium leading-5 text-slate-500">{description}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function HierroImg() {
+  const [failed, setFailed] = React.useState(false);
+  if (failed) return null;
+  return (
+    <div className="h-44 w-full overflow-hidden bg-slate-50">
+      <img
+        src="/images/productos/hierros-hero.webp"
+        alt="Barras de hierro de construcción"
+        className="h-full w-full object-cover object-center"
+        loading="lazy"
+        onError={() => setFailed(true)}
+        draggable={false}
+      />
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-2 py-1.5 text-sm">
+      <span className="shrink-0 font-semibold text-slate-500">{label}</span>
+      <span className="min-w-0 truncate text-right font-black text-slate-900">{value}</span>
+    </div>
+  );
+}
+
+// ── Option B: inyecta Product schema con precios reales ──
+function useHierroSchema(precios: Precios) {
+  useEffect(() => {
+    const lisoVals  = Object.values(precios.hierros?.liso ?? {}).filter((n) => n > 0);
+    const torsVals  = Object.values(precios.hierros?.torsionado ?? {}).filter((n) => n > 0);
+    const allVals   = [...lisoVals, ...torsVals];
+    if (!allVals.length || !precios.dolar) return;
+
+    const IVA = 1.21;
+    const lowPrice  = Math.round(Math.min(...allVals) * precios.dolar * IVA);
+    const highPrice = Math.round(Math.max(...allVals) * precios.dolar * IVA);
+
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": "Barras de Hierro de Construcción – Giacosa Elio Tucumán",
+      "description": "Hierro de construcción liso y torsionado (nervado) en barras de 12 metros. Diámetros del 4.2 al 25. Venta en San Miguel de Tucumán.",
+      "brand": { "@type": "Brand", "name": "Acindar" },
+      "url": "https://giacosaelio.com.ar/hierros",
+      "offers": {
+        "@type": "AggregateOffer",
+        "priceCurrency": "ARS",
+        "lowPrice": lowPrice,
+        "highPrice": highPrice,
+        "offerCount": allVals.length,
+        "availability": "https://schema.org/InStock",
+        "seller": {
+          "@type": "LocalBusiness",
+          "name": "Giacosa Elio",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": "Batalla de Suipacha 482",
+            "addressLocality": "San Miguel de Tucumán",
+            "addressRegion": "Tucumán",
+            "addressCountry": "AR"
+          }
+        }
+      }
+    };
+
+    const id = "schema-product-hierros";
+    let el = document.getElementById(id) as HTMLScriptElement | null;
+    if (!el) {
+      el = document.createElement("script");
+      el.id = id;
+      el.type = "application/ld+json";
+      document.head.appendChild(el);
+    }
+    el.textContent = JSON.stringify(schema);
+
+    return () => { document.getElementById(id)?.remove(); };
+  }, [precios]);
+}
+
+export default function HierroConfig({ precios, onBack, onAdd }: Props) {
+  useHierroSchema(precios);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, []);
+
+  const [subtipo, setSubtipo] = useState<"liso" | "torsionado" | "">("");
+  const [diametro, setDiametro] = useState<string>("");
+  const [cantidadStr, setCantidadStr] = useState<string>("1");
+  const [error, setError] = useState<string>("");
+
+  // Refs para auto-scroll entre pasos
+  const diametroRef = useRef<HTMLDivElement>(null);
+  const cantidadRef = useRef<HTMLDivElement>(null);
+
+  function scrollNextStep(ref: React.RefObject<HTMLDivElement | null>, delay = 200) {
+    window.setTimeout(() => {
+      if (!ref.current) return;
+      const top = ref.current.getBoundingClientRect().top + window.scrollY - 80;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, delay);
+  }
+
+  // Derived: always a valid integer ≥ 1
+  const cantidad = Math.max(1, parseInt(cantidadStr, 10) || 1);
+
+  const diametrosDisponibles = useMemo(
+    () => (subtipo ? getDiametrosHierroDisponibles(precios, subtipo) : []),
+    [precios, subtipo]
+  );
+
+  const preview = useMemo(() => {
+    if (!subtipo || !diametro) return null;
+    return calcHierroPrecio(precios, subtipo, diametro, cantidad);
+  }, [precios, subtipo, diametro, cantidad]);
+
+  function handleChangeSubtipo(v: "liso" | "torsionado") {
+    setSubtipo(v);
+    setDiametro("");
+    setCantidadStr("1");
+    setError("");
+    scrollNextStep(diametroRef);
+  }
+
+  function handleAdd() {
+    if (!subtipo) { setError("Seleccioná el tipo de hierro"); return; }
+    if (!diametro) { setError("Seleccioná el diámetro"); return; }
+    if (cantidad < 1) { setError("La cantidad debe ser al menos 1"); return; }
+    if (!preview) { setError("Combinación inválida"); return; }
+
+    setError("");
+    const subtipoLabel = subtipo === "liso" ? "Hierro Liso" : "Hierro Torsionado";
+
+    // GTM: micro-conversión — producto agregado al carrito.
+    window.dataLayer = window.dataLayer || [];
+    window.dataLayer.push({
+      event: "agregar_al_carrito",
+      cotizacion_categoria: "hierros",
+      cotizacion_monto: preview.subtotalARS,
+    });
+
+    onAdd({
+      tipo: "hierro",
+      descripcion: `${subtipoLabel} ${formatDiametro(diametro)} · 12 m/barra`,
+      medida: "12 m/barra",
+      cantidad,
+      precioUnitarioUSD: preview.precioUnitarioUSD,
+      precioUnitarioARS: preview.precioUnitarioARS,
+      subtotalARS: preview.subtotalARS,
+    });
+  }
+
+  return (
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.13),transparent_34%),linear-gradient(180deg,#f8fafc_0%,#ffffff_48%,#f7faf9_100%)] px-4 py-5 pb-24 text-slate-950 sm:px-6 lg:px-8 lg:pb-5">
+      <div className="mx-auto max-w-[1320px]">
+        <button
+          onClick={onBack}
+          type="button"
+          className="mb-4 inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-extrabold text-slate-700 shadow-sm transition hover:border-emerald-300 hover:text-emerald-700"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Volver
+        </button>
+
+        <div className="mb-6 overflow-hidden rounded-[30px] border border-emerald-100 bg-[linear-gradient(135deg,#ffffff_0%,#f7fffb_48%,#eefbf4_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.07)]">
+          <div className="relative px-6 py-7 text-center sm:px-10 lg:px-12 lg:py-8">
+            <div className="pointer-events-none absolute inset-y-0 left-0 w-2/5 bg-[radial-gradient(circle_at_left,rgba(16,185,129,0.16),transparent_58%)]" />
+            <div className="relative mx-auto max-w-3xl">
+              <p className="mb-3 text-xs font-black uppercase tracking-[0.26em] text-emerald-700">Inicio / Barras de Hierro</p>
+              <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">Cotizá tu Hierro de construcción</h1>
+              <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
+                Elegí liso o torsionado, el diámetro y la cantidad de barras. El precio se actualiza al instante.
+              </p>
+              <div className="mt-5 flex flex-wrap justify-center gap-2">
+                <span className="rounded-full border border-emerald-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-emerald-800 shadow-sm">12 metros / barra</span>
+                <span className="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-black uppercase tracking-wide text-slate-700 shadow-sm">Liso · Torsionado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid items-start gap-5 lg:grid-cols-[1fr_390px] xl:grid-cols-[1fr_420px]">
+          <div className="min-w-0 space-y-5">
+
+            {/* PASO 01 — Tipo */}
+            <SectionCard
+              step="01"
+              title="Tipo de hierro"
+              description="Elegí entre hierro liso o torsionado (nervado)."
+            >
+              <div className="grid gap-3 sm:grid-cols-2">
+                <OptionButton
+                  active={subtipo === "liso"}
+                  onClick={() => handleChangeSubtipo("liso")}
+                >
+                  <span className="block text-lg">Hierro Liso</span>
+                </OptionButton>
+                <OptionButton
+                  active={subtipo === "torsionado"}
+                  onClick={() => handleChangeSubtipo("torsionado")}
+                >
+                  <span className="block text-lg">Hierro Torsionado</span>
+                </OptionButton>
+              </div>
+            </SectionCard>
+
+            {/* PASO 02 — Diámetro */}
+            {subtipo && (
+              <div ref={diametroRef}>
+              <SectionCard
+                step="02"
+                title="Diámetro"
+                description={`Diámetros disponibles en hierro ${subtipo}.`}
+              >
+                <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
+                  {diametrosDisponibles.map((d) => (
+                    <OptionButton
+                      key={d}
+                      active={diametro === d}
+                      onClick={() => { setDiametro(d); setError(""); scrollNextStep(cantidadRef); }}
+                    >
+                      <span className="block text-lg font-black">{d}</span>
+                      <span className="block text-xs font-bold text-slate-400">mm</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+              </div>
+            )}
+
+            {/* PASO 03 — Cantidad */}
+            {subtipo && diametro && (
+              <div ref={cantidadRef}>
+              <SectionCard
+                step="03"
+                title="Cantidad de barras"
+                description="Cada barra mide 12 metros."
+              >
+                <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm max-w-xs">
+                  <button
+                    type="button"
+                    onClick={() => setCantidadStr(String(Math.max(1, cantidad - 1)))}
+                    aria-label="Restar una barra"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                  >
+                    <Minus className="h-5 w-5" />
+                  </button>
+                  <div className="flex flex-col items-center gap-0.5">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      value={cantidadStr}
+                      onChange={(e) => setCantidadStr(e.target.value.replace(/[^0-9]/g, ""))}
+                      onBlur={() => setCantidadStr(String(Math.max(1, parseInt(cantidadStr, 10) || 1)))}
+                      className="w-16 bg-transparent text-center text-3xl font-black text-slate-950 outline-none"
+                      aria-label="Cantidad de barras"
+                    />
+                    <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                      barra{cantidad !== 1 ? "s" : ""}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setCantidadStr(String(cantidad + 1))}
+                    aria-label="Sumar una barra"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                  >
+                    <Plus className="h-5 w-5" />
+                  </button>
+                </div>
+                <p className="mt-3 text-sm font-semibold text-slate-500">
+                  Total: {cantidad} barra{cantidad !== 1 ? "s" : ""} × 12 m = {cantidad * 12} metros lineales
+                </p>
+                {/* Nota varas 6 m */}
+                <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
+                  <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se corta en 2 piezas de 6 m. Pedí la cantidad en pares: 2 barras = 4 varas de 6 m, y así.
+                </div>
+              </SectionCard>
+              </div>
+            )}
+
+            {error && (
+              <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+                {error}
+              </div>
+            )}
+          </div>
+
+          {/* ── Barra sticky mobile ── */}
+          {preview && (
+            <div
+              className="fixed inset-x-0 bottom-0 z-50 flex items-center gap-3 border-t border-slate-200 bg-white/96 px-4 py-3 shadow-[0_-8px_30px_rgba(15,23,42,0.10)] backdrop-blur-sm lg:hidden"
+              style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
+            >
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Total</p>
+                <p className="truncate text-xl font-black text-slate-950">{formatARS(preview.subtotalARS)}</p>
+              </div>
+              <button
+                type="button"
+                onClick={handleAdd}
+                className="flex shrink-0 items-center gap-2 rounded-2xl bg-emerald-700 px-5 py-3.5 text-sm font-black text-white shadow-lg shadow-emerald-800/25 active:bg-emerald-800"
+              >
+                <ShoppingCart className="h-4 w-4" />
+                Agregar al carrito
+              </button>
+            </div>
+          )}
+
+          {/* RESUMEN */}
+          <aside className="min-w-0 lg:sticky lg:top-24 lg:self-start">
+            <div className="overflow-hidden rounded-[28px] border border-slate-200 bg-white shadow-xl">
+              <HierroImg />
+              <div className="border-b border-emerald-100 bg-emerald-50/70 px-5 py-4">
+                <p className="text-xs font-black uppercase tracking-[0.24em] text-emerald-800">Resumen de cotización</p>
+                <p className="mt-1 text-sm font-extrabold text-slate-600">Tu selección en tiempo real</p>
+              </div>
+
+              <div className="p-5">
+                <div className="space-y-1 border-b border-slate-100 pb-4">
+                  <SummaryRow
+                    label="Tipo"
+                    value={subtipo === "liso" ? "Hierro Liso" : subtipo === "torsionado" ? "Hierro Torsionado" : "—"}
+                  />
+                  <SummaryRow label="Diámetro" value={diametro ? formatDiametro(diametro) : "—"} />
+                  <SummaryRow label="Largo" value="12 m / barra" />
+                  <SummaryRow label="Cantidad" value={`${cantidad} barra${cantidad !== 1 ? "s" : ""}`} />
+                </div>
+
+                <div className="mt-4 space-y-1 border-b border-slate-100 pb-4">
+                  <SummaryRow
+                    label="Precio unitario"
+                    value={preview ? formatARS(preview.precioUnitarioARS) : "—"}
+                  />
+                  <SummaryRow
+                    label="Total"
+                    value={preview ? formatARS(preview.subtotalARS) : "—"}
+                  />
+                </div>
+
+                <div className="mt-5 rounded-2xl bg-emerald-700 px-4 py-4 text-white shadow-lg shadow-emerald-800/20">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-sm font-black uppercase tracking-wide">Total final</span>
+                    <span className="text-2xl font-black tracking-tight">
+                      {preview ? formatARS(preview.subtotalARS) : "—"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleAdd}
+                  disabled={!preview}
+                  type="button"
+                  className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-4 text-base font-black text-white shadow-lg shadow-emerald-800/20 transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                >
+                  <ShoppingCart className="h-5 w-5" />
+                  {cantidad > 1 ? `Agregar ${cantidad} barras` : "Agregar al carrito"}
+                </button>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <Ruler className="mb-2 h-5 w-5 text-emerald-700" />
+                    <p className="text-xs font-black text-slate-800">12 m / barra</p>
+                    <p className="text-xs font-medium text-slate-500">Largo estándar.</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+                    <PackageCheck className="mb-2 h-5 w-5 text-emerald-700" />
+                    <p className="text-xs font-black text-slate-800">Precio con IVA</p>
+                    <p className="text-xs font-medium text-slate-500">USD + tipo de cambio.</p>
+                  </div>
+                </div>
+
+                {!preview && (
+                  <p className="mt-4 text-center text-xs font-extrabold text-slate-400">
+                    Completá la selección para habilitar el botón.
+                  </p>
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  );
+}

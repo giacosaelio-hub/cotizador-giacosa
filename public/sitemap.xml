@@ -77,6 +77,14 @@
     <changefreq>weekly</changefreq>
   </url>
 
+  <!-- Barras de hierro — nuevo -->
+  <url>
+    <loc>https://giacosaelio.com.ar/hierros</loc>
+    <lastmod>2026-06-13</lastmod>
+    <priority>0.9</priority>
+    <changefreq>weekly</changefreq>
+  </url>
+
   <!-- Complementarios — nuevo -->
   <url>
     <loc>https://giacosaelio.com.ar/complementarios</loc>

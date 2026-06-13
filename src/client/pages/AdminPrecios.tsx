@@ -24,6 +24,10 @@ type Precios = {
     comun: Record<string, number>;
     galvanizado: Record<string, number>;
   };
+  hierros?: {
+    liso: Record<string, number>;
+    torsionado: Record<string, number>;
+  };
   complementarios?: {
     cumbreras: Record<string, number>;
     autoperforantes: Record<string, number>;
@@ -636,6 +640,10 @@ type EditValues = {
     comun: Record<string, string>;
     galvanizado: Record<string, string>;
   };
+  hierros: {
+    liso: Record<string, string>;
+    torsionado: Record<string, string>;
+  };
   complementarios: {
     cumbreras: Record<string, string>;
     autoperforantes: Record<string, string>;
@@ -652,6 +660,7 @@ function buildEditValuesFromPrecios(precios: Precios): EditValues {
     bobinas_variantes: {},
     formas_pago: {},
     perfil_c: { comun: {}, galvanizado: {} },
+    hierros: { liso: {}, torsionado: {} },
     complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {} },
   };
 
@@ -687,6 +696,15 @@ function buildEditValuesFromPrecios(precios: Precios): EditValues {
     });
     Object.entries(precios.perfil_c.galvanizado ?? {}).forEach(([k, v]) => {
       next.perfil_c.galvanizado[k] = v?.toString() ?? "";
+    });
+  }
+
+  if (precios.hierros) {
+    Object.entries(precios.hierros.liso ?? {}).forEach(([k, v]) => {
+      next.hierros.liso[k] = v?.toString() ?? "";
+    });
+    Object.entries(precios.hierros.torsionado ?? {}).forEach(([k, v]) => {
+      next.hierros.torsionado[k] = v?.toString() ?? "";
     });
   }
 
@@ -731,6 +749,7 @@ export default function AdminPrecios() {
     bobinas_variantes: {},
     formas_pago: {},
     perfil_c: { comun: {}, galvanizado: {} },
+    hierros: { liso: {}, torsionado: {} },
     complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {} },
   });
 
@@ -966,6 +985,16 @@ export default function AdminPrecios() {
               ),
               galvanizado: Object.fromEntries(
                 Object.entries(editValues.perfil_c.galvanizado).map(([k, v]) => [k, Number(v || 0)])
+              ),
+            }
+          : undefined,
+        hierros: precios.hierros
+          ? {
+              liso: Object.fromEntries(
+                Object.entries(editValues.hierros.liso).map(([k, v]) => [k, Number(v || 0)])
+              ),
+              torsionado: Object.fromEntries(
+                Object.entries(editValues.hierros.torsionado).map(([k, v]) => [k, Number(v || 0)])
               ),
             }
           : undefined,
@@ -1305,6 +1334,53 @@ export default function AdminPrecios() {
                           <NumericControlledInput
                             value={editValues.chapas_estandar[cat]?.[k] ?? ""}
                             onChange={val => setEstandar(cat, k, val)}
+                            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-24 text-right focus:outline-none focus:border-[#008C45]"
+                            step="0.01"
+                            min="0"
+                            placeholder="0.00"
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {precios.hierros && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-4">
+          <h2 className="font-bold text-gray-800 mb-1 text-sm uppercase tracking-wider">
+            Barras de Hierro
+          </h2>
+          <div className="flex flex-col gap-6">
+            {(["liso", "torsionado"] as const).map((subtipo) => {
+              const subtipoLabel = subtipo === "liso" ? "Liso" : "Torsionado";
+              const items = precios.hierros?.[subtipo] ?? {};
+              return (
+                <div key={subtipo}>
+                  <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
+                    Hierro {subtipoLabel}
+                  </p>
+                  <div className="flex flex-col gap-2">
+                    {Object.entries(items).map(([k]) => (
+                      <div key={k} className="flex items-center gap-3">
+                        <label className="text-sm text-gray-600 flex-1">Ø {k} mm</label>
+                        <div className="flex items-center gap-1">
+                          <span className="text-xs text-gray-400">USD</span>
+                          <NumericControlledInput
+                            value={editValues.hierros[subtipo]?.[k] ?? ""}
+                            onChange={(val) =>
+                              setEditValues((e) => ({
+                                ...e,
+                                hierros: {
+                                  ...e.hierros,
+                                  [subtipo]: { ...e.hierros[subtipo], [k]: val },
+                                },
+                              }))
+                            }
                             className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-24 text-right focus:outline-none focus:border-[#008C45]"
                             step="0.01"
                             min="0"

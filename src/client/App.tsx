@@ -9,6 +9,7 @@ const ChapaPerfiladaConfig   = lazy(() => import("@/pages/ChapaPerfiladaConfig")
 const BobinaConfig           = lazy(() => import("@/pages/BobinaConfig"));
 const ChapaEstandarConfig    = lazy(() => import("@/pages/ChapaEstandarConfig"));
 const PerfilCConfig          = lazy(() => import("@/pages/PerfilCConfig"));
+const HierroConfig           = lazy(() => import("@/pages/HierroConfig"));
 const ComplementariosConfig  = lazy(() => import("@/pages/ComplementariosConfig"));
 const Carrito                = lazy(() => import("@/pages/Carrito"));
 const Historia               = lazy(() => import("@/pages/Historia"));
@@ -24,7 +25,7 @@ function PageLoader() {
   );
 }
 
-type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario";
+type ProductType = "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "hierro" | "complementario";
 type View = "home" | ProductType | "carrito" | "historia" | "informacion" | "contacto" | "admin" | "not_found";
 
 export type NavigateToHomeSection = (sectionId: string) => void;
@@ -35,6 +36,7 @@ const VIEW_PATHS: Record<View, string> = {
   bobina: "/bobinas",
   chapa_estandar: "/chapas-estandar",
   perfil_c: "/perfil-c",
+  hierro: "/hierros",
   complementario: "/complementarios",
   carrito: "/carrito",
   historia: "/nuestra-historia",
@@ -65,6 +67,7 @@ const BREADCRUMB_LABELS: Record<string, string> = {
   "chapas-estandar": "Chapas estándar",
   "bobinas": "Bobinas",
   "perfil-c": "Perfil C",
+  "hierros": "Barras de hierro",
   "complementarios": "Complementarios",
   "nuestra-historia": "Nuestra historia",
   "informacion": "Información",
@@ -114,6 +117,7 @@ function resolveViewFromPath(): { view: View; preselection?: Preselection } {
   }
   if (segments[0] === "bobinas") return { view: "bobina" };
   if (segments[0] === "perfil-c") return { view: "perfil_c" };
+  if (segments[0] === "hierros") return { view: "hierro" };
   if (segments[0] === "complementarios") return { view: "complementario" };
   if (segments[0] === "carrito") return { view: "carrito" };
   if (segments[0] === "nuestra-historia") return { view: "historia" };
@@ -241,6 +245,7 @@ export default function App() {
       chapa_estandar:  { title: "Chapas Estándar en Tucumán: Hoja Galvanizada, Negra y Lisa | Giacosa Elio",             description: "Hoja galvanizada, chapa negra (LAF), chapa lisa prepintada, perforada y estampada en medidas fijas. Para herrería, portones y fabricación en Tucumán. Cotizá por unidad online." },
       bobina:          { title: "Bobinas de acero en Tucumán | Giacosa Elio",                                            description: "Bobinas de acero galvanizado, cincalum y prepintado en Tucumán. Corte a medida y venta por metro, según calibre y ancho. Giacosa Elio, Suipacha 482." },
       perfil_c:        { title: "Perfil C en Tucumán | Cotizador online | Giacosa Elio",                                 description: "Perfil C de acero galvanizado en Tucumán. Cotizá online por longitud y calibre. Giacosa Elio, Suipacha 482." },
+      hierro:          { title: "Hierro de construcción en Tucumán: liso y torsionado | Giacosa Elio",                   description: "Barras de hierro liso y torsionado (nervado) en Tucumán, del 4.2 al 25, barras de 12 m. Cotizá online al instante. Giacosa Elio, Suipacha 482." },
       complementario:  { title: "Complementarios para obra en Tucumán | Giacosa Elio",                                   description: "Cumbreras, autoperforantes, tornillos y estaño para obras en Tucumán. Cotizá online. Giacosa Elio, Suipacha 482." },
       informacion:     { title: "Información sobre materiales para obra | Giacosa Elio",                                 description: "Información técnica sobre chapas, bobinas, perfil C y complementarios para obra en Tucumán. Giacosa Elio." },
       historia:        { title: "Nuestra historia | Giacosa Elio Corralón en Tucumán",                                   description: "Conocé la historia de Giacosa Elio, corralón y materiales para la construcción en San Miguel de Tucumán." },
@@ -547,6 +552,9 @@ export default function App() {
           )}
           {view === "perfil_c" && (
             <PerfilCConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
+          )}
+          {view === "hierro" && (
+            <HierroConfig precios={precios} onBack={() => goToView("home")} onAdd={addToCart} />
           )}
           {view === "complementario" && (
             <ComplementariosConfig

@@ -43,11 +43,15 @@ export type Precios = {
     tornillos: Record<string, number>;
     estaño: Record<string, number>;
   };
+  hierros?: {
+    liso: Record<string, number>;
+    torsionado: Record<string, number>;
+  };
 };
 
 export type CartItem = {
   id: string;
-  tipo: "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario";
+  tipo: "chapa_perfilada" | "bobina" | "chapa_estandar" | "perfil_c" | "complementario" | "hierro";
   descripcion: string;
   medida: string;
   cantidad: number;
@@ -336,6 +340,28 @@ export function calcPerfilCPrecio(
   const precioUnitarioARS = precioUSD * precios.dolar * IVA;
   const subtotalARS = precioUnitarioARS * cantidad;
   return { precioUnitarioUSD: precioUSD, precioUnitarioARS, subtotalARS };
+}
+
+export function calcHierroPrecio(
+  precios: Precios,
+  subtipo: "liso" | "torsionado",
+  diametro: string,
+  cantidad: number
+) {
+  const precioUSD = precios.hierros?.[subtipo]?.[diametro] ?? 0;
+  const precioUnitarioARS = precioUSD * precios.dolar * IVA;
+  const subtotalARS = precioUnitarioARS * cantidad;
+  return { precioUnitarioUSD: precioUSD, precioUnitarioARS, subtotalARS };
+}
+
+// Diámetros disponibles para un subtipo de hierro (ordenados numéricamente)
+export function getDiametrosHierroDisponibles(
+  precios: Precios | undefined | null,
+  subtipo: "liso" | "torsionado"
+): string[] {
+  const record = precios?.hierros?.[subtipo];
+  if (!record) return [];
+  return Object.keys(record).sort((a, b) => parseFloat(a) - parseFloat(b));
 }
 
 export function calcComplementarioPrecio(
