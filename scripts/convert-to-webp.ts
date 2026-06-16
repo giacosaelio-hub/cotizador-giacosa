@@ -57,6 +57,12 @@ const jobs: ImageJob[] = [
     width:  800,
     quality: 78,
   },
+  {
+    input:  path.join(PUBLIC, "images/productos/hierros.png"),
+    output: path.join(PUBLIC, "images/productos/hierros-hero.webp"),
+    width:  800,
+    quality: 78,
+  },
 
   // ── Configurador / Perfiles ──────────────────────────────────────────
   {
