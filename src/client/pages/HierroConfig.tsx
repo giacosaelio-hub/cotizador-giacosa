@@ -360,7 +360,7 @@ export default function HierroConfig({ precios, onBack, onAdd }: Props) {
                 </p>
                 {/* Nota varas 6 m */}
                 <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 px-4 py-3 text-xs font-semibold text-blue-700">
-                  <span className="font-black">¿Necesitás varas de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 m. Pedí la cantidad en pares: 2 barras = 4 varas de 6 m, y así.
+                  <span className="font-black">¿Necesitás barras de 6 m?</span> Cada barra de 12 m se puede cortar en 2 piezas de 6 mts. Pedí la cantidad deseada, como por ejemplo: 1 barra de 12 mts = 2 barras de 6 mts, 2 barras = 4 barras de 6 mts, y así sucesivamente.
                 </div>
               </SectionCard>
               </div>
