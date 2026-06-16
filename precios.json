@@ -589,6 +589,27 @@
     "estaño": {
       "kg": 109077.27,
       "barra": 14548.26
+    },
+    "aislante": {
+      "dalum_5": 67573.16,
+      "dalum_10": 83630.50,
+      "dalum_blanco_10": 99129.71,
+      "alum_5": 30795.54,
+      "alum_10": 44034.90,
+      "foam_solapa_5": 32180.03,
+      "foam_solapa_10": 46051.76,
+      "foam_dalum_solapa_10": 53312.62,
+      "foam_oferta_5": 30795.54
+    },
+    "lana_vidrio": {
+      "cp_50_ecotech": 125290.98,
+      "cp_50_alu_especial": 138285.99,
+      "sp_50_woolfox": 90315.75,
+      "cp_40_rolac": 114130.98,
+      "sp_40_ecotech": 79157.48
+    },
+    "sellador": {
+      "superboard_280": 1864.03
     }
   },
   "hierros": {

@@ -257,7 +257,7 @@ const cardsRow2 = [
     img: productImages.hierros,
     alt: "Barras de hierro de construcción liso y torsionado",
     imgPosition: "object-center",
-    badge: "Hormigón armado",
+    badge: "Para hormigón armado",
     fallback: {
       bg: "bg-gradient-to-br from-zinc-700 via-zinc-800 to-zinc-950",
       line1: "Hierro",

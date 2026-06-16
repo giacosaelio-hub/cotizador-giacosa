@@ -34,7 +34,7 @@ interface Props {
   initialSubcategoria?: Subcategoria;
 }
 
-type Subcategoria = "cumbreras" | "autoperforantes" | "tornillos" | "estaño";
+type Subcategoria = "cumbreras" | "autoperforantes" | "tornillos" | "estaño" | "aislante" | "lana_vidrio" | "sellador";
 type CumbrerasTipo = "sinusoidal" | "trapezoidal" | "lisa";
 type ListaDesarrollo = "40" | "60";
 
@@ -43,7 +43,45 @@ const SUBCATEGORIA_LABELS: Record<Subcategoria, string> = {
   autoperforantes: "Autoperforantes",
   tornillos: "Tornillos",
   estaño: "Estaño",
+  aislante: "Aislante",
+  lana_vidrio: "Lana de vidrio",
+  sellador: "Sellador",
 };
+
+// Subcategorías de flujo simple: elegir producto → elegir cantidad (unidades).
+// Precio por unidad en ARS (rollo / cartucho). El orden define cómo se listan.
+type SimpleSub = "aislante" | "lana_vidrio" | "sellador";
+const SIMPLE_SUBS: SimpleSub[] = ["aislante", "lana_vidrio", "sellador"];
+
+type SimpleProducto = { key: string; label: string; sub: string };
+
+const SIMPLE_PRODUCTS: Record<SimpleSub, SimpleProducto[]> = {
+  aislante: [
+    { key: "dalum_5",              label: "Doble Aluminio 5 mm",              sub: "Rollo 1 m × 20 m" },
+    { key: "dalum_10",             label: "Doble Aluminio 10 mm",             sub: "Rollo 1 m × 20 m" },
+    { key: "dalum_blanco_10",      label: "Doble Aluminio Blanco 10 mm",      sub: "Rollo 1 m × 20 m" },
+    { key: "alum_5",               label: "Aluminizado 5 mm",                 sub: "Rollo 1 m × 20 m" },
+    { key: "alum_10",              label: "Aluminizado 10 mm",                sub: "Rollo 1 m × 20 m" },
+    { key: "foam_solapa_5",        label: "Foam Aluminizado c/solapa 5 mm",   sub: "Rollo 1 m × 20 m" },
+    { key: "foam_solapa_10",       label: "Foam Aluminizado c/solapa 10 mm",  sub: "Rollo 1 m × 20 m" },
+    { key: "foam_dalum_solapa_10", label: "Foam Doble Aluminizado c/solapa 10 mm", sub: "Rollo 1 m × 20 m" },
+    { key: "foam_oferta_5",        label: "Foam Aluminizado Oferta 5 mm",     sub: "Rollo 1 m × 20 m" },
+  ],
+  lana_vidrio: [
+    { key: "cp_50_ecotech",     label: "Con papel 50 mm — Ecotech",            sub: "Rollo 21,60 m²" },
+    { key: "cp_50_alu_especial", label: "Con papel 2\" 50 mm Aluminio — Especial", sub: "Rollo 21,60 m²" },
+    { key: "sp_50_woolfox",     label: "Sin papel 2\" 50 mm — Woolfox",        sub: "Rollo 21,60 m²" },
+    { key: "cp_40_rolac",       label: "Con papel 40 mm Rolac — Ecotech",      sub: "Rollo 21,60 m²" },
+    { key: "sp_40_ecotech",     label: "Sin papel 40 mm — Ecotech",            sub: "Rollo 21,60 m²" },
+  ],
+  sellador: [
+    { key: "superboard_280", label: "Superboard", sub: "Cartucho 280 ml" },
+  ],
+};
+
+function isSimpleSub(s: Subcategoria | ""): s is SimpleSub {
+  return s === "aislante" || s === "lana_vidrio" || s === "sellador";
+}
 
 // Colores lisas con hex para swatches
 const COLORES_LISA = ["azul", "gris", "negra", "roja", "verde", "sin_pintar"] as const;
@@ -189,6 +227,10 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
   const [estanoKey, setEstanoKey] = useState<string>("");
   const [estanoCantidad, setEstanoCantidad] = useState<number>(1);
 
+  // Subcategorías simples (aislante / lana de vidrio / sellador): producto + cantidad
+  const [simpleKey, setSimpleKey] = useState<string>("");
+  const [simpleCantidad, setSimpleCantidad] = useState<number>(1);
+
   const [error, setError] = useState<string>("");
 
   // Refs compartidos — solo una subcategoría activa a la vez, así que no hay conflicto.
@@ -217,6 +259,8 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
     setBolsas("1");
     setEstanoKey("");
     setEstanoCantidad(1);
+    setSimpleKey("");
+    setSimpleCantidad(1);
     setError("");
   }
 
@@ -290,8 +334,13 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
       return calcComplementarioPrecio(precios, "estaño", estanoKey, estanoCantidad);
     }
 
+    if (isSimpleSub(subcategoria)) {
+      if (!simpleKey || simpleCantidad < 1) return null;
+      return calcComplementarioPrecio(precios, subcategoria, simpleKey, simpleCantidad);
+    }
+
     return null;
-  }, [subcategoria, cumbrerasKey, metros, autoKey, tornilloKey, bolsas, estanoKey, estanoCantidad, precios]);
+  }, [subcategoria, cumbrerasKey, metros, autoKey, tornilloKey, bolsas, estanoKey, estanoCantidad, simpleKey, simpleCantidad, precios]);
 
   function handleAdd() {
     if (!subcategoria) { setError("Seleccioná una categoría"); return; }
@@ -388,6 +437,25 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
         precioUnitarioARS: preview.precioUnitarioARS,
         subtotalARS: preview.subtotalARS,
       });
+      return;
+    }
+
+    if (isSimpleSub(subcategoria)) {
+      if (!simpleKey) { setError("Seleccioná el producto"); return; }
+      if (simpleCantidad < 1) { setError("La cantidad debe ser al menos 1"); return; }
+      if (!preview) return;
+      const prod = SIMPLE_PRODUCTS[subcategoria].find((p) => p.key === simpleKey);
+      const nombre = prod ? `${SUBCATEGORIA_LABELS[subcategoria]} ${prod.label}` : SUBCATEGORIA_LABELS[subcategoria];
+      trackAdd(preview.subtotalARS);
+      onAdd({
+        tipo: "complementario",
+        descripcion: nombre,
+        medida: prod?.sub ?? "unidad",
+        cantidad: simpleCantidad,
+        precioUnitarioUSD: 0,
+        precioUnitarioARS: preview.precioUnitarioARS,
+        subtotalARS: preview.subtotalARS,
+      });
     }
   }
 
@@ -405,8 +473,10 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
       return `${tornilloModelo} ${TORNILLO_PUNTA_LABEL[tornilloPunta]}`;
     if (subcategoria === "estaño" && estanoKey)
       return estanoKey === "kg" ? "KG (paquete)" : "Barra individual";
+    if (isSimpleSub(subcategoria) && simpleKey)
+      return SIMPLE_PRODUCTS[subcategoria].find((p) => p.key === simpleKey)?.label ?? null;
     return null;
-  }, [subcategoria, cumbrerasTipo, lisaColor, lisaDesarrollo, autoRosca, autoMedida, tornilloPunta, tornilloModelo, estanoKey]);
+  }, [subcategoria, cumbrerasTipo, lisaColor, lisaDesarrollo, autoRosca, autoMedida, tornilloPunta, tornilloModelo, estanoKey, simpleKey]);
 
   // Step para cantidad en auto/tornillos
   const bolsasStep = subcategoria === "autoperforantes" || subcategoria === "tornillos"
@@ -431,7 +501,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               <p className="mb-3 text-xs font-black uppercase tracking-[0.26em] text-amber-700">Inicio / Complementarios</p>
               <h1 className="text-3xl font-black tracking-tight text-slate-950 sm:text-4xl lg:text-5xl">Complementarios</h1>
               <p className="mx-auto mt-4 max-w-2xl text-base font-semibold leading-7 text-slate-600">
-                Cumbreras, autoperforantes, tornillos y estaño para completar tu obra.
+                Cumbreras, autoperforantes, tornillos, estaño, aislantes, lana de vidrio y sellador para completar tu obra.
               </p>
             </div>
           </div>
@@ -447,7 +517,7 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               description="Elegí el tipo de complementario que necesitás."
             >
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                {(["cumbreras", "autoperforantes", "tornillos", "estaño"] as Subcategoria[]).map((cat) => (
+                {(["cumbreras", "autoperforantes", "tornillos", "estaño", "aislante", "lana_vidrio", "sellador"] as Subcategoria[]).map((cat) => (
                   <OptionButton
                     key={cat}
                     active={subcategoria === cat}
@@ -864,6 +934,76 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
               </div>
             )}
 
+            {/* ══════════ AISLANTE · LANA DE VIDRIO · SELLADOR (flujo simple) ══════════ */}
+            {isSimpleSub(subcategoria) && (
+              <div ref={paso2Ref}>
+              <SectionCard
+                step="02"
+                title="Producto"
+                description={
+                  subcategoria === "aislante"
+                    ? "Elegí el aislante. Cada rollo es de 1 m × 20 m."
+                    : subcategoria === "lana_vidrio"
+                    ? "Elegí la lana de vidrio. Cada rollo cubre 21,60 m²."
+                    : "Elegí el sellador."
+                }
+              >
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {SIMPLE_PRODUCTS[subcategoria].map((p) => (
+                    <OptionButton
+                      key={p.key}
+                      active={simpleKey === p.key}
+                      onClick={() => { setSimpleKey(p.key); setSimpleCantidad(1); setError(""); scrollNextStep(paso3Ref); }}
+                    >
+                      <span className="block">{p.label}</span>
+                      <span className="mt-1 block text-xs font-bold text-slate-500">{p.sub}</span>
+                    </OptionButton>
+                  ))}
+                </div>
+              </SectionCard>
+              </div>
+            )}
+
+            {isSimpleSub(subcategoria) && simpleKey && (
+              <div ref={paso3Ref}>
+              <SectionCard
+                step="03"
+                title="Cantidad"
+                description={subcategoria === "sellador" ? "¿Cuántos cartuchos necesitás?" : "¿Cuántos rollos necesitás?"}
+              >
+                {(() => {
+                  const unidad = subcategoria === "sellador" ? "cartucho" : "rollo";
+                  return (
+                    <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm max-w-xs">
+                      <button
+                        type="button"
+                        onClick={() => setSimpleCantidad((p) => Math.max(1, p - 1))}
+                        aria-label="Restar"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                      >
+                        −
+                      </button>
+                      <div className="text-center">
+                        <div className="text-3xl font-black text-slate-950">{simpleCantidad}</div>
+                        <div className="text-xs font-bold uppercase tracking-wide text-slate-400">
+                          {unidad + (simpleCantidad !== 1 ? "s" : "")}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setSimpleCantidad((p) => p + 1)}
+                        aria-label="Sumar"
+                        className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-xl font-black text-slate-700 transition hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-800"
+                      >
+                        +
+                      </button>
+                    </div>
+                  );
+                })()}
+              </SectionCard>
+              </div>
+            )}
+
             {error && (
               <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
                 {error}
@@ -909,6 +1049,14 @@ export default function ComplementariosConfig({ precios, onBack, onAdd, initialS
                         estanoKey === "kg"
                           ? "paquete" + (estanoCantidad !== 1 ? "s" : "")
                           : "barra" + (estanoCantidad !== 1 ? "s" : "")
+                      }`}
+                    />
+                  )}
+                  {isSimpleSub(subcategoria) && simpleKey && (
+                    <SummaryRow
+                      label="Cantidad"
+                      value={`${simpleCantidad} ${
+                        (subcategoria === "sellador" ? "cartucho" : "rollo") + (simpleCantidad !== 1 ? "s" : "")
                       }`}
                     />
                   )}

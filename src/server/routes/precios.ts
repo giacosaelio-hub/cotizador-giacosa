@@ -35,6 +35,23 @@ function ensurePreciosFile() {
       console.log("[precios] Migración: se agregaron campos faltantes:", missingKeys.join(", "));
     }
 
+    // 1.5) Agregar subgrupos nuevos dentro de objetos anidados de precios
+    //      (ej. complementarios.aislante, lana_vidrio, sellador). La migración de
+    //      primer nivel no los agrega porque "complementarios" ya existe en el volumen.
+    for (const parentKey of ["complementarios", "perfil_c", "hierros"]) {
+      const defParent = defaults[parentKey];
+      const curParent = current[parentKey];
+      if (defParent && curParent && typeof defParent === "object" && typeof curParent === "object") {
+        for (const subKey of Object.keys(defParent)) {
+          if (!(subKey in curParent)) {
+            curParent[subKey] = defParent[subKey];
+            changed = true;
+            console.log(`[precios] Migración: subgrupo agregado: ${parentKey}.${subKey}`);
+          }
+        }
+      }
+    }
+
     // 2) Asegurar la cuota "1" en sucredito (-15%) y credicash (-10%) si faltan.
     //    Las cuotas casi nunca cambian; esto las inyecta en el volumen en vivo
     //    SOLO si no existen. Si ya están, no se tocan (se respeta lo editado en admin).
