@@ -42,9 +42,6 @@ export type Precios = {
     autoperforantes: Record<string, number>;
     tornillos: Record<string, number>;
     estaño: Record<string, number>;
-    aislante?: Record<string, number>;
-    lana_vidrio?: Record<string, number>;
-    sellador?: Record<string, number>;
   };
   hierros?: {
     liso: Record<string, number>;
@@ -369,7 +366,7 @@ export function getDiametrosHierroDisponibles(
 
 export function calcComplementarioPrecio(
   precios: Precios,
-  subcategoria: "cumbreras" | "autoperforantes" | "tornillos" | "estaño" | "aislante" | "lana_vidrio" | "sellador",
+  subcategoria: "cumbreras" | "autoperforantes" | "tornillos" | "estaño",
   key: string,
   cantidad: number
 ) {

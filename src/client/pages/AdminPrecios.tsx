@@ -33,9 +33,6 @@ type Precios = {
     autoperforantes: Record<string, number>;
     tornillos: Record<string, number>;
     estaño: Record<string, number>;
-    aislante?: Record<string, number>;
-    lana_vidrio?: Record<string, number>;
-    sellador?: Record<string, number>;
   };
 };
 
@@ -652,9 +649,6 @@ type EditValues = {
     autoperforantes: Record<string, string>;
     tornillos: Record<string, string>;
     estaño: Record<string, string>;
-    aislante: Record<string, string>;
-    lana_vidrio: Record<string, string>;
-    sellador: Record<string, string>;
   };
 };
 
@@ -667,7 +661,7 @@ function buildEditValuesFromPrecios(precios: Precios): EditValues {
     formas_pago: {},
     perfil_c: { comun: {}, galvanizado: {} },
     hierros: { liso: {}, torsionado: {} },
-    complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {}, aislante: {}, lana_vidrio: {}, sellador: {} },
+    complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {} },
   };
 
   Object.entries(precios.chapas_perfiladas ?? {}).forEach(([k, v]) => {
@@ -727,15 +721,6 @@ function buildEditValuesFromPrecios(precios: Precios): EditValues {
     Object.entries(precios.complementarios.estaño ?? {}).forEach(([k, v]) => {
       next.complementarios.estaño[k] = v?.toString() ?? "";
     });
-    Object.entries(precios.complementarios.aislante ?? {}).forEach(([k, v]) => {
-      next.complementarios.aislante[k] = v?.toString() ?? "";
-    });
-    Object.entries(precios.complementarios.lana_vidrio ?? {}).forEach(([k, v]) => {
-      next.complementarios.lana_vidrio[k] = v?.toString() ?? "";
-    });
-    Object.entries(precios.complementarios.sellador ?? {}).forEach(([k, v]) => {
-      next.complementarios.sellador[k] = v?.toString() ?? "";
-    });
   }
 
   return next;
@@ -765,7 +750,7 @@ export default function AdminPrecios() {
     formas_pago: {},
     perfil_c: { comun: {}, galvanizado: {} },
     hierros: { liso: {}, torsionado: {} },
-    complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {}, aislante: {}, lana_vidrio: {}, sellador: {} },
+    complementarios: { cumbreras: {}, autoperforantes: {}, tornillos: {}, estaño: {} },
   });
 
   const [massAdjustmentPreview, setMassAdjustmentPreview] = useState<EditValues | null>(null);
@@ -1027,15 +1012,6 @@ export default function AdminPrecios() {
               estaño: Object.fromEntries(
                 Object.entries(editValues.complementarios.estaño).map(([k, v]) => [k, Number(v || 0)])
               ),
-              ...(precios.complementarios.aislante
-                ? { aislante: Object.fromEntries(Object.entries(editValues.complementarios.aislante).map(([k, v]) => [k, Number(v || 0)])) }
-                : {}),
-              ...(precios.complementarios.lana_vidrio
-                ? { lana_vidrio: Object.fromEntries(Object.entries(editValues.complementarios.lana_vidrio).map(([k, v]) => [k, Number(v || 0)])) }
-                : {}),
-              ...(precios.complementarios.sellador
-                ? { sellador: Object.fromEntries(Object.entries(editValues.complementarios.sellador).map(([k, v]) => [k, Number(v || 0)])) }
-                : {}),
             }
           : undefined,
       };
@@ -1607,46 +1583,6 @@ export default function AdminPrecios() {
                 ))}
               </div>
             </div>
-
-            {/* Aislante · Lana de vidrio · Sellador (ARS/unidad) */}
-            {(["aislante", "lana_vidrio", "sellador"] as const).map((sub) => {
-              const items = precios.complementarios?.[sub];
-              if (!items) return null;
-              const titulo = sub === "aislante" ? "Aislante (ARS/rollo)" : sub === "lana_vidrio" ? "Lana de vidrio (ARS/rollo)" : "Sellador (ARS/unidad)";
-              return (
-                <div key={sub}>
-                  <p className="text-xs font-bold text-gray-600 mb-2 border-b border-gray-100 pb-1">
-                    {titulo}
-                  </p>
-                  <div className="flex flex-col gap-2">
-                    {Object.entries(items).map(([k]) => (
-                      <div key={k} className="flex items-center gap-3">
-                        <label className="text-sm text-gray-600 flex-1">{k.replace(/_/g, " ")}</label>
-                        <div className="flex items-center gap-1">
-                          <span className="text-xs text-gray-400">ARS</span>
-                          <NumericControlledInput
-                            value={editValues.complementarios[sub]?.[k] ?? ""}
-                            onChange={(val) =>
-                              setEditValues((e) => ({
-                                ...e,
-                                complementarios: {
-                                  ...e.complementarios,
-                                  [sub]: { ...(e.complementarios[sub] ?? {}), [k]: val },
-                                },
-                              }))
-                            }
-                            className="border border-gray-200 rounded-lg px-3 py-1.5 text-sm w-28 text-right focus:outline-none focus:border-[#008C45]"
-                            step="0.01"
-                            min="0"
-                            placeholder="0.00"
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
           </div>
         </div>
       )}
