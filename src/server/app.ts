@@ -171,6 +171,7 @@ const SPA_ROUTES = new Set([
   "/bobinas",
   "/perfil-c",
   "/complementarios",
+  "/hierros",
   "/carrito",
   "/nuestra-historia",
   "/informacion",
