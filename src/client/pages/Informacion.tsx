@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import { ArrowRight, CheckCircle2, CreditCard, FileText, HelpCircle, MessageCircle, Ruler, ShieldCheck, ShoppingCart, Truck, Layers, Wrench } from "lucide-react";
 import { trackWhatsAppClick } from "@/lib/analytics";
+import { safeSessionSet } from "@/lib/storage";
 
 type Props = {
   navigateToHomeSection?: (sectionId: string) => void;
@@ -14,7 +15,7 @@ function goToCotizador(navigateToHomeSection?: (sectionId: string) => void) {
     navigateToHomeSection("cotizador-categorias");
     return;
   }
-  sessionStorage.setItem("scrollToCotizadorCategorias", "1");
+  safeSessionSet("scrollToCotizadorCategorias", "1");
   window.location.href = "/";
 }
 

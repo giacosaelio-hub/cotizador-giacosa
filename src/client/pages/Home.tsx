@@ -9,8 +9,6 @@ import {
 import { Precios } from "@/lib/precios";
 import { trackMapsClick } from "@/lib/analytics";
 import React from "react";
-import { motion } from "framer-motion";
-import { staggerContainer, cardVariant } from "@/lib/motion";
 
 // ——— RUTAS DE IMÁGENES (editá solo estos paths) ———
 const heroImage = "/images/hero/hero-chapas.webp";
@@ -594,14 +592,8 @@ export default function Home({
           </div>
 
           {/* Fila 1: Bobinas · Chapas para techo · Chapas estándar */}
-          <motion.div
-            className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-          >
-            {cardsRow1.map((card) => {
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {cardsRow1.map((card, i) => {
               const price =
                 card.key === "chapa_perfilada"
                   ? minTecho
@@ -611,12 +603,12 @@ export default function Home({
                       ? minChapaEstandar
                       : null;
               return (
-                <motion.button
+                <button
                   key={card.key}
-                  variants={cardVariant}
                   type="button"
                   onClick={() => onSelect(card.key)}
-                  className="group relative flex h-full min-h-[360px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400 sm:min-h-[420px]"
+                  style={{ "--enter-delay": `${i * 70}ms` } as React.CSSProperties}
+                  className="enter-fade-up group relative flex h-full min-h-[360px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400 sm:min-h-[420px]"
                 >
                   <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419] sm:h-48">
                     <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
@@ -633,26 +625,20 @@ export default function Home({
                       <ArrowRight className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden />
                     </div>
                   </div>
-                </motion.button>
+                </button>
               );
             })}
-          </motion.div>
+          </div>
 
           {/* Fila 2: Perfil C · Hierros · Complementarios */}
-          <motion.div
-            className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3"
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.15 }}
-          >
-            {cardsRow2.map((card) => (
-              <motion.button
+          <div className="mt-8 grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+            {cardsRow2.map((card, i) => (
+              <button
                 key={card.key}
-                variants={cardVariant}
                 type="button"
                 onClick={() => onSelect(card.key)}
-                className="group relative flex h-full min-h-[360px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400 sm:min-h-[420px]"
+                style={{ "--enter-delay": `${i * 70}ms` } as React.CSSProperties}
+                className="enter-fade-up group relative flex h-full min-h-[360px] flex-col items-stretch overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-[0_6px_24px_rgba(40,71,55,0.09)] transition duration-200 outline-none hover:-translate-y-1 hover:shadow-[0_10px_28px_rgba(40,71,55,0.15)] focus:z-10 focus:ring-2 focus:ring-emerald-400 sm:min-h-[420px]"
               >
                 <div className="relative h-40 w-full flex-shrink-0 overflow-hidden rounded-t-3xl border-b border-slate-200 bg-[#0f1419] sm:h-48">
                   <CardImage src={card.img} alt={card.alt} fallback={card.fallback} imgPosition={card.imgPosition} />
@@ -671,9 +657,9 @@ export default function Home({
                     <ArrowRight className="h-5 w-5 text-emerald-500/70 transition group-hover:translate-x-0.5 group-hover:text-emerald-600" aria-hidden />
                   </div>
                 </div>
-              </motion.button>
+              </button>
             ))}
-          </motion.div>
+          </div>
         </div>
       </section>
 

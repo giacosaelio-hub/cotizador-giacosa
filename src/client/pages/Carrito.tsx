@@ -15,6 +15,7 @@ import {
   formatFecha,
 } from "@/lib/precios";
 import { trackWhatsAppClick } from "@/lib/analytics";
+import { safeLocalGet, safeSessionSet, safeSessionRemove } from "@/lib/storage";
 import {
   ArrowLeft,
   CheckCircle,
@@ -266,15 +267,24 @@ export default function Carrito({
     esPagoSimple || (medioPago === "tarjeta" && tarjetaId !== "" && cuotaKey !== "");
   const canGenerar = cart.length > 0 && nombreValido && telefonoValido && hasPayment;
 
+  // Resaltado de campos faltantes: solo se activa una vez que el usuario ya
+  // eligió forma de pago (llegó al paso final), para no marcar en rojo al
+  // entrar al carrito. Señala con claridad qué falta para poder confirmar.
+  const resaltarNombre = hasPayment && !nombreValido;
+  const resaltarTelefono = hasPayment && !telefonoValido;
+
   function scrollToCotizadorCategorias() {
-    sessionStorage.setItem("scrollToCotizadorCategorias", "1");
+    // El flag de storage es solo una pista OPCIONAL para el scroll. Si falla
+    // (Safari iOS privado, storage bloqueado), igual seguimos con la navegación:
+    // safeSessionSet nunca lanza, así que onAgregarMas() siempre se ejecuta.
+    safeSessionSet("scrollToCotizadorCategorias", "1");
     onAgregarMas();
 
     const tryScroll = (attempt = 0) => {
       const target = document.getElementById("cotizador-categorias");
       if (target) {
         target.scrollIntoView({ behavior: "smooth", block: "start" });
-        sessionStorage.removeItem("scrollToCotizadorCategorias");
+        safeSessionRemove("scrollToCotizadorCategorias");
         return;
       }
 
@@ -365,8 +375,8 @@ export default function Carrito({
           formaPago: formaPagoLabel || undefined,
           importeCuota: importeCuota ?? undefined,
           imagenBase64: base64,
-          gclid: localStorage.getItem("gclid") || "",
-          gclidTimestamp: localStorage.getItem("gclid_timestamp") || "",
+          gclid: safeLocalGet("gclid") || "",
+          gclidTimestamp: safeLocalGet("gclid_timestamp") || "",
         }),
       });
     } catch {
@@ -908,23 +918,43 @@ export default function Carrito({
 
               <div className="grid gap-4 md:grid-cols-2">
                 <label className="block">
-                  <span className="mb-2 block text-sm font-black text-slate-800">Nombre completo</span>
+                  <span className="mb-2 block text-sm font-black text-slate-800">
+                    Nombre completo {resaltarNombre && <span className="text-red-600">*</span>}
+                  </span>
                   <input
                     value={nombre}
                     onChange={(e) => setNombre(e.target.value)}
                     placeholder="Ej: Juan Pérez"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    aria-invalid={resaltarNombre}
+                    className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:ring-4 ${
+                      resaltarNombre
+                        ? "border-red-300 ring-2 ring-red-100 focus:border-red-400 focus:ring-red-100"
+                        : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+                    }`}
                   />
+                  {resaltarNombre && (
+                    <span className="mt-1.5 block text-xs font-bold text-red-600">Ingresá tu nombre.</span>
+                  )}
                 </label>
                 <label className="block">
-                  <span className="mb-2 block text-sm font-black text-slate-800">Teléfono</span>
+                  <span className="mb-2 block text-sm font-black text-slate-800">
+                    Teléfono {resaltarTelefono && <span className="text-red-600">*</span>}
+                  </span>
                   <input
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
                     placeholder="Ej: 381 555 1234"
                     inputMode="tel"
-                    className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:border-emerald-400 focus:ring-4 focus:ring-emerald-100"
+                    aria-invalid={resaltarTelefono}
+                    className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:ring-4 ${
+                      resaltarTelefono
+                        ? "border-red-300 ring-2 ring-red-100 focus:border-red-400 focus:ring-red-100"
+                        : "border-slate-200 focus:border-emerald-400 focus:ring-emerald-100"
+                    }`}
                   />
+                  {resaltarTelefono && (
+                    <span className="mt-1.5 block text-xs font-bold text-red-600">Ingresá un teléfono de contacto.</span>
+                  )}
                 </label>
               </div>
             </section>
@@ -984,17 +1014,16 @@ export default function Carrito({
                 </button>
 
                 {!canGenerar && !loading && (
-                  <p className="text-center text-xs font-bold text-slate-400">
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-bold text-amber-800">
                     {!hasPayment
                       ? "Elegí una forma de pago para continuar."
-                      : !nombreValido
-                        ? "Ingresá un nombre válido para continuar."
-                        : "Completá un teléfono válido para continuar."}
+                      : "Completá nombre y teléfono para confirmar"}
                   </p>
                 )}
 
-                <div className="flex items-center justify-center gap-2 text-xs font-bold text-slate-400">
-                  <Lock className="h-4 w-4" /> Tu cotización queda registrada y segura.
+                <div className="flex items-center justify-center gap-2 text-center text-xs font-bold text-slate-500">
+                  <Lock className="h-4 w-4 shrink-0" />
+                  Sin compromiso — un asesor confirma stock y precio final.
                 </div>
               </div>
             </section>

@@ -4,6 +4,7 @@ const logoGiacosa = "/logo-giacosa.webp";
 import Home from "@/pages/Home";
 import { CartItem, Precios, Preselection } from "@/lib/precios";
 import { trackMapsClick, trackWhatsAppClick } from "@/lib/analytics";
+import { safeLocalSet } from "@/lib/storage";
 
 const ChapaPerfiladaConfig   = lazy(() => import("@/pages/ChapaPerfiladaConfig"));
 const BobinaConfig           = lazy(() => import("@/pages/BobinaConfig"));
@@ -158,8 +159,8 @@ export default function App() {
     const gclid = params.get("gclid");
 
     if (gclid) {
-      localStorage.setItem("gclid", gclid);
-      localStorage.setItem("gclid_timestamp", new Date().toISOString());
+      safeLocalSet("gclid", gclid);
+      safeLocalSet("gclid_timestamp", new Date().toISOString());
     }
   }, []);
 

@@ -21,6 +21,9 @@
   <meta property="og:url" content="https://giacosaelio.com.ar/" />
   <meta property="og:image" content="https://giacosaelio.com.ar/opengraph.jpg" />
   <link rel="icon" type="image/webp" href="/logo-giacosa.webp" />
+  <!-- Preload de la imagen LCP (hero). La renderiza React, así que sin este
+       preload el navegador la descubre tarde y empeora el LCP en mobile. -->
+  <link rel="preload" as="image" href="/images/hero/hero-chapas.webp" fetchpriority="high" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" onload="this.rel='stylesheet'" />

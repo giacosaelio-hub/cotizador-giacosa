@@ -168,3 +168,20 @@
   transform: translateY(-2px);
   border-color: #008C45;
 }
+
+/* Entrada de cards en CSS (reemplaza Framer Motion en Home para no cargar la
+   librería en el bundle inicial — mejora INP/TBT en mobile). El stagger se
+   controla con --enter-delay inline por card. */
+@keyframes enterFadeUp {
+  from { opacity: 0; transform: translateY(20px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.enter-fade-up {
+  animation: enterFadeUp 0.42s cubic-bezier(0.4, 0, 0.2, 1) both;
+  animation-delay: var(--enter-delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .enter-fade-up {
+    animation: none;
+  }
+}
