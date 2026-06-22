@@ -1,3 +1,5 @@
+import { safeLocalGet, safeLocalSet } from "@/lib/storage";
+
 export type Preselection = {
   perfil?: string;
   material?: string;
@@ -228,14 +230,14 @@ export function generateCotizacionNumber(): string {
   const yy = String(now.getFullYear()).slice(2);
   const mm = String(now.getMonth() + 1).padStart(2, "0");
   const dd = String(now.getDate()).padStart(2, "0");
-  const stored = localStorage.getItem("cot_counter_date");
+  const stored = safeLocalGet("cot_counter_date");
   const today = `${yy}${mm}${dd}`;
   let counter = 1;
   if (stored === today) {
-    counter = parseInt(localStorage.getItem("cot_counter") ?? "0", 10) + 1;
+    counter = parseInt(safeLocalGet("cot_counter") ?? "0", 10) + 1;
   }
-  localStorage.setItem("cot_counter_date", today);
-  localStorage.setItem("cot_counter", String(counter));
+  safeLocalSet("cot_counter_date", today);
+  safeLocalSet("cot_counter", String(counter));
   return `COT-${today}-${String(counter).padStart(3, "0")}`;
 }
 

@@ -2,6 +2,7 @@ const logoGiacosa = "/logo-giacosa.webp";
 import { useEffect } from "react";
 import { Award, Building2, CheckCircle2, Hammer, MapPin, ShieldCheck, ShoppingCart, Users, Wrench, Star } from "lucide-react";
 import { trackWhatsAppClick, trackMapsClick } from "@/lib/analytics";
+import { safeSessionSet } from "@/lib/storage";
 
 type Props = {
   navigateToHomeSection?: (sectionId: string) => void;
@@ -21,7 +22,7 @@ function goToCotizador(navigateToHomeSection?: (sectionId: string) => void) {
     navigateToHomeSection("cotizador-categorias");
     return;
   }
-  sessionStorage.setItem("scrollToCotizadorCategorias", "1");
+  safeSessionSet("scrollToCotizadorCategorias", "1");
   window.location.href = "/";
 }
 
