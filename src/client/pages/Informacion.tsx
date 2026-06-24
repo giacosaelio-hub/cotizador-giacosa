@@ -50,8 +50,8 @@ function JsonLd() {
       a: "Sí. Para tubos estructurales, planchuelas, ángulos, Durlock, aislantes y otros insumos podés consultar por WhatsApp o acercarte al corralón.",
     },
     {
-      q: "¿Trabajan Durlock y construcción en seco?",
-      a: "Sí, trabajamos placas de yeso, aislantes y otros insumos relacionados. Consultá disponibilidad por WhatsApp o en el corralón.",
+      q: "¿Trabajan Durlock, construcción en seco y steel framing?",
+      a: "Sí. Trabajamos materiales para construcción en seco: placas de roca de yeso (Durlock), masillas, cintas, montantes y soleras, perfilería, tornillos y aislantes. Para steel framing contamos con perfiles de acero galvanizado (PGC y PGU) y Perfil C galvanizado, este último cotizable online. Consultá disponibilidad por WhatsApp o en el corralón de Tucumán.",
     },
   ];
   const data = {
@@ -92,8 +92,8 @@ export default function Informacion({ navigateToHomeSection }: Props) {
     ["Tubos estructurales", "Usados en estructuras metálicas, portones, cerramientos, tinglados y trabajos de herrería."],
     ["Planchuelas y ángulos", "Para refuerzos, uniones y fabricación metálica en estructuras y portones."],
     ["Aislantes", "Para mejorar confort térmico, reducir condensación y acompañar instalaciones de techos."],
-    ["Durlock y placas de yeso", "Placas para construcción en seco, cielorrasos y tabiques interiores."],
-    ["Construcción en seco", "Insumos y materiales para sistemas de tabiques y revestimientos en seco."],
+    ["Construcción en seco (Durlock)", "Placas de roca de yeso (Durlock), masillas, cintas, montantes y soleras, perfilería y tornillos para tabiques, cielorrasos y revestimientos interiores."],
+    ["Steel framing", "Sistema de construcción en seco con perfiles de acero galvanizado (PGC y PGU) para paredes, entrepisos y estructuras livianas. Consultá también el Perfil C galvanizado del cotizador."],
     ["Otros materiales", "Consultá por accesorios e insumos de obra no disponibles en el cotizador."],
   ];
 
@@ -105,7 +105,9 @@ export default function Informacion({ navigateToHomeSection }: Props) {
     "Perfil C",
     "Cumbreras",
     "Tornillos y autoperforantes",
-    "Durlock y construcción en seco",
+    "Construcción en seco y Durlock",
+    "Steel framing",
+    "Placas de roca de yeso",
     "Aislantes",
     "Tubos estructurales",
   ];
