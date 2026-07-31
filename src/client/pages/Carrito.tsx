@@ -267,11 +267,12 @@ export default function Carrito({
     esPagoSimple || (medioPago === "tarjeta" && tarjetaId !== "" && cuotaKey !== "");
   const canGenerar = cart.length > 0 && nombreValido && telefonoValido && hasPayment;
 
-  // Resaltado de campos faltantes: solo se activa una vez que el usuario ya
-  // eligió forma de pago (llegó al paso final), para no marcar en rojo al
-  // entrar al carrito. Señala con claridad qué falta para poder confirmar.
-  const resaltarNombre = hasPayment && !nombreValido;
-  const resaltarTelefono = hasPayment && !telefonoValido;
+  // Resaltado de campos: los datos son OPCIONALES (solo hacen falta para el
+  // comprobante), así que solo se marca en rojo lo que el usuario ya empezó a
+  // escribir y quedó inválido. Nunca se le reclama nada a quien va derecho
+  // al botón de WhatsApp.
+  const resaltarNombre = nombre.trim() !== "" && !nombreValido;
+  const resaltarTelefono = telefono.trim() !== "" && !telefonoValido;
 
   function scrollToCotizadorCategorias() {
     // El flag de storage es solo una pista OPCIONAL para el scroll. Si falla
@@ -402,12 +403,10 @@ export default function Carrito({
     link.click();
   }
 
-  function handleWhatsApp() {
-    const num = preview?.numero || "la cotización";
-
-    // Detalle de productos en el mensaje para que el vendedor pueda responder
-    // sin tener que abrir Telegram a mirar la imagen. Si el carrito es muy
-    // grande se trunca para no exceder el largo razonable de una URL wa.me.
+  // Texto del mensaje de WhatsApp. Incluye el detalle de productos para que el
+  // vendedor pueda responder sin abrir Telegram a mirar la imagen. Si el carrito
+  // es muy grande se trunca para no exceder el largo razonable de una URL wa.me.
+  function buildWhatsAppText(numero: string): string {
     const MAX_ITEMS = 6;
     const lineas = cart.slice(0, MAX_ITEMS).map(
       (item) => `• ${item.cantidad}x ${item.descripcion} (${item.medida})`,
@@ -417,13 +416,15 @@ export default function Carrito({
     }
     const detalle = lineas.length > 0 ? `\n${lineas.join("\n")}\n` : " ";
     const pagoStr = formaPagoLabel ? ` Forma de pago: ${formaPagoLabel}.` : "";
-    const text = encodeURIComponent(
-      `Hola, quiero confirmar la cotización ${num}:${detalle}Total: ${formatARS(totalFinal)}.${pagoStr} ¿Hay stock disponible?`,
+    return encodeURIComponent(
+      `Hola, quiero confirmar la cotización ${numero}:${detalle}Total: ${formatARS(totalFinal)}.${pagoStr} ¿Hay stock disponible?`,
     );
+  }
 
-    // GTM: conversión real — el usuario envía la cotización por WhatsApp.
-    // Se dispara ANTES de abrir WhatsApp para no perder el evento si el
-    // navegador cambia de pestaña/contexto al abrir el link.
+  // GTM: conversión real — el usuario envía la cotización por WhatsApp.
+  // Se dispara ANTES de abrir WhatsApp para no perder el evento si el
+  // navegador cambia de pestaña/contexto al abrir el link.
+  function pushCotizacionCompletada(origen: string) {
     window.dataLayer = window.dataLayer || [];
     window.dataLayer.push({
       event: "cotizacion_completada",
@@ -431,13 +432,74 @@ export default function Carrito({
       cotizacion_monto: totalFinal,
       cotizacion_moneda: "ARS",
       cotizacion_items: cart.length,
+      cotizacion_origen: origen,
       // Campos legacy del evento anterior, por compatibilidad con GTM existente:
       cotizacion_total: totalFinal,
       forma_pago: formaPagoLabel || "No especificada",
     });
-    trackWhatsAppClick("carrito_confirmacion");
+    trackWhatsAppClick(origen);
+  }
 
-    window.open(`https://wa.me/5493815589875?text=${text}`, "_blank");
+  function handleWhatsApp() {
+    pushCotizacionCompletada("carrito_confirmacion");
+    window.open(
+      `https://wa.me/5493815589875?text=${buildWhatsAppText(preview?.numero || "la cotización")}`,
+      "_blank",
+    );
+  }
+
+  // Camino directo: enviar por WhatsApp sin pedir nombre/teléfono ni generar el
+  // PNG. El precio ya está a la vista en el carrito, así que exigir datos antes
+  // no aportaba nada y frenaba el embudo.
+  //
+  // OJO con el orden: `window.open` tiene que correr de forma SÍNCRONA dentro
+  // del handler del click. Si se hace después de un `await`, los navegadores
+  // (sobre todo Safari iOS) lo bloquean como popup. Por eso el número se genera
+  // en el cliente y el registro en Telegram/Sheet se manda después, en segundo
+  // plano — abrir WhatsApp nunca depende de que la red responda.
+  function handleWhatsAppDirecto() {
+    if (cart.length === 0) return;
+
+    // Sufijo "W" para distinguirlo del contador del servidor (COT-AAMMDD-001),
+    // que se sigue usando en el camino con comprobante. Evita colisiones.
+    const now = new Date();
+    const yy = String(now.getFullYear()).slice(2);
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const numero = `COT-${yy}${mm}${dd}-W${String(Math.floor(Math.random() * 900) + 100)}`;
+
+    pushCotizacionCompletada("carrito_whatsapp_directo");
+    window.open(`https://wa.me/5493815589875?text=${buildWhatsAppText(numero)}`, "_blank");
+
+    // Registro en segundo plano: el vendedor recibe el detalle en Telegram y la
+    // fila con el gclid llega al Sheet igual que en el camino con comprobante.
+    // Si falla, el cliente ya está en WhatsApp — no se pierde la venta.
+    void fetch("/api/cotizacion/enviar", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        numeroCotizacion: numero,
+        fecha,
+        nombre: nombre.trim(),
+        telefono: telefono.trim(),
+        productos: cart.map((item) => ({
+          id: item.id,
+          tipo: item.tipo,
+          descripcion: item.descripcion,
+          medida: item.medida,
+          cantidad: item.cantidad,
+          precioUnitarioUSD: item.precioUnitarioUSD,
+          precioUnitarioARS: getSafePrecio(item.precioUnitarioARS),
+          subtotalARS: getSafePrecio(item.subtotalARS),
+        })),
+        totalARS: totalFinal,
+        dolar: precios.dolar,
+        formaPago: formaPagoLabel || undefined,
+        importeCuota: importeCuota ?? undefined,
+        gclid: safeLocalGet("gclid") || "",
+        gclidTimestamp: safeLocalGet("gclid_timestamp") || "",
+      }),
+    }).catch(() => {});
   }
 
   function handleNuevaCotizacion() {
@@ -619,13 +681,13 @@ export default function Carrito({
               <p className="mb-1 text-[10px] font-black uppercase tracking-[0.28em] text-emerald-700">Checkout de cotización</p>
               <h1 className="text-2xl font-black tracking-tight text-slate-950 md:text-[28px]">Confirmá tu cotización</h1>
               <p className="mt-1 max-w-2xl text-sm font-semibold leading-6 text-slate-600">
-                Revisá productos, elegí forma de pago y dejanos tus datos para enviarla al vendedor.
+                Revisá los productos, elegí la forma de pago y enviala por WhatsApp. Sin registro.
               </p>
             </div>
             <div className="grid gap-2 sm:grid-cols-3 lg:min-w-[620px]">
               <StepBadge number={1} title="Mi cotización" subtitle={`${cart.length} producto${cart.length === 1 ? "" : "s"}`} />
               <StepBadge number={2} title="Forma de pago" subtitle={pagoResumen} active={hasPayment} />
-              <StepBadge number={3} title="Confirmación" subtitle="Nombre y teléfono" active={nombre.trim() !== "" && telefonoValido} />
+              <StepBadge number={3} title="Enviar" subtitle="Por WhatsApp" active={hasPayment} />
             </div>
           </div>
         </section>
@@ -911,8 +973,12 @@ export default function Carrito({
               <div className="mb-5 flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-700 text-sm font-black text-white">3</span>
                 <div>
-                  <h2 className="text-lg font-black text-slate-950">Tus datos</h2>
-                  <p className="text-sm font-medium text-slate-500">Solo necesitamos nombre y teléfono para confirmar.</p>
+                  <h2 className="text-lg font-black text-slate-950">
+                    Tus datos <span className="text-sm font-bold text-slate-400">(opcional)</span>
+                  </h2>
+                  <p className="text-sm font-medium text-slate-500">
+                    Solo si querés el comprobante con tu nombre. Para enviar por WhatsApp no hacen falta.
+                  </p>
                 </div>
               </div>
 
@@ -996,28 +1062,55 @@ export default function Carrito({
 
                 {errorMsg && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{errorMsg}</div>}
 
+                {/* CTA principal: enviar por WhatsApp sin pedir datos. El precio
+                    ya está a la vista, así que el formulario sólo frenaba. */}
+                <button
+                  type="button"
+                  onClick={handleWhatsAppDirecto}
+                  disabled={cart.length === 0}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#25D366] px-5 py-4 text-base font-black text-white shadow-lg shadow-green-900/15 transition hover:brightness-95 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                >
+                  <MessageCircle className="h-5 w-5" /> Enviar por WhatsApp
+                </button>
+
+                <p className="text-center text-xs font-bold text-slate-500">
+                  Te respondemos por WhatsApp con stock y plazo de entrega.
+                </p>
+
+                {!hasPayment && (
+                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-bold text-amber-800">
+                    Elegí la forma de pago y el total se ajusta — hay 20% OFF en efectivo.
+                  </p>
+                )}
+
+                <div className="flex items-center gap-3">
+                  <div className="h-px flex-1 bg-slate-200" />
+                  <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">o</span>
+                  <div className="h-px flex-1 bg-slate-200" />
+                </div>
+
+                {/* Camino secundario: comprobante en imagen. Sigue pidiendo
+                    nombre y teléfono porque van impresos en la cotización. */}
                 <button
                   type="button"
                   onClick={handleGenerar}
                   disabled={loading || !canGenerar}
-                  className="flex w-full items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-5 py-4 text-base font-black text-white shadow-lg shadow-emerald-900/15 transition hover:bg-emerald-800 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:shadow-none"
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-emerald-200 bg-white px-5 py-3.5 text-sm font-black text-emerald-800 transition hover:bg-emerald-50 active:scale-[0.98] disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-400"
                 >
                   {loading ? (
                     <>
-                      <span className="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent" /> Generando...
+                      <span className="h-5 w-5 animate-spin rounded-full border-2 border-emerald-700 border-t-transparent" /> Generando...
                     </>
                   ) : (
                     <>
-                      <Send className="h-5 w-5" /> Confirmar cotización
+                      <Send className="h-4 w-4" /> Generar comprobante con mis datos
                     </>
                   )}
                 </button>
 
-                {!canGenerar && !loading && (
-                  <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-bold text-amber-800">
-                    {!hasPayment
-                      ? "Elegí una forma de pago para continuar."
-                      : "Completá nombre y teléfono para confirmar"}
+                {!canGenerar && !loading && hasPayment && (
+                  <p className="text-center text-xs font-bold text-slate-400">
+                    Completá nombre y teléfono para el comprobante.
                   </p>
                 )}
 

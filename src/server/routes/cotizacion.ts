@@ -32,10 +32,18 @@ interface CotizacionBody {
 function parseCotizacionBody(raw: unknown): CotizacionBody {
   const b = raw as Record<string, unknown>;
   if (!b || typeof b !== "object") throw new Error("Cuerpo inválido");
-  if (!b.numeroCotizacion || !b.fecha || !b.nombre || !b.telefono) {
+  if (!b.numeroCotizacion || !b.fecha) {
     throw new Error("Faltan campos requeridos");
   }
-  return b as unknown as CotizacionBody;
+  // nombre/teléfono son OPCIONALES: el envío directo por WhatsApp no los pide
+  // (pedirlos antes de dar el precio era lo que frenaba el embudo). En ese
+  // caso el contacto llega igual por WhatsApp, y acá lo que importa es no
+  // perder el registro en Telegram/Sheet ni el gclid de atribución.
+  return {
+    ...b,
+    nombre: typeof b.nombre === "string" && b.nombre.trim() ? b.nombre : "Consulta directa por WhatsApp",
+    telefono: typeof b.telefono === "string" && b.telefono.trim() ? b.telefono : "Ver chat de WhatsApp",
+  } as unknown as CotizacionBody;
 }
 
 const router: IRouter = Router();
