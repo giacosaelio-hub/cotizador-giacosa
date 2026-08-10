@@ -1,14 +1,14 @@
 {
   "dolar": 1430,
   "chapas_perfiladas": {
-    "sinusoidal_galv_24": 132.54,
-    "sinusoidal_galv_27": 113.36,
-    "sinusoidal_cincalum_24": 133.42,
-    "sinusoidal_cincalum_27": 112.64,
-    "sinusoidal_prepintada_24": 200.22,
-    "trapezoidal_cincalum_24": 133.42,
-    "trapezoidal_cincalum_27": 113.36,
-    "trapezoidal_prepintada_24": 200.22
+    "sinusoidal_galv_24": 115.5,
+    "sinusoidal_galv_27": 98.69,
+    "sinusoidal_cincalum_24": 132.04,
+    "sinusoidal_cincalum_27": 113.2,
+    "sinusoidal_prepintada_24": 175.05,
+    "trapezoidal_cincalum_24": 130.81,
+    "trapezoidal_cincalum_27": 108.8,
+    "trapezoidal_prepintada_24": 187.67
   },
   "bobinas": {
     "22": 8,
@@ -39,7 +39,7 @@
       "ancho": 0.41,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 3.55
+      "precio": 4.05
     },
     {
       "id": "bob-25-061",
@@ -47,7 +47,7 @@
       "ancho": 0.61,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 5.23
+      "precio": 4.51
     },
     {
       "id": "bob-25-081",
@@ -55,7 +55,7 @@
       "ancho": 0.81,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 7.09
+      "precio": 6.04
     },
     {
       "id": "bob-25-122-galv",
@@ -63,7 +63,7 @@
       "ancho": 1.22,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 10.04
+      "precio": 8.99
     },
     {
       "id": "bob-25-122-blanco",
@@ -87,7 +87,7 @@
       "ancho": 0.41,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 3.25
+      "precio": 2.55
     },
     {
       "id": "bob-27-061",
@@ -95,7 +95,7 @@
       "ancho": 0.61,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 4.81
+      "precio": 3.79
     },
     {
       "id": "bob-27-081",
@@ -103,7 +103,7 @@
       "ancho": 0.81,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 6.45
+      "precio": 5.07
     },
     {
       "id": "bob-27-122",
@@ -111,7 +111,7 @@
       "ancho": 1.22,
       "tipo": "Galvanizada",
       "color": null,
-      "precio": 8.58
+      "precio": 7.52
     }
   ],
   "chapas_estandar": {
@@ -122,37 +122,37 @@
       "N20_1.22x2.44": 43.86
     },
     "lisa_negra": {
-      "N14_1x2": 58.12,
-      "N14_1.22x2.44": 84.19,
-      "N16_1x2": 46.09,
-      "N16_1.22x2.44": 66.73,
-      "N18_1x2": 36.69,
-      "N18_1.22x2.44": 53.14,
-      "N20_1x2": 25.55,
-      "N20_1.22x2.44": 37.01,
-      "N22_1x2": 21.1,
-      "N22_1.22x2.44": 30.57,
-      "N27_1x2": 12.49,
+      "N14_1x2": 69.53,
+      "N14_1.22x2.44": 88.11,
+      "N16_1x2": 48.94,
+      "N16_1.22x2.44": 70.76,
+      "N18_1x2": 38.46,
+      "N18_1.22x2.44": 56.12,
+      "N20_1x2": 26.89,
+      "N20_1.22x2.44": 39.63,
+      "N22_1x2": 22.17,
+      "N22_1.22x2.44": 31.24,
+      "N27_1x2": 13.41,
       "N24_1x2": 17.01,
-      "N24_1.22x2.44": 24.67
+      "N24_1.22x2.44": 26.49
     },
     "lisa_galv": {
-      "N14_1x2": 75.75,
+      "N14_1x2": 61.82,
       "N14_1.22x2.44": 87.65,
       "N16_1x2": 51.13,
-      "N16_1.22x2.44": 73.98,
-      "N18_1x2": 35.54,
-      "N18_1.22x2.44": 51.44,
-      "N20_1x2": 29.47,
-      "N20_1.22x2.44": 42.68,
-      "N22_1x2": 25.94,
-      "N22_1.22x2.44": 37.56,
-      "N24_1.22x2.44": 26.06,
-      "N27_1.22x2.44": 22.91,
-      "N30_1x2": 14.27
+      "N16_1.22x2.44": 71.99,
+      "N18_1x2": 39.01,
+      "N18_1.22x2.44": 57.01,
+      "N20_1x2": 29.2,
+      "N20_1.22x2.44": 41.41,
+      "N22_1x2": 22.93,
+      "N22_1.22x2.44": 35.48,
+      "N24_1.22x2.44": 25.41,
+      "N27_1.22x2.44": 22.2,
+      "N30_1x2": 12.25
     },
     "lisa_prepintada": {
-      "N25_1.22x2.44": 41.79,
+      "N25_1.22x2.44": 35.43,
       "N27_1.22x2.44": 41.79
     }
   },
@@ -532,83 +532,83 @@
   ],
   "perfil_c": {
     "comun": {
-      "80x1.6": 63.67,
-      "100x1.6": 67.64,
-      "120x1.6": 79.88,
-      "80x2.0": 75.28,
-      "100x2.0": 71.28,
-      "120x2.0": 84.85,
-      "140x2.0": 103.19,
-      "160x2.0": 111.44,
-      "180x2.0": 124.27,
-      "200x2.0": 139.48,
-      "220x2.0": 141.76,
-      "240x2.5": 182.55
+      "80x1.6": 58.59,
+      "100x1.6": 66.31,
+      "120x1.6": 78.32,
+      "80x2.0": 61.57,
+      "100x2.0": 69.88,
+      "120x2.0": 83.19,
+      "140x2.0": 101.17,
+      "160x2.0": 109.26,
+      "180x2.0": 121.83,
+      "200x2.0": 136.74,
+      "220x2.0": 142.87,
+      "240x2.5": 183.97
     },
     "galvanizado": {
-      "100x1.6": 79.65,
-      "100x2.0": 98.55,
-      "120x2.0": 107.77
+      "100x1.6": 78.09,
+      "100x2.0": 96.62,
+      "120x2.0": 105.65
     }
   },
   "complementarios": {
     "cumbreras": {
-      "sinusoidal_negra": 23.89,
-      "trapezoidal_negra": 23.89,
-      "lisa_azul_40": 17.15,
-      "lisa_azul_60": 25.63,
-      "lisa_gris_40": 17.15,
-      "lisa_gris_60": 25.63,
-      "lisa_negra_40": 17.15,
-      "lisa_negra_60": 25.63,
-      "lisa_roja_40": 17.15,
-      "lisa_roja_60": 25.63,
-      "lisa_verde_40": 17.15,
-      "lisa_verde_60": 25.63,
-      "lisa_sin_pintar_40": 17.15,
-      "lisa_sin_pintar_60": 25.63
+      "sinusoidal_negra": 23.42,
+      "trapezoidal_negra": 23.42,
+      "lisa_azul_40": 16.81,
+      "lisa_azul_60": 25.12,
+      "lisa_gris_40": 16.81,
+      "lisa_gris_60": 25.12,
+      "lisa_negra_40": 16.81,
+      "lisa_negra_60": 25.12,
+      "lisa_roja_40": 16.81,
+      "lisa_roja_60": 25.12,
+      "lisa_verde_40": 16.81,
+      "lisa_verde_60": 25.12,
+      "lisa_sin_pintar_40": 16.81,
+      "lisa_sin_pintar_60": 25.12
     },
     "autoperforantes": {
-      "1_rosca_chapa": 6801.23,
-      "1.5_rosca_chapa": 7701.24,
-      "2_rosca_chapa": 10106.47,
-      "2_rosca_madera": 11174.12,
-      "2.5_rosca_chapa": 17741.88,
-      "2.5_rosca_madera": 23047.19,
-      "3_rosca_madera": 36970.19
+      "1_rosca_chapa": 12056.32,
+      "1.5_rosca_chapa": 15642.06,
+      "2_rosca_chapa": 18666.21,
+      "2_rosca_madera": 18902.91,
+      "2.5_rosca_chapa": 22046.48,
+      "2.5_rosca_madera": 22177.72,
+      "3_rosca_madera": 25401.9
     },
     "tornillos": {
-      "T1_punta_aguja": 2540.8,
-      "T1_punta_mecha": 2540.8,
-      "T2_punta_aguja": 4073.1,
-      "T2_punta_mecha": 4073.1,
-      "T3_punta_aguja": 4197.1,
-      "T3_punta_mecha": 5581.41,
-      "T4_punta_aguja": 4952.11
+      "T1_punta_aguja": 2488.44,
+      "T1_punta_mecha": 2811.55,
+      "T2_punta_aguja": 2196.29,
+      "T2_punta_mecha": 3012.43,
+      "T3_punta_aguja": 3401.48,
+      "T3_punta_mecha": 4312.82,
+      "T4_punta_aguja": 4439.71
     },
     "estaño": {
-      "kg": 109077.27,
-      "barra": 14548.26
+      "kg": 106938.5,
+      "barra": 14263.0
     }
   },
   "hierros": {
     "liso": {
-      "6": 3.79,
-      "8": 8.45,
-      "10": 13.69,
-      "12": 18.94,
+      "6": 2.88,
+      "8": 6.82,
+      "10": 10.73,
+      "12": 14.99,
       "14": 24.81,
-      "16": 33.66,
-      "20": 51.93
+      "16": 26.74,
+      "20": 42.09
     },
     "torsionado": {
-      "4.2": 2.40,
-      "6": 5.01,
-      "8": 8.77,
-      "10": 13.60,
-      "12": 18.58,
-      "16": 32.19,
-      "20": 50.07
+      "4.2": 2.4,
+      "6": 3.89,
+      "8": 6.67,
+      "10": 10.42,
+      "12": 14.86,
+      "16": 25.94,
+      "20": 40.55
     }
   }
 }
