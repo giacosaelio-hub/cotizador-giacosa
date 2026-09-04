@@ -12,7 +12,52 @@ Planilla: **`ELIO _ INTERES TARJETAS DE CREDITO.xlsx`**
 - Supuestos de la planilla en esta revisión: lista = efectivo + 30 %, inflación
   proyectada 3 % mensual, tope de pérdida 24 %.
 
-Última sincronización: **rev `2026-02`** (`formas_pago_rev` en `precios.json`).
+Última sincronización: **rev `2026-09`** (`formas_pago_rev` en `precios.json`).
+
+### Criterio de la rev `2026-09`
+
+Al comparar contra producción (`GET /api/precios`) se detectó que el panel de
+admin ya tenía ediciones que **no estaban en el repo**, y que en varios casos son
+posteriores a la planilla. El criterio acordado con el dueño del negocio fue:
+
+> **Los valores que están hoy en la web son los correctos.** Solo se corrigen los
+> planes que nunca se editaron desde el panel (los que seguían en el valor por
+> defecto viejo de `main`).
+
+Por eso `precios.json` ahora refleja **producción**, con una sola excepción: los
+planes de **6 cuotas** que seguían en 0 % y que la planilla pone en −5 %.
+
+## Cambios que aplica la rev `2026-09` sobre producción
+
+| Tarjeta | Cuotas | Hoy en la web | Queda en |
+|---|---|---|---|
+| Visa / Mastercard | 6 | 0 % | **−5 %** |
+| Naranja Visa | 6 | 0 % | **−5 %** |
+| Cencosud | 6 | 0 % | **−5 %** |
+| Titanio | 6 | 0 % | **−5 %** |
+| Credicash | 6 | 0 % | **−5 %** |
+
+Los otros 44 valores quedan idénticos a como están hoy en la web.
+
+### Ediciones de admin que se respetan (NO se tocan)
+
+Difieren de la planilla FEBRERO 2026 pero se conservan porque son decisiones
+más recientes tomadas desde el panel:
+
+| Tarjeta | Cuotas | Se conserva | La planilla decía |
+|---|---|---|---|
+| Naranja | 6 | +6 % | −5 % |
+| Naranja | 9 | +6 % | 0 % |
+| Naranja | 10 | +10 % | +5 % |
+| Naranja | 12 | +9 % | 0 % |
+| Sol | 18 | +12 % | +10 % |
+| Amex propia | 6 | +6 % | (sin dato) |
+
+Ya coincidían con la planilla y también se conservan: Sol 12 (+3 %),
+Amex bancarizada 3 (0 %) y 6 (+5 %), Credicash 9 (+10 %).
+
+**Si en algún momento se quiere volver a imponer la planilla sobre estos valores,
+hay que editarlos en `precios.json` y subir `formas_pago_rev`.**
 
 ## Cómo se propaga a producción
 
@@ -28,40 +73,22 @@ tarjetas/cuotas que existen en ambos y guarda la nueva revisión.
   (hasta la próxima suba de `formas_pago_rev`).
 
 **Para la próxima actualización:** editar los `porcentaje` en `precios.json` y
-subir `formas_pago_rev` (p. ej. a `2026-09`). Sin ese cambio de revisión, el
+subir `formas_pago_rev` (p. ej. a `2026-10`). Sin ese cambio de revisión, el
 archivo vivo no se actualiza.
-
-## Cambios aplicados en la rev `2026-02`
-
-| Tarjeta (web) | Bloque en la planilla | Cuotas | Antes | Ahora |
-|---|---|---|---|---|
-| Visa / Mastercard | FISERV CLOVER | 6 | 0 % | **−5 %** |
-| Naranja Visa | FISERV CLOVER | 6 | 0 % | **−5 %** |
-| Cencosud | FISERV CLOVER | 6 | 0 % | **−5 %** |
-| Naranja | NARANJA común | 6 | 0 % | **−5 %** |
-| Naranja | NARANJA común | 10 | +10 % | **+5 %** |
-| Naranja | NARANJA común | 12 | +10 % | **0 %** |
-| Sol | TARJETA SOL | 12 | 0 % | **+3 %** |
-| American Express (bancarizada) | AMEX BANCARIZADAS | 3 | −10 % | **0 %** |
-| American Express (bancarizada) | AMEX BANCARIZADAS | 6 | 0 % | **+5 %** |
-| Titanio | TITANIO | 3 y 6 | 0 % (6) | **−5 %** (6) |
-| Credicash | CREDICASH | 6 | 0 % | **−5 %** |
-| Credicash | CREDICASH | 9 | +5 % | **+10 %** |
-
-Ya coincidían y no se tocaron: Débito 1, Cabal 6 (−10 %), Sucredito 1/3/5/6,
-Titanio Argencard 1/3/6, Sol 1/3/6/9/18, y las cuotas 1/3/9/12 de
-Visa-Mastercard / Naranja Visa / Cencosud.
 
 ## Pendientes de decisión comercial (NO se cambiaron)
 
 Diferencias que no son un error de carga sino una decisión de qué ofrecer:
 
-1. **Naranja «3 cuotas» (−10 %) no existe en la planilla.** El plan corto de
-   Naranja en la planilla es el **Plan Z** (−10 %), que la web ya ofrece aparte.
-   Verificar si el plan de 3 cuotas sigue vigente con Naranja.
+1. **Naranja «3 cuotas» y «Plan Zeta» son el mismo plan.** En la planilla el plan
+   corto de Naranja es el **Plan Z** (−10 %) y no existe un «3»; la web los ofrece
+   como dos opciones separadas, ambas al −10 %. No hay error de precio, pero el
+   cliente ve duplicada la misma financiación. Además, con la clave `zeta`
+   el carrito no muestra el valor por cuota (`Carrito.tsx:82`). Pendiente:
+   unificar en una sola opción.
 2. **American Express (propia / no bancaria)** — la planilla trae sus costos
    (2 c. 19,22 %, 3 c. 25,25 %, 6 c. 44,5 %) pero **no** tiene columna de interés
-   a aplicar, así que la web quedó como estaba (3 c. 0 %, 6 c. +10 %).
+   a aplicar. Se mantiene lo que hay en la web: 3 c. 0 %, 6 c. **+6 %**.
 3. **Débito y efectivo/transferencia/QR** no figuran en la planilla. Siguen en
    −15 % y −20 % respectivamente.
 4. **Planes que la planilla calcula y la web no ofrece:**

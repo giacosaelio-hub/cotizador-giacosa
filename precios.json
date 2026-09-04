@@ -230,25 +230,25 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": -5,
+          "porcentaje": 6,
           "activo": true
         },
         {
           "key": "9",
           "label": "9 cuotas",
-          "porcentaje": 0,
+          "porcentaje": 6,
           "activo": true
         },
         {
           "key": "10",
           "label": "10 cuotas",
-          "porcentaje": 5,
+          "porcentaje": 10,
           "activo": true
         },
         {
           "key": "12",
           "label": "12 cuotas",
-          "porcentaje": 0,
+          "porcentaje": 9,
           "activo": true
         },
         {
@@ -332,7 +332,7 @@
         {
           "key": "18",
           "label": "18 cuotas",
-          "porcentaje": 10,
+          "porcentaje": 12,
           "activo": true
         }
       ]
@@ -500,7 +500,7 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 10,
+          "porcentaje": 6,
           "activo": true
         }
       ]
@@ -611,5 +611,5 @@
       "20": 50.07
     }
   },
-  "formas_pago_rev": "2026-02"
+  "formas_pago_rev": "2026-09"
 }
