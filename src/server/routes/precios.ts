@@ -26,7 +26,11 @@ function ensurePreciosFile() {
     let changed = false;
 
     // 1) Agregar claves de primer nivel faltantes del bundleado.
-    const missingKeys = Object.keys(defaults).filter((k) => !(k in current));
+    //    'formas_pago_rev' se excluye: lo maneja el paso 3, que necesita ver que
+    //    el archivo vivo todavía no tiene la revisión para poder sincronizar.
+    const missingKeys = Object.keys(defaults).filter(
+      (k) => !(k in current) && k !== "formas_pago_rev",
+    );
     if (missingKeys.length > 0) {
       for (const key of missingKeys) {
         current[key] = defaults[key];
@@ -51,6 +55,42 @@ function ensurePreciosFile() {
           console.log(`[precios] Migración: cuota '1' agregada a ${id} (${CUOTA_UNO[id]}%)`);
         }
       }
+    }
+
+    // 3) Sincronizar los porcentajes de financiación con la planilla de intereses.
+    //    El bundleado sólo siembra el volumen la primera vez, así que sin esto los
+    //    porcentajes nuevos nunca llegarían a producción. Se aplica UNA sola vez por
+    //    revisión: cuando 'formas_pago_rev' del bundleado difiere del vivo.
+    //    Sólo se pisa 'porcentaje' de tarjetas/cuotas que ya existen en ambos lados;
+    //    no se agregan, borran ni desactivan planes (se respeta lo editado en admin).
+    if (
+      defaults.formas_pago_rev &&
+      defaults.formas_pago_rev !== current.formas_pago_rev &&
+      Array.isArray(current.formas_pago) &&
+      Array.isArray(defaults.formas_pago)
+    ) {
+      type Cuota = { key?: string; porcentaje?: number };
+      type Tarjeta = { id?: string; cuotas?: Cuota[] };
+      const sincronizados: string[] = [];
+
+      for (const tarjeta of current.formas_pago as Tarjeta[]) {
+        const ref = (defaults.formas_pago as Tarjeta[]).find((t) => t.id === tarjeta?.id);
+        if (!ref || !Array.isArray(tarjeta?.cuotas) || !Array.isArray(ref.cuotas)) continue;
+        for (const cuota of tarjeta.cuotas) {
+          const refCuota = ref.cuotas.find((c) => c.key === cuota?.key);
+          if (!refCuota || typeof refCuota.porcentaje !== "number") continue;
+          if (cuota.porcentaje === refCuota.porcentaje) continue;
+          sincronizados.push(`${tarjeta.id}/${cuota.key}: ${cuota.porcentaje}% → ${refCuota.porcentaje}%`);
+          cuota.porcentaje = refCuota.porcentaje;
+        }
+      }
+
+      current.formas_pago_rev = defaults.formas_pago_rev;
+      changed = true;
+      console.log(
+        `[precios] Financiación sincronizada (rev ${defaults.formas_pago_rev}):`,
+        sincronizados.length > 0 ? sincronizados.join(", ") : "sin diferencias",
+      );
     }
 
     if (changed) {
@@ -112,6 +152,9 @@ router.post("/precios", requireAdminAuth, (req, res): void => {
       bobinas_variantes: body.bobinas_variantes ?? current.bobinas_variantes,
       chapas_estandar: body.chapas_estandar ?? current.chapas_estandar,
       formas_pago: body.formas_pago ?? current.formas_pago,
+      // Se conserva para que una edición de admin no dispare de nuevo la
+      // sincronización de financiación y pise los porcentajes recién guardados.
+      formas_pago_rev: current.formas_pago_rev,
       perfil_c: body.perfil_c ?? current.perfil_c,
       complementarios: body.complementarios ?? current.complementarios,
       hierros: body.hierros ?? current.hierros,
