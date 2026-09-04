@@ -188,7 +188,7 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": -5,
           "activo": true
         },
         {
@@ -230,13 +230,13 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": 6,
           "activo": true
         },
         {
           "key": "9",
           "label": "9 cuotas",
-          "porcentaje": 0,
+          "porcentaje": 6,
           "activo": true
         },
         {
@@ -248,7 +248,7 @@
         {
           "key": "12",
           "label": "12 cuotas",
-          "porcentaje": 10,
+          "porcentaje": 9,
           "activo": true
         },
         {
@@ -278,7 +278,7 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": -5,
           "activo": true
         },
         {
@@ -326,13 +326,13 @@
         {
           "key": "12",
           "label": "12 cuotas",
-          "porcentaje": 0,
+          "porcentaje": 3,
           "activo": true
         },
         {
           "key": "18",
           "label": "18 cuotas",
-          "porcentaje": 10,
+          "porcentaje": 12,
           "activo": true
         }
       ]
@@ -356,7 +356,7 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": -5,
           "activo": true
         },
         {
@@ -380,13 +380,13 @@
         {
           "key": "3",
           "label": "3 cuotas",
-          "porcentaje": -10,
+          "porcentaje": 0,
           "activo": true
         },
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": 5,
           "activo": true
         }
       ]
@@ -446,7 +446,7 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": -5,
           "activo": true
         }
       ]
@@ -470,13 +470,13 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 0,
+          "porcentaje": -5,
           "activo": true
         },
         {
           "key": "9",
           "label": "9 cuotas",
-          "porcentaje": 5,
+          "porcentaje": 10,
           "activo": true
         },
         {
@@ -500,7 +500,7 @@
         {
           "key": "6",
           "label": "6 cuotas",
-          "porcentaje": 10,
+          "porcentaje": 6,
           "activo": true
         }
       ]
@@ -610,5 +610,6 @@
       "16": 32.19,
       "20": 50.07
     }
-  }
+  },
+  "formas_pago_rev": "2026-09"
 }
