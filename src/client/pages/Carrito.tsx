@@ -265,13 +265,16 @@ export default function Carrito({
   const telefonoValido = onlyDigits(telefono).length >= 7;
   const hasPayment =
     esPagoSimple || (medioPago === "tarjeta" && tarjetaId !== "" && cuotaKey !== "");
-  const canGenerar = cart.length > 0 && nombreValido && telefonoValido && hasPayment;
+  // La forma de pago es opcional: reducir la fricción para generar la
+  // cotización (el asesor la confirma por WhatsApp). Sin pago, el total es el
+  // precio de lista.
+  const canGenerar = cart.length > 0 && nombreValido && telefonoValido;
 
   // Resaltado de campos faltantes: solo se activa una vez que el usuario ya
-  // eligió forma de pago (llegó al paso final), para no marcar en rojo al
+  // eligió forma de pago o completó el otro campo, para no marcar en rojo al
   // entrar al carrito. Señala con claridad qué falta para poder confirmar.
-  const resaltarNombre = hasPayment && !nombreValido;
-  const resaltarTelefono = hasPayment && !telefonoValido;
+  const resaltarNombre = (hasPayment || telefonoValido) && !nombreValido;
+  const resaltarTelefono = (hasPayment || nombreValido) && !telefonoValido;
 
   function scrollToCotizadorCategorias() {
     // El flag de storage es solo una pista OPCIONAL para el scroll. Si falla
@@ -761,7 +764,7 @@ export default function Carrito({
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-700 text-sm font-black text-white">2</span>
                 <div>
                   <h2 className="text-lg font-black text-slate-950">Elegí cómo querés pagar</h2>
-                  <p className="text-sm font-medium text-slate-500">El total se actualiza según el método elegido.</p>
+                  <p className="text-sm font-medium text-slate-500">Opcional: el total se actualiza según el método elegido.</p>
                 </div>
               </div>
 
@@ -1015,9 +1018,7 @@ export default function Carrito({
 
                 {!canGenerar && !loading && (
                   <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2.5 text-center text-xs font-bold text-amber-800">
-                    {!hasPayment
-                      ? "Elegí una forma de pago para continuar."
-                      : "Completá nombre y teléfono para confirmar"}
+                    Completá nombre y teléfono para confirmar
                   </p>
                 )}
 
