@@ -202,8 +202,8 @@ export default function App() {
     }
     if (view === "chapa_perfilada" && perfil === "trapezoidal") {
       setMeta(
-        "Chapa Trapezoidal en Tucumán | Giacosa Elio",
-        "Chapa trapezoidal galvanizada, cincalum y prepintada en Tucumán. Mayor superficie cubierta por chapa. Cortada a medida, calibre 24 y 27. Cotizá online. Giacosa Elio, Suipacha 482."
+        "Chapa Trapezoidal en Tucumán: Precio y Medida | Giacosa Elio",
+        "Chapa trapezoidal cincalum y prepintada, calibre 24 y 27, de 6 a 42,62 pies. Precio al instante online y 6 cuotas sin interés. Suipacha 482, Tucumán."
       );
       return;
     }
@@ -211,8 +211,8 @@ export default function App() {
     // Subpáginas de chapa estándar
     if (view === "chapa_estandar" && cat === "lisa_negra") {
       setMeta(
-        "Chapa Negra (LAF) en Tucumán | Giacosa Elio",
-        "Chapa negra (LAF/LAC, también: hoja negra) sin tratamiento en medidas 1×2 m y 1.22×2.44 m. Para herrería, fabricación y estructuras en Tucumán. Cotizá por unidad online. Giacosa Elio, Suipacha 482."
+        "Chapa Negra para Portón en Tucumán: Precio | Giacosa Elio",
+        "Chapa negra lisa de 1×2 m y 1,22×2,44 m para portones, herrería y estructuras en Tucumán. Cotizá por unidad con precio al instante. Suipacha 482."
       );
       return;
     }
@@ -225,8 +225,8 @@ export default function App() {
     }
     if (view === "chapa_estandar" && cat === "lisa_galv") {
       setMeta(
-        "Chapa Lisa Galvanizada (Hoja Galvanizada) en Tucumán | Giacosa Elio",
-        "Chapa lisa galvanizada (hoja galvanizada) con protección de zinc. Medidas 1×2 m y 1.22×2.44 m. Para exteriores en Tucumán. Cotizá por unidad online. Giacosa Elio, Suipacha 482."
+        "Chapa Galvanizada Lisa en Tucumán: Precio | Giacosa Elio",
+        "Chapa lisa galvanizada (hoja galvanizada) de 1×2 m y 1,22×2,44 m, con protección de zinc. Cotizá por unidad y pagá en 6 cuotas sin interés. Suipacha 482."
       );
       return;
     }
@@ -242,10 +242,10 @@ export default function App() {
     type TD = { title: string; description: string };
     const pages: Partial<Record<View, TD>> = {
       home:            { title: "Giacosa Elio | Cotizador online de materiales en Tucumán",                              description: "Cotizá online chapas para techo, bobinas de acero, chapas estándar, Perfil C y complementarios para obra en Tucumán. Giacosa Elio, Suipacha 482." },
-      chapa_perfilada: { title: "Chapas para Techo en Tucumán: Acanalada y Trapezoidal | Giacosa Elio",                  description: "Chapa acanalada (sinusoidal) y trapezoidal en Tucumán: galvanizada, cincalum y prepintada. Cortadas a medida desde bobina. Cotizá online al instante. Giacosa Elio, Suipacha 482." },
+      chapa_perfilada: { title: "Chapas en Tucumán: Precios y Cotizador Online | Giacosa Elio",                            description: "Chapa acanalada y trapezoidal para techo en Tucumán, cortada a medida. Precio al instante, descuento por efectivo o transferencia y 6 cuotas sin interés." },
       chapa_estandar:  { title: "Chapas Estándar en Tucumán: Hoja Galvanizada, Negra y Lisa | Giacosa Elio",             description: "Hoja galvanizada, chapa negra (LAF), chapa lisa prepintada, perforada y estampada en medidas fijas. Para herrería, portones y fabricación en Tucumán. Cotizá por unidad online." },
       bobina:          { title: "Bobinas de acero en Tucumán | Giacosa Elio",                                            description: "Bobinas de acero galvanizado, cincalum y prepintado en Tucumán. Corte a medida y venta por metro, según calibre y ancho. Giacosa Elio, Suipacha 482." },
-      perfil_c:        { title: "Perfil C en Tucumán | Cotizador online | Giacosa Elio",                                 description: "Perfil C de acero galvanizado en Tucumán. Cotizá online por longitud y calibre. Giacosa Elio, Suipacha 482." },
+      perfil_c:        { title: "Perfil C en Tucumán: Barras de 12 m, Precio | Giacosa Elio",                               description: "Perfil C común y galvanizado en barras de 12 metros, del 80 al 240. Precio al instante en el cotizador y 6 cuotas sin interés. Suipacha 482, Tucumán." },
       hierro:          { title: "Hierro de construcción en Tucumán: liso y torsionado | Giacosa Elio",                   description: "Barras de hierro liso y torsionado (nervado) en Tucumán, del 4.2 al 25, barras de 12 m. Cotizá online al instante. Giacosa Elio, Suipacha 482." },
       complementario:  { title: "Complementarios para obra en Tucumán | Giacosa Elio",                                   description: "Cumbreras, autoperforantes, tornillos y estaño para obras en Tucumán. Cotizá online. Giacosa Elio, Suipacha 482." },
       informacion:     { title: "Materiales para obra y construcción en seco en Tucumán | Giacosa Elio",                  description: "Chapas, bobinas, Perfil C, complementarios y construcción en seco en Tucumán: Durlock, placas de roca de yeso, steel framing, perfiles galvanizados y aislantes. Cotizá online o consultá en Giacosa Elio." },

@@ -296,6 +296,30 @@ export default function ChapaPerfiladaConfig({
     return Array.from(found).sort((a, b) => Number(a) - Number(b));
   }, [keys, perfil, material]);
 
+  // Tabla comparativa informativa: sale de la lista de precios, no está hardcodeada.
+  const comparativa = useMemo(() => {
+    return Object.keys(PERFIL_LABELS)
+      .map((p) => {
+        const porMaterial: Record<string, Set<string>> = {};
+        keys.forEach((k) => {
+          const parsed = parseKey(k);
+          if (parsed.perfil !== p || !MATERIAL_LABELS[parsed.material]) return;
+          (porMaterial[parsed.material] ??= new Set()).add(parsed.calibre);
+        });
+        const mats = Object.keys(porMaterial);
+        return {
+          perfil: p,
+          label: PERFIL_LABELS[p].label,
+          materiales: mats.map((m) => MATERIAL_LABELS[m]).join(", "),
+          calibres: mats
+            .map((m) => `${MATERIAL_LABELS[m]}: ${Array.from(porMaterial[m]).sort((a, b) => Number(a) - Number(b)).join(" y ")}`)
+            .join(" · "),
+          hay: mats.length > 0,
+        };
+      })
+      .filter((c) => c.hay);
+  }, [keys]);
+
   const perfilLabel = perfil && PERFIL_LABELS[perfil] ? PERFIL_LABELS[perfil].label : "";
   const anchoUtil = perfil && PERFIL_LABELS[perfil] ? PERFIL_LABELS[perfil].anchoUtil : 1;
   const materialLabel = material && MATERIAL_LABELS[material] ? MATERIAL_LABELS[material] : "";
@@ -793,6 +817,45 @@ export default function ChapaPerfiladaConfig({
             </div>
           </aside>
         </div>
+
+        <section className="mt-8 rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">Chapa acanalada o trapezoidal</h2>
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full min-w-[420px] text-left text-sm">
+              <thead>
+                <tr className="border-b border-slate-200 text-xs font-black uppercase tracking-wide text-slate-500">
+                  <th className="py-2 pr-3"></th>
+                  {comparativa.map((c) => (
+                    <th key={c.perfil} className="py-2 pr-3">{c.label}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="text-slate-700">
+                <tr className="border-b border-slate-100">
+                  <td className="py-2 pr-3 font-black text-slate-900">Materiales</td>
+                  {comparativa.map((c) => (
+                    <td key={c.perfil} className="py-2 pr-3">{c.materiales}</td>
+                  ))}
+                </tr>
+                <tr className="border-b border-slate-100">
+                  <td className="py-2 pr-3 font-black text-slate-900">Calibres</td>
+                  {comparativa.map((c) => (
+                    <td key={c.perfil} className="py-2 pr-3">{c.calibres}</td>
+                  ))}
+                </tr>
+                <tr>
+                  <td className="py-2 pr-3 font-black text-slate-900">Uso</td>
+                  {comparativa.map((c) => (
+                    <td key={c.perfil} className="py-2 pr-3">{PERFIL_DESCS[c.perfil] ?? ""}</td>
+                  ))}
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="mt-3 text-sm font-medium text-slate-600">
+            Largos de 6 a 42,62 pies, cortados a medida.
+          </p>
+        </section>
       </div>
     </div>
   );

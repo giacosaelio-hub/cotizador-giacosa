@@ -813,6 +813,18 @@ export default function ChapaEstandarConfig({ precios, preselection, onBack, onA
             </div>
           </aside>
         </div>
+
+        <section className="mt-8 rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm">
+          <h2 className="text-xl font-black text-slate-950">Chapa para portón: cuál elegir</h2>
+          <ul className="mt-3 grid gap-2 text-sm font-medium leading-6 text-slate-600">
+            <li><span className="font-black text-slate-900">Negra lisa:</span> sin tratamiento, para herrería y estructuras. Se pinta después.</li>
+            <li><span className="font-black text-slate-900">Negra estampada:</span> con relieve decorativo, para portones y cerramientos.</li>
+            <li><span className="font-black text-slate-900">Galvanizada lisa:</span> con protección de zinc, para exteriores.</li>
+          </ul>
+          <p className="mt-3 text-sm font-medium text-slate-600">
+            Medidas: 1 × 2 m y 1,22 × 2,44 m. Cotizás por unidad.
+          </p>
+        </section>
       </div>
     </div>
   );
