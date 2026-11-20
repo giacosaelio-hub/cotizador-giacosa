@@ -46,6 +46,12 @@ function getAdminSessionToken(req: Request): string | undefined {
  * Crea una sesión de administrador y setea la cookie en la respuesta.
  */
 export function createAdminSession(res: Response): string {
+  // Poda sesiones vencidas para que el objeto no crezca indefinidamente.
+  const now = Date.now();
+  for (const [t, s] of Object.entries(adminSessions)) {
+    if (now - s.createdAt > SESSION_TTL_MS) delete adminSessions[t];
+  }
+
   const token = generateAdminToken();
   const session: AdminSession = { token, createdAt: Date.now() };
   adminSessions[token] = session;

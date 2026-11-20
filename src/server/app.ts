@@ -10,6 +10,10 @@ const app: Express = express();
 // Determina entorno — debe ir antes de los middlewares que lo usan
 const isProdEarly = process.env.NODE_ENV === "production";
 
+// Detrás del proxy de EasyPanel: necesario para que req.ip sea la IP real del
+// cliente (rate limiting) y no la del proxy.
+app.set("trust proxy", 1);
+
 app.use(compression());
 
 // Security headers via helmet
@@ -33,6 +37,13 @@ app.use(
           "https://www.clarity.ms",                      // Microsoft Clarity via GTM
           "https://*.clarity.ms",
           "https://capi-automation.s3.us-east-2.amazonaws.com",  // Meta CAPI clientParamBuilder
+          // Google Ads: la etiqueta de conversion y el Conversion Linker se
+          // sirven desde estos dominios. Sin ellos el CSP bloquea el script y
+          // la conversion nunca llega a Ads (Smart Bidding se queda sin senal).
+          "https://www.googleadservices.com",
+          "https://googleads.g.doubleclick.net",
+          "https://www.google.com",
+          "https://td.doubleclick.net",
         ],
         scriptSrcAttr: ["'unsafe-inline'"],
         styleSrc:      ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
@@ -58,6 +69,15 @@ app.use(
           "https://connect.facebook.net",
           "https://*.clarity.ms",                        // Microsoft Clarity (beacons)
           "https://c.bing.com",                          // Microsoft Clarity (beacons)
+          // Google Ads / GA4 signals: el ping de conversion viaja a
+          // stats.g.doubleclick.net. Estaba bloqueado por CSP -> el costo por
+          // conversion en Ads figuraba sin datos.
+          "https://stats.g.doubleclick.net",
+          "https://googleads.g.doubleclick.net",
+          "https://td.doubleclick.net",
+          "https://www.googleadservices.com",
+          "https://www.google.com",
+          "https://pagead2.googlesyndication.com",
         ],
         frameSrc:      [
           "'self'",
@@ -67,7 +87,9 @@ app.use(
         ],
         objectSrc:     ["'none'"],
         baseUri:       ["'self'"],
-        formAction:    ["'self'"],
+        // El <noscript> del Pixel de Meta postea a facebook.com/tr/; con
+        // form-action 'self' el browser lo bloqueaba.
+        formAction:    ["'self'", "https://www.facebook.com"],
         upgradeInsecureRequests: [],
       },
     },
@@ -118,19 +140,26 @@ if (isProd) {
 
 // CORS configurado para permitir credenciales/cookies y varios origins válidos
 app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Permite llamados sin origin (ej: curl/postman)
-      if (!origin) return callback(null, true);
+  cors((req, callback) => {
+    const origin = req.headers.origin;
+    const options = { credentials: true } as const;
 
-      // Permite solo los origins explícitos
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      // Opcional: responde con error de CORS si origin no es aceptado
-      callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
+    // Sin Origin (curl/postman/same-origin GET): permitido.
+    if (!origin) return callback(null, { ...options, origin: true });
+
+    // Same-origin: los navegadores mandan Origin en los POST propios. Si
+    // FRONTEND_ORIGIN no está configurado en producción, antes esto rompía
+    // el envío de cotizaciones con "Not allowed by CORS".
+    let sameOrigin = false;
+    try {
+      sameOrigin = new URL(origin).host === req.headers.host;
+    } catch {}
+
+    if (sameOrigin || allowedOrigins.includes(origin)) {
+      return callback(null, { ...options, origin: true });
+    }
+    // Origin ajeno: sin headers CORS (el navegador lo bloquea) en vez de 500.
+    callback(null, { origin: false });
   })
 );
 

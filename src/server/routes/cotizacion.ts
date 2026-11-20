@@ -2,6 +2,8 @@ import { Router, type IRouter } from "express";
 import fs from "fs";
 import path from "path";
 import { sendTelegramMessage, sendTelegramPhoto } from "../lib/telegram";
+import { analizarTelefono } from "../lib/telefono";
+import { createRateLimiter } from "../lib/rateLimit";
 
 interface ProductoCotizado {
   id: string;
@@ -19,6 +21,8 @@ interface CotizacionBody {
   fecha: string;
   nombre: string;
   telefono: string;
+  /** Teléfono normalizado para wa.me (ej. 5493815551234), calculado en el servidor. */
+  telefonoWhatsApp: string;
   productos: ProductoCotizado[];
   totalARS: number;
   dolar: number;
@@ -29,16 +33,84 @@ interface CotizacionBody {
   gclidTimestamp?: string | null;
 }
 
+const MAX_PRODUCTOS = 100;
+const MAX_IMAGEN_BASE64 = 14 * 1024 * 1024; // ~10 MB de PNG
+
+const str = (v: unknown, max: number): string => (typeof v === "string" ? v.trim().slice(0, max) : "");
+const num = (v: unknown): number => (typeof v === "number" && Number.isFinite(v) ? v : 0);
+
 function parseCotizacionBody(raw: unknown): CotizacionBody {
   const b = raw as Record<string, unknown>;
   if (!b || typeof b !== "object") throw new Error("Cuerpo inválido");
-  if (!b.numeroCotizacion || !b.fecha || !b.nombre || !b.telefono) {
+
+  const numeroCotizacion = str(b.numeroCotizacion, 40);
+  const fecha = str(b.fecha, 60);
+  const nombre = str(b.nombre, 100);
+  const telefono = str(b.telefono, 40);
+  if (!numeroCotizacion || !fecha || !nombre || !telefono) {
     throw new Error("Faltan campos requeridos");
   }
-  return b as unknown as CotizacionBody;
+
+  // Autenticación del teléfono también en el servidor: el cliente se puede saltear.
+  const tel = analizarTelefono(telefono);
+  if (!tel.valido) throw new Error("Teléfono inválido");
+
+  if (!Array.isArray(b.productos) || b.productos.length === 0 || b.productos.length > MAX_PRODUCTOS) {
+    throw new Error("Productos inválidos");
+  }
+  const productos: ProductoCotizado[] = b.productos.map((p: any) => ({
+    id: str(p?.id, 80),
+    tipo: str(p?.tipo, 40),
+    descripcion: str(p?.descripcion, 200),
+    medida: str(p?.medida, 100),
+    cantidad: num(p?.cantidad),
+    precioUnitarioUSD: num(p?.precioUnitarioUSD),
+    precioUnitarioARS: num(p?.precioUnitarioARS),
+    subtotalARS: num(p?.subtotalARS),
+  }));
+
+  let imagenBase64: string | null = null;
+  if (typeof b.imagenBase64 === "string" && b.imagenBase64.length > 0) {
+    if (b.imagenBase64.length > MAX_IMAGEN_BASE64 || !/^[A-Za-z0-9+/=]+$/.test(b.imagenBase64)) {
+      throw new Error("Imagen inválida");
+    }
+    imagenBase64 = b.imagenBase64;
+  }
+
+  return {
+    numeroCotizacion,
+    fecha,
+    nombre,
+    telefono,
+    telefonoWhatsApp: tel.whatsapp,
+    productos,
+    totalARS: num(b.totalARS),
+    dolar: num(b.dolar),
+    formaPago: str(b.formaPago, 120) || null,
+    importeCuota: typeof b.importeCuota === "number" && Number.isFinite(b.importeCuota) ? b.importeCuota : null,
+    imagenBase64,
+    gclid: str(b.gclid, 200) || null,
+    gclidTimestamp: str(b.gclidTimestamp, 60) || null,
+  };
 }
 
 const router: IRouter = Router();
+
+// El envío dispara Telegram + n8n: se limita para que no se use como spammer.
+const limitarEnvio = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: "Demasiadas cotizaciones desde tu conexión. Probá de nuevo en unos minutos.",
+});
+const limitarNumero = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 40,
+  message: "Demasiadas solicitudes. Probá de nuevo en unos minutos.",
+});
+
+const N8N_WEBHOOK_URL =
+  process.env["N8N_WEBHOOK_URL"] ||
+  "https://cotizadorgiacosa-n8n.e6tqu7.easypanel.host/webhook/cotizacion";
 
 const TELEGRAM_CHAT_ID = process.env["TELEGRAM_CHAT_ID"];
 
@@ -105,6 +177,7 @@ function buildCaption(body: CotizacionBody): string {
     ``,
     `Cliente: ${nombre}`,
     `Tel: ${telefono}`,
+    `WhatsApp: https://wa.me/${body.telefonoWhatsApp}`,
     ``,
     `Productos:`,
     ...productos.map((p) => `• ${p.descripcion} | ${p.medida} | x${p.cantidad} | ${fmt(p.subtotalARS)}`),
@@ -158,57 +231,60 @@ async function enviarATelegram(body: CotizacionBody): Promise<void> {
     await sendTelegramMessage(chatId, caption);
   }
 
-  // 🔥 ENVIAR A N8N (WEBHOOK)
-  await fetch("https://cotizadorgiacosa-n8n.e6tqu7.easypanel.host/webhook/cotizacion", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      texto: caption,
-      numeroCotizacion: body.numeroCotizacion,
-      fecha: body.fecha,
-      nombre: body.nombre,
-      telefono: body.telefono,
-      totalARS: body.totalARS,
-      formaPago: body.formaPago ?? "",
-      importeCuota: body.importeCuota ?? "",
-      gclid: body.gclid ?? "",
-      gclidTimestamp: body.gclidTimestamp ?? "",
-      productos: body.productos
-    })
-  });
+  // Webhook de n8n: es secundario. Si falla o tarda, la cotización ya llegó a
+  // Telegram, así que no se propaga el error (antes devolvía 500 igual).
+  try {
+    const r = await fetch(N8N_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(8000),
+      body: JSON.stringify({
+        texto: caption,
+        numeroCotizacion: body.numeroCotizacion,
+        fecha: body.fecha,
+        nombre: body.nombre,
+        telefono: body.telefono,
+        telefonoWhatsApp: body.telefonoWhatsApp,
+        totalARS: body.totalARS,
+        formaPago: body.formaPago ?? "",
+        importeCuota: body.importeCuota ?? "",
+        gclid: body.gclid ?? "",
+        gclidTimestamp: body.gclidTimestamp ?? "",
+        productos: body.productos,
+      }),
+    });
+    if (!r.ok) console.error(`[n8n] webhook respondió ${r.status}`);
+  } catch (e: any) {
+    console.error("[n8n] webhook falló:", e?.message ?? e);
+  }
 
   console.log("Enviado correctamente");
 }
 
-router.get("/cotizacion/numero", (_req, res) => {
+router.get("/cotizacion/numero", limitarNumero, (_req, res) => {
   const numero = getNextCotizacionNumber();
   return res.json({ numero });
 });
 
-router.post("/cotizacion/enviar", async (req, res) => {
-  console.log("Request recibida:", JSON.stringify(req.body).slice(0, 200));
+async function manejarEnvio(req: import("express").Request, res: import("express").Response) {
+  let body: CotizacionBody;
   try {
-    const body = parseCotizacionBody(req.body);
-    await enviarATelegram(body);
-    return res.json({ success: true, message: "Cotización enviada a Telegram", numeroCotizacion: body.numeroCotizacion });
+    body = parseCotizacionBody(req.body);
   } catch (err: any) {
-    console.error("Error:", err?.message ?? err);
-    return res.status(500).json({ success: false, message: "Error al enviar la cotización a Telegram" });
+    return res.status(400).json({ success: false, message: err?.message ?? "Datos inválidos" });
   }
-});
 
-router.post("/send-quote", async (req, res) => {
-  console.log("Request recibida:", JSON.stringify(req.body).slice(0, 200));
   try {
-    const body = parseCotizacionBody(req.body);
     await enviarATelegram(body);
     return res.json({ success: true, message: "Cotización enviada a Telegram", numeroCotizacion: body.numeroCotizacion });
   } catch (err: any) {
     console.error("Error:", err?.message ?? err);
     return res.status(500).json({ success: false, message: "Error al enviar la cotización a Telegram" });
   }
-});
+}
+
+router.post("/cotizacion/enviar", limitarEnvio, manejarEnvio);
+// Alias legado: se mantiene por compatibilidad con integraciones viejas.
+router.post("/send-quote", limitarEnvio, manejarEnvio);
 
 export default router;

@@ -1,9 +1,25 @@
 import { Router } from "express";
+import { timingSafeEqual, createHash } from "node:crypto";
 import { createAdminSession, clearAdminSession, requireAdminAuth } from "../lib/adminSession";
+import { createRateLimiter } from "../lib/rateLimit";
 
 const router = Router();
 
-router.post("/admin/login", (req, res) => {
+// Freno a la fuerza bruta: 8 intentos cada 15 minutos por IP.
+const limitarLogin = createRateLimiter({
+  windowMs: 15 * 60 * 1000,
+  max: 8,
+  message: "Demasiados intentos. Esperá unos minutos antes de volver a probar.",
+});
+
+// Comparación en tiempo constante (se hashea para igualar largos).
+function passwordsIguales(a: string, b: string): boolean {
+  const ha = createHash("sha256").update(a).digest();
+  const hb = createHash("sha256").update(b).digest();
+  return timingSafeEqual(ha, hb);
+}
+
+router.post("/admin/login", limitarLogin, (req, res) => {
   const { password } = req.body || {};
 
   if (!password || typeof password !== "string") {
@@ -15,7 +31,7 @@ router.post("/admin/login", (req, res) => {
     return res.status(500).json({ success: false, message: "ADMIN_PASSWORD no configurada" });
   }
 
-  if (password !== adminPassword) {
+  if (!passwordsIguales(password, adminPassword)) {
     return res.status(401).json({ success: false, message: "Contraseña incorrecta" });
   }
 

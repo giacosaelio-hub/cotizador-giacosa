@@ -565,7 +565,79 @@ export default function PerfilCConfig({ precios, onBack, onAdd }: Props) {
             </div>
           </aside>
         </div>
+
+        <PerfilCInfo precios={precios} />
       </div>
     </div>
+  );
+}
+
+// Texto informativo bajo el cotizador: medidas reales (salen de la lista de
+// precios) y preguntas frecuentes. Apunta a búsquedas como "perfil c del 10".
+function PerfilCInfo({ precios }: { precios: Precios }) {
+  const comun = Object.keys(precios.perfil_c?.comun ?? {});
+  const galv = Object.keys(precios.perfil_c?.galvanizado ?? {});
+  const fmt = (key: string) => key.replace("x", " × ").replace(".", ",");
+
+  const faqs: [string, string][] = [
+    [
+      "¿Cuánto mide cada barra de Perfil C?",
+      "12 metros. Si necesitás varas de 6 m, cada barra se corta en 2 piezas: pedí cantidades en múltiplos de 2.",
+    ],
+    [
+      "¿Qué es el \"perfil C del 10\"?",
+      "Es el Perfil C de 100 mm de alto. Lo tenés en espesor 1,6 y 2,0 mm, en acero común y galvanizado.",
+    ],
+    [
+      "¿Cuál es la diferencia entre común y galvanizado?",
+      "El galvanizado tiene recubrimiento de zinc. El común es acero sin ese tratamiento y es el que tiene más medidas disponibles.",
+    ],
+    [
+      "¿Cómo se paga?",
+      "Con descuento en efectivo, transferencia o QR, o en 6 cuotas sin interés con tarjeta. Estamos en Batalla de Suipacha 482, San Miguel de Tucumán.",
+    ],
+  ];
+
+  return (
+    <section className="mt-8 grid gap-5 lg:grid-cols-2">
+      <div className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-black text-slate-950">Medidas de Perfil C disponibles en Tucumán</h2>
+        <p className="mt-2 text-sm font-medium text-slate-600">
+          Todas las barras miden 12 metros. Medidas en mm: alto × espesor.
+        </p>
+        {comun.length > 0 && (
+          <>
+            <h3 className="mt-4 text-sm font-black text-slate-800">Perfil C común</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {comun.map((k) => (
+                <span key={k} className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-bold text-slate-800">{fmt(k)}</span>
+              ))}
+            </div>
+          </>
+        )}
+        {galv.length > 0 && (
+          <>
+            <h3 className="mt-4 text-sm font-black text-slate-800">Perfil C galvanizado</h3>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {galv.map((k) => (
+                <span key={k} className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-bold text-emerald-800">{fmt(k)}</span>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="rounded-[26px] border border-slate-200 bg-white p-6 shadow-sm">
+        <h2 className="text-xl font-black text-slate-950">Preguntas frecuentes</h2>
+        <div className="mt-3 divide-y divide-slate-100">
+          {faqs.map(([q, a]) => (
+            <details key={q} className="group py-3">
+              <summary className="cursor-pointer text-sm font-extrabold text-slate-900">{q}</summary>
+              <p className="mt-2 text-sm font-medium leading-6 text-slate-600">{a}</p>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
   );
 }
