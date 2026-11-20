@@ -16,6 +16,7 @@ import {
 } from "@/lib/precios";
 import { trackWhatsAppClick } from "@/lib/analytics";
 import { safeLocalGet, safeSessionSet, safeSessionRemove } from "@/lib/storage";
+import { analizarTelefono } from "@/lib/telefono";
 import {
   ArrowLeft,
   CheckCircle,
@@ -52,10 +53,6 @@ function getSafePrecio(n: unknown): number {
 
 function safeFormatARS(n: unknown): string {
   return isValidNumber(n) ? formatARS(n) : "—";
-}
-
-function onlyDigits(value: string): string {
-  return value.replace(/\D/g, "");
 }
 
 // Mapea el tipo interno del ítem al slug de categoría que usa GTM/GA4
@@ -209,6 +206,7 @@ export default function Carrito({
   const [errorMsg, setErrorMsg] = useState("");
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
+  const [telefonoTocado, setTelefonoTocado] = useState(false);
   const [medioPago, setMedioPago] = useState<"" | "efectivo" | "transferencia" | "qr" | "tarjeta">("");
   const [tarjetaId, setTarjetaId] = useState("");
   const [cuotaKey, setCuotaKey] = useState("");
@@ -262,7 +260,8 @@ export default function Carrito({
       : "";
 
   const nombreValido = /[a-zA-ZáéíóúÁÉÍÓÚñÑ]/.test(nombre.trim()) && nombre.trim().length >= 2;
-  const telefonoValido = onlyDigits(telefono).length >= 7;
+  const telefonoInfo = analizarTelefono(telefono);
+  const telefonoValido = telefonoInfo.valido;
   const hasPayment =
     esPagoSimple || (medioPago === "tarjeta" && tarjetaId !== "" && cuotaKey !== "");
   // La forma de pago es opcional: reducir la fricción para generar la
@@ -274,7 +273,9 @@ export default function Carrito({
   // eligió forma de pago o completó el otro campo, para no marcar en rojo al
   // entrar al carrito. Señala con claridad qué falta para poder confirmar.
   const resaltarNombre = (hasPayment || telefonoValido) && !nombreValido;
-  const resaltarTelefono = (hasPayment || nombreValido) && !telefonoValido;
+  // Si ya escribió algo inválido y salió del campo, se marca de inmediato.
+  const resaltarTelefono =
+    ((hasPayment || nombreValido) || (telefonoTocado && telefono.trim() !== "")) && !telefonoValido;
 
   function scrollToCotizadorCategorias() {
     // El flag de storage es solo una pista OPCIONAL para el scroll. Si falla
@@ -363,6 +364,7 @@ export default function Carrito({
           fecha,
           nombre: nombre.trim(),
           telefono: telefono.trim(),
+          telefonoWhatsApp: telefonoInfo.whatsapp,
           productos: cart.map((item) => ({
             id: item.id,
             tipo: item.tipo,
@@ -447,6 +449,7 @@ export default function Carrito({
     setPreview(null);
     setNombre("");
     setTelefono("");
+    setTelefonoTocado(false);
     setMedioPago("");
     setTarjetaId("");
     setCuotaKey("");
@@ -946,8 +949,13 @@ export default function Carrito({
                   <input
                     value={telefono}
                     onChange={(e) => setTelefono(e.target.value)}
+                    onBlur={() => setTelefonoTocado(true)}
                     placeholder="Ej: 381 555 1234"
                     inputMode="tel"
+                    type="tel"
+                    name="telefono"
+                    autoComplete="tel"
+                    maxLength={25}
                     aria-invalid={resaltarTelefono}
                     className={`w-full rounded-2xl border bg-white px-4 py-3 text-sm font-semibold text-slate-900 outline-none transition focus:ring-4 ${
                       resaltarTelefono
@@ -956,7 +964,7 @@ export default function Carrito({
                     }`}
                   />
                   {resaltarTelefono && (
-                    <span className="mt-1.5 block text-xs font-bold text-red-600">Ingresá un teléfono de contacto.</span>
+                    <span className="mt-1.5 block text-xs font-bold text-red-600">{telefonoInfo.error}</span>
                   )}
                 </label>
               </div>

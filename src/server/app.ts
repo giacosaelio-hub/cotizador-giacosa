@@ -10,6 +10,10 @@ const app: Express = express();
 // Determina entorno — debe ir antes de los middlewares que lo usan
 const isProdEarly = process.env.NODE_ENV === "production";
 
+// Detrás del proxy de EasyPanel: necesario para que req.ip sea la IP real del
+// cliente (rate limiting) y no la del proxy.
+app.set("trust proxy", 1);
+
 app.use(compression());
 
 // Security headers via helmet
@@ -136,19 +140,26 @@ if (isProd) {
 
 // CORS configurado para permitir credenciales/cookies y varios origins válidos
 app.use(
-  cors({
-    origin: (origin, callback) => {
-      // Permite llamados sin origin (ej: curl/postman)
-      if (!origin) return callback(null, true);
+  cors((req, callback) => {
+    const origin = req.headers.origin;
+    const options = { credentials: true } as const;
 
-      // Permite solo los origins explícitos
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      // Opcional: responde con error de CORS si origin no es aceptado
-      callback(new Error("Not allowed by CORS"));
-    },
-    credentials: true,
+    // Sin Origin (curl/postman/same-origin GET): permitido.
+    if (!origin) return callback(null, { ...options, origin: true });
+
+    // Same-origin: los navegadores mandan Origin en los POST propios. Si
+    // FRONTEND_ORIGIN no está configurado en producción, antes esto rompía
+    // el envío de cotizaciones con "Not allowed by CORS".
+    let sameOrigin = false;
+    try {
+      sameOrigin = new URL(origin).host === req.headers.host;
+    } catch {}
+
+    if (sameOrigin || allowedOrigins.includes(origin)) {
+      return callback(null, { ...options, origin: true });
+    }
+    // Origin ajeno: sin headers CORS (el navegador lo bloquea) en vez de 500.
+    callback(null, { origin: false });
   })
 );
 
